@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>AT-TYPE-01 · Agent Tower Font Audition</title>
+  <style>
+    @font-face { font-family:"AT Barlow Condensed"; src:url("font-assets/barlow-condensed-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT Barlow Condensed"; src:url("font-assets/barlow-condensed-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT Barlow Condensed"; src:url("font-assets/barlow-condensed-700.ttf") format("truetype"); font-weight:700; font-display:swap; }
+    @font-face { font-family:"AT IBM Plex Sans"; src:url("font-assets/ibm-plex-sans-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT IBM Plex Sans"; src:url("font-assets/ibm-plex-sans-500.ttf") format("truetype"); font-weight:500; font-display:swap; }
+    @font-face { font-family:"AT IBM Plex Sans"; src:url("font-assets/ibm-plex-sans-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT IBM Plex Mono"; src:url("font-assets/ibm-plex-mono-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT IBM Plex Mono"; src:url("font-assets/ibm-plex-mono-500.ttf") format("truetype"); font-weight:500; font-display:swap; }
+
+    @font-face { font-family:"AT Archivo Narrow"; src:url("font-assets/archivo-narrow-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT Archivo Narrow"; src:url("font-assets/archivo-narrow-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT Archivo Narrow"; src:url("font-assets/archivo-narrow-700.ttf") format("truetype"); font-weight:700; font-display:swap; }
+    @font-face { font-family:"AT Source Sans 3"; src:url("font-assets/source-sans-3-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT Source Sans 3"; src:url("font-assets/source-sans-3-500.ttf") format("truetype"); font-weight:500; font-display:swap; }
+    @font-face { font-family:"AT Source Sans 3"; src:url("font-assets/source-sans-3-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT Source Code Pro"; src:url("font-assets/source-code-pro-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT Source Code Pro"; src:url("font-assets/source-code-pro-500.ttf") format("truetype"); font-weight:500; font-display:swap; }
+
+    @font-face { font-family:"AT Barlow Semi Condensed"; src:url("font-assets/barlow-semi-condensed-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT Barlow Semi Condensed"; src:url("font-assets/barlow-semi-condensed-700.ttf") format("truetype"); font-weight:700; font-display:swap; }
+    @font-face { font-family:"AT Fira Sans"; src:url("font-assets/fira-sans-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT Fira Sans"; src:url("font-assets/fira-sans-500.ttf") format("truetype"); font-weight:500; font-display:swap; }
+    @font-face { font-family:"AT Fira Sans"; src:url("font-assets/fira-sans-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT Fira Sans Condensed"; src:url("font-assets/fira-sans-condensed-600.ttf") format("truetype"); font-weight:600; font-display:swap; }
+    @font-face { font-family:"AT Fira Sans Condensed"; src:url("font-assets/fira-sans-condensed-700.ttf") format("truetype"); font-weight:700; font-display:swap; }
+    @font-face { font-family:"AT Fira Mono"; src:url("font-assets/fira-mono-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT Fira Mono"; src:url("font-assets/fira-mono-500.ttf") format("truetype"); font-weight:500; font-display:swap; }
+    @font-face { font-family:"AT PT Sans"; src:url("font-assets/pt-sans-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT PT Sans"; src:url("font-assets/pt-sans-700.ttf") format("truetype"); font-weight:700; font-display:swap; }
+    @font-face { font-family:"AT PT Sans Narrow"; src:url("font-assets/pt-sans-narrow-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+    @font-face { font-family:"AT PT Sans Narrow"; src:url("font-assets/pt-sans-narrow-700.ttf") format("truetype"); font-weight:700; font-display:swap; }
+    @font-face { font-family:"AT PT Mono"; src:url("font-assets/pt-mono-400.ttf") format("truetype"); font-weight:400; font-display:swap; }
+
+    :root {
+      --void:#080d0f; --canvas:#0d1416; --surface:#121b1e; --surface-2:#192427; --line:#2e3b3e; --line-hi:#46575b;
+      --text:#f2f0e8; --text-2:#c8cdce; --muted:#8f9a9e; --cyan:#78c7d5; --cyan-dim:#367781;
+      --green:#7fc59b; --amber:#e1b463; --red:#df837d; --copper:#c98768; --violet:#a89ad6;
+      --radius:16px; --shadow:0 26px 80px rgba(0,0,0,.42);
+      --ui:"AT IBM Plex Sans", sans-serif; --display:"AT Barlow Condensed", sans-serif; --mono:"AT IBM Plex Mono", monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--text); background:linear-gradient(rgba(120,199,213,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(120,199,213,.02) 1px,transparent 1px),var(--void); background-size:32px 32px; font-family:var(--ui); font-synthesis:none; }
+    button { font:inherit; color:inherit; }
+    :focus-visible { outline:2px solid var(--cyan); outline-offset:3px; }
+
+    .topbar { position:sticky; top:0; z-index:20; min-height:64px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:22px; padding:9px 22px; border-bottom:1px solid var(--line); background:rgba(8,13,15,.92); backdrop-filter:blur(18px); }
+    .brand { display:flex; align-items:center; gap:11px; }
+    .tower { width:31px; height:38px; position:relative; color:var(--cyan); }
+    .tower::before { content:""; position:absolute; left:7px; bottom:4px; width:17px; height:28px; border:1px solid currentColor; border-radius:3px; box-shadow:inset 0 7px rgba(120,199,213,.07),inset 0 14px rgba(120,199,213,.04); }
+    .tower::after { content:""; position:absolute; left:3px; bottom:2px; width:25px; border-bottom:1px solid currentColor; }
+    .brand strong { display:block; font:700 16px/1 var(--display); letter-spacing:.08em; text-transform:uppercase; }
+    .brand small { display:block; margin-top:4px; color:var(--muted); font-size:9px; }
+    .controls { justify-self:center; display:flex; gap:4px; padding:4px; border:1px solid var(--line); border-radius:12px; background:var(--canvas); }
+    .controls button { min-height:40px; padding:0 11px; border:0; border-radius:8px; background:transparent; color:var(--text-2); font-size:12px; font-weight:600; cursor:pointer; }
+    .controls button:hover,.controls button[aria-pressed="true"] { color:var(--text); background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line-hi); }
+    .artifact-state { display:flex; align-items:center; gap:9px; }
+    .artifact-id { color:var(--muted); font:10px var(--mono); }
+    .status { min-height:30px; display:inline-flex; align-items:center; gap:6px; padding:0 9px; border:1px solid rgba(225,180,99,.4); border-radius:99px; color:var(--amber); font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+    .status::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+    main { width:min(1640px,100%); margin:0 auto; padding:34px 28px 90px; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(340px,.75fr); align-items:center; gap:44px; padding:34px 4px 44px; border-bottom:1px solid var(--line); }
+    .eyebrow { color:var(--cyan); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    h1 { max-width:900px; margin:12px 0 14px; font:600 clamp(42px,5.5vw,76px)/.92 var(--display); letter-spacing:-.035em; }
+    .hero p { max-width:760px; color:var(--text-2); font-size:14px; line-height:1.65; }
+    .rejection { display:flex; align-items:flex-start; gap:9px; margin-top:20px; padding-top:14px; border-top:1px solid var(--line); color:#efaaa4; font-size:11px; line-height:1.5; }
+    .rejection b { color:var(--text); }
+    .goal-thumb { position:relative; overflow:hidden; border:1px solid var(--line-hi); border-radius:18px; background:var(--surface); box-shadow:var(--shadow); }
+    .goal-thumb img { width:100%; display:block; aspect-ratio:3/2; object-fit:contain; }
+    .goal-thumb span { position:absolute; left:12px; bottom:12px; padding:7px 9px; border:1px solid rgba(127,197,155,.45); border-radius:99px; background:rgba(8,13,15,.86); color:var(--green); font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+
+    .intro { display:flex; justify-content:space-between; align-items:end; gap:30px; padding:54px 0 22px; }
+    .intro h2 { margin:7px 0 0; font:600 38px/1 var(--display); letter-spacing:-.025em; }
+    .intro p { max-width:580px; margin:0; color:var(--text-2); font-size:12px; line-height:1.6; }
+
+    .auditions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:start; }
+    .direction { --d:var(--display); --u:var(--ui); --m:var(--mono); min-width:0; border:1px solid var(--line); border-radius:20px; background:var(--surface); overflow:hidden; box-shadow:0 12px 34px rgba(0,0,0,.18); }
+    .direction-a { --d:"AT Barlow Condensed",sans-serif; --u:"AT IBM Plex Sans",sans-serif; --m:"AT IBM Plex Mono",monospace; border-color:var(--cyan-dim); }
+    .direction-b { --d:"AT Archivo Narrow",sans-serif; --u:"AT Source Sans 3",sans-serif; --m:"AT Source Code Pro",monospace; }
+    .direction-c { --d:"Avenir Next Condensed","Avenir Next",sans-serif; --u:"Helvetica Neue",Helvetica,Arial,sans-serif; --m:"SFMono-Regular",Menlo,monospace; }
+    .direction-d { --d:"AT Barlow Semi Condensed",sans-serif; --u:"AT IBM Plex Sans",sans-serif; --m:"AT IBM Plex Mono",monospace; }
+    .direction-e { --d:"AT Fira Sans Condensed",sans-serif; --u:"AT Fira Sans",sans-serif; --m:"AT Fira Mono",monospace; }
+    .direction-f { --d:"AT PT Sans Narrow",sans-serif; --u:"AT PT Sans",sans-serif; --m:"AT PT Mono",monospace; }
+    body[data-focus="a"] .direction:not(.direction-a),body[data-focus="b"] .direction:not(.direction-b),body[data-focus="c"] .direction:not(.direction-c),body[data-focus="d"] .direction:not(.direction-d),body[data-focus="e"] .direction:not(.direction-e),body[data-focus="f"] .direction:not(.direction-f) { display:none !important; }
+    body[data-focus]:not([data-focus="all"]) .auditions { grid-template-columns:minmax(0,1080px); justify-content:center; }
+    body[data-focus]:not([data-focus="all"]) .direction { display:grid; grid-template-columns:minmax(300px,.8fr) minmax(0,1.2fr); }
+    body[data-focus]:not([data-focus="all"]) .direction-head { grid-column:1/-1; }
+    body[data-focus]:not([data-focus="all"]) .plaque-stage { min-height:100%; }
+
+    .direction-head { min-height:132px; padding:18px 19px; border-bottom:1px solid var(--line); }
+    .dir-meta { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    .option { color:var(--text-2); font:12px var(--m); }
+    .recommend { color:var(--cyan); font:700 10px var(--u); letter-spacing:.08em; text-transform:uppercase; }
+    .direction h3 { margin:10px 0 5px; font:600 28px/1 var(--d); letter-spacing:-.01em; }
+    .font-list { color:var(--text-2); font:13px/1.5 var(--u); }
+
+    .plaque-stage { min-height:330px; display:grid; align-content:center; gap:16px; padding:27px 22px; background:linear-gradient(90deg,rgba(0,0,0,.14),transparent 25%,transparent 75%,rgba(0,0,0,.18)),#70503f; box-shadow:inset 0 18px 40px rgba(0,0,0,.25); }
+    .plaque { min-height:48px; display:flex; align-items:center; justify-content:center; position:relative; padding:8px 16px; border:1px solid #bf9862; border-radius:5px; color:#f3e8cf; background:#2a211d; box-shadow:inset 0 0 0 2px rgba(191,152,98,.1),0 7px 14px rgba(0,0,0,.28); font:700 19px/1 var(--d); letter-spacing:.07em; text-align:center; text-transform:uppercase; }
+    .plaque::before,.plaque::after { content:""; position:absolute; top:6px; width:3px; height:3px; border-radius:50%; background:#d2ad70; box-shadow:0 32px #d2ad70; }
+    .plaque::before { left:7px; }.plaque::after { right:7px; }
+    .plaque.long { font-size:16px; }
+    .plaque.cool { border-color:#567e86; color:#dceef0; background:#172326; }
+
+    .software { padding:18px; font-family:var(--u); }
+    .app-header { min-height:52px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+    .app-wordmark { font:700 17px var(--d); letter-spacing:.07em; text-transform:uppercase; }
+    .app-header span { color:var(--green); font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; }
+    .page-title { height:116px; margin:19px 0 13px; }
+    .page-title small { display:block; color:var(--cyan); font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+    .page-title strong { display:block; margin-top:5px; font:600 31px/1 var(--d); }
+    .page-title p { margin:7px 0 0; color:var(--text-2); font-size:13px; line-height:1.55; }
+    .org-node { height:86px; display:grid; grid-template-columns:38px 1fr auto; gap:10px; align-items:center; padding:12px; border:1px solid var(--line-hi); border-radius:12px; background:var(--canvas); }
+    .org-icon { width:36px; height:36px; display:grid; place-items:center; border-radius:9px; color:var(--violet); background:rgba(168,154,214,.1); font:700 15px var(--d); }
+    .org-node small { display:block; color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+    .org-node strong { display:block; margin-top:3px; font-size:13px; font-weight:600; }
+    .org-node p { margin:3px 0 0; color:var(--text-2); font-size:10px; }
+    .node-state { color:var(--green); font-size:10px; font-weight:600; }
+    .modal-sample { height:190px; margin-top:12px; border:1px solid var(--line); border-radius:13px; overflow:hidden; }
+    .modal-head { padding:13px 14px; border-bottom:1px solid var(--line); background:var(--canvas); }
+    .modal-head small { color:var(--cyan); font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+    .modal-head strong { display:block; margin-top:4px; font:600 21px var(--d); }
+    .modal-body { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; }
+    .datum { padding-top:8px; border-top:1px solid var(--line); }
+    .datum span { display:block; color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+    .datum b { display:block; margin-top:4px; font:500 11px var(--m); overflow-wrap:anywhere; }
+    .reading-sample { height:122px; margin-top:12px; padding:12px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); overflow:hidden; }
+    .reading-sample > span { display:block; color:var(--cyan); font-size:9px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; }
+    .reading-sample p { margin:7px 0 9px; color:var(--text-2); font-size:14px; line-height:1.5; }
+    .reading-sample code { color:var(--green); font:500 12px var(--m); }
+    .evidence { height:66px; margin-top:12px; padding:11px; border:1px dashed var(--line-hi); border-radius:10px; color:var(--text-2); font-size:11px; line-height:1.5; overflow:hidden; }
+    .evidence code { color:var(--cyan); font-family:var(--m); }
+
+    .score { display:grid; grid-template-columns:repeat(2,1fr); border-top:1px solid var(--line); background:var(--line); gap:1px; }
+    .score div { min-height:68px; padding:12px 14px; background:var(--surface); font-family:var(--u); }
+    .score span { display:block; color:var(--muted); font-size:8px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+    .score strong { display:block; margin-top:5px; font-size:11px; line-height:1.4; }
+    .direction-a .score:first-letter { color:var(--cyan); }
+
+    .premium-note { margin-top:18px; display:grid; grid-template-columns:auto 1fr; gap:13px; align-items:start; padding:17px 18px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .premium-note b { color:var(--copper); font:600 15px var(--display); text-transform:uppercase; letter-spacing:.05em; }
+    .premium-note p { margin:0; color:var(--muted); font-size:10px; line-height:1.55; }
+    footer { display:flex; justify-content:space-between; gap:20px; margin-top:44px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font:9px/1.6 var(--mono); }
+
+    @media (max-width:1180px) {
+      .topbar { grid-template-columns:1fr auto; }.controls { display:none; }
+      .auditions { grid-template-columns:1fr; }
+      .direction { display:grid; grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr); }
+      .direction-head { grid-column:1/-1; }.plaque-stage { min-height:100%; }
+    }
+    @media (max-width:760px) {
+      main { padding:22px 14px 60px; }
+      .topbar { min-height:58px; padding:8px 12px; }.brand small,.artifact-id { display:none; }.status { font-size:7px; }
+      .hero { grid-template-columns:1fr; gap:24px; padding-top:28px; }.hero h1 { font-size:50px; }.hero p { font-size:13px; }
+      .goal-thumb span { position:static; display:block; border:0; border-top:1px solid var(--line); border-radius:0; background:var(--surface); }
+      .intro { align-items:flex-start; flex-direction:column; padding-top:46px; }.intro h2 { font-size:34px; }
+      .direction,body[data-focus]:not([data-focus="all"]) .direction { display:block; }
+      .direction-head { min-height:0; }.plaque-stage { min-height:310px; }
+      .software { padding:15px; }.page-title strong { font-size:28px; }
+      footer { flex-direction:column; }
+    }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+  </style>
+</head>
+<body data-focus="all">
+  <header class="topbar">
+    <div class="brand"><span class="tower"></span><span><strong>Agent Tower</strong><small>Typography audition</small></span></div>
+    <div class="controls" aria-label="Typography focus controls">
+      <button type="button" data-focus="all" aria-pressed="true">Compare all</button>
+      <button type="button" data-focus="a" aria-pressed="false">A · Barlow / Plex</button>
+      <button type="button" data-focus="b" aria-pressed="false">B · Archivo / Source</button>
+      <button type="button" data-focus="c" aria-pressed="false">C · Mac native</button>
+      <button type="button" data-focus="d" aria-pressed="false">D · Barlow Semi</button>
+      <button type="button" data-focus="e" aria-pressed="false">E · Fira</button>
+      <button type="button" data-focus="f" aria-pressed="false">F · PT</button>
+    </div>
+    <div class="artifact-state"><span class="artifact-id">AT-TYPE-01</span><span class="status">Selection required</span></div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Typography review · six renderable directions</span>
+        <h1>The tower needs wayfinding, not SaaS polish.</h1>
+        <p>Each direction below uses the same room plaques, organization card, modal title and runtime metadata. Compare the voice in context: physical destination signage, calm software hierarchy and precise technical evidence.</p>
+        <div class="rejection"><span>×</span><span><b>Plus Jakarta Sans is rejected as the intended brand voice.</b> It remains implementation evidence only until a replacement is selected and promoted.</span></div>
+      </div>
+      <figure class="goal-thumb" style="margin:0"><img src="references/AT-REF-01-five-storey-dollhouse-goal.png" alt="Canonical Agent Tower miniature office visual goal" /><span>AT-REF-01 · typography must belong here</span></figure>
+    </section>
+
+    <section>
+      <div class="intro"><div><span class="eyebrow">Comparison board</span><h2>Same product. Six voices.</h2></div><p>TYPE-D · Measured Wayfinding is the current owner favourite. Final selection is deferred until the shortlisted fonts can be switched directly on the live Agent Tower tree diagram after the current UI changes land.</p></div>
+
+      <div class="auditions">
+        <article class="direction direction-a">
+          <header class="direction-head"><div class="dir-meta"><span class="option">TYPE-A</span><span class="recommend">Original recommendation</span></div><h3>Operational Wayfinding</h3><div class="font-list">Barlow Condensed · IBM Plex Sans · IBM Plex Mono</div></header>
+          <div class="plaque-stage"><div class="plaque">CEO Office</div><div class="plaque long">Leadership &amp; People</div><div class="plaque long">Knowledge Vault</div><div class="plaque cool">Data Centre</div></div>
+          <div class="software">
+            <div class="app-header"><div class="app-wordmark">Agent Tower</div><span>● Local only</span></div>
+            <div class="page-title"><small>Organization control surface</small><strong>Engineering</strong><p>Five home members, one accountable manager and a versioned capability profile.</p></div>
+            <div class="org-node"><span class="org-icon">E</span><div><small>Department team · F4</small><strong>Engineering</strong><p>Manager: Code Lead · 0/5 members</p></div><span class="node-state">Healthy</span></div>
+            <div class="modal-sample"><div class="modal-head"><small>Agent organization member</small><strong>Head of Design · Sol</strong></div><div class="modal-body"><div class="datum"><span>Model</span><b>gpt-5.6-sol</b></div><div class="datum"><span>Context</span><b>revision-017</b></div><div class="datum"><span>Runtime</span><b>Hermes</b></div><div class="datum"><span>Observed</span><b>14:42:18</b></div></div></div>
+            <div class="reading-sample"><span>Interface reading sample</span><p>Organization identity, runtime state and cited evidence remain distinct at every level.</p><code>DC-RACK-07 · ctx_r17 · 14:42:18</code></div>
+            <div class="evidence">Runtime state is separate from presence. Latest context receipt: <code>ctx_r17 · verified</code>.</div>
+          </div>
+          <footer class="score"><div><span>Plaques</span><strong>Architectural and confident</strong></div><div><span>UI body</span><strong>Technical without feeling cold</strong></div><div><span>Data</span><strong>Excellent numeral distinction</strong></div><div><span>Risk</span><strong>Condensed face must stay out of prose</strong></div></footer>
+        </article>
+
+        <article class="direction direction-b">
+          <header class="direction-head"><div class="dir-meta"><span class="option">TYPE-B</span><span class="recommend" style="color:var(--copper)">Alternative</span></div><h3>Institutional Workshop</h3><div class="font-list">Archivo Narrow · Source Sans 3 · Source Code Pro</div></header>
+          <div class="plaque-stage"><div class="plaque">CEO Office</div><div class="plaque long">Leadership &amp; People</div><div class="plaque long">Knowledge Vault</div><div class="plaque cool">Data Centre</div></div>
+          <div class="software">
+            <div class="app-header"><div class="app-wordmark">Agent Tower</div><span>● Local only</span></div>
+            <div class="page-title"><small>Organization control surface</small><strong>Engineering</strong><p>Five home members, one accountable manager and a versioned capability profile.</p></div>
+            <div class="org-node"><span class="org-icon">E</span><div><small>Department team · F4</small><strong>Engineering</strong><p>Manager: Code Lead · 0/5 members</p></div><span class="node-state">Healthy</span></div>
+            <div class="modal-sample"><div class="modal-head"><small>Agent organization member</small><strong>Head of Design · Sol</strong></div><div class="modal-body"><div class="datum"><span>Model</span><b>gpt-5.6-sol</b></div><div class="datum"><span>Context</span><b>revision-017</b></div><div class="datum"><span>Runtime</span><b>Hermes</b></div><div class="datum"><span>Observed</span><b>14:42:18</b></div></div></div>
+            <div class="reading-sample"><span>Interface reading sample</span><p>Organization identity, runtime state and cited evidence remain distinct at every level.</p><code>DC-RACK-07 · ctx_r17 · 14:42:18</code></div>
+            <div class="evidence">Runtime state is separate from presence. Latest context receipt: <code>ctx_r17 · verified</code>.</div>
+          </div>
+          <footer class="score"><div><span>Plaques</span><strong>Warm and editorial</strong></div><div><span>UI body</span><strong>Most comfortable for long reading</strong></div><div><span>Data</span><strong>Clear but slightly literary</strong></div><div><span>Risk</span><strong>Less ownable as a control plane</strong></div></footer>
+        </article>
+
+        <article class="direction direction-c">
+          <header class="direction-head"><div class="dir-meta"><span class="option">TYPE-C</span><span class="recommend" style="color:var(--text-2)">Mac-native proxy</span></div><h3>Architectural Executive</h3><div class="font-list">Avenir Next Condensed · Helvetica Neue · SF Mono</div></header>
+          <div class="plaque-stage"><div class="plaque">CEO Office</div><div class="plaque long">Leadership &amp; People</div><div class="plaque long">Knowledge Vault</div><div class="plaque cool">Data Centre</div></div>
+          <div class="software">
+            <div class="app-header"><div class="app-wordmark">Agent Tower</div><span>● Local only</span></div>
+            <div class="page-title"><small>Organization control surface</small><strong>Engineering</strong><p>Five home members, one accountable manager and a versioned capability profile.</p></div>
+            <div class="org-node"><span class="org-icon">E</span><div><small>Department team · F4</small><strong>Engineering</strong><p>Manager: Code Lead · 0/5 members</p></div><span class="node-state">Healthy</span></div>
+            <div class="modal-sample"><div class="modal-head"><small>Agent organization member</small><strong>Head of Design · Sol</strong></div><div class="modal-body"><div class="datum"><span>Model</span><b>gpt-5.6-sol</b></div><div class="datum"><span>Context</span><b>revision-017</b></div><div class="datum"><span>Runtime</span><b>Hermes</b></div><div class="datum"><span>Observed</span><b>14:42:18</b></div></div></div>
+            <div class="reading-sample"><span>Interface reading sample</span><p>Organization identity, runtime state and cited evidence remain distinct at every level.</p><code>DC-RACK-07 · ctx_r17 · 14:42:18</code></div>
+            <div class="evidence">Runtime state is separate from presence. Latest context receipt: <code>ctx_r17 · verified</code>.</div>
+          </div>
+          <footer class="score"><div><span>Plaques</span><strong>Polished executive signage</strong></div><div><span>UI body</span><strong>Clean and familiar on macOS</strong></div><div><span>Data</span><strong>Strong native technical voice</strong></div><div><span>Risk</span><strong>Platform-specific and not DIN/Haas</strong></div></footer>
+        </article>
+
+        <article class="direction direction-d">
+          <header class="direction-head"><div class="dir-meta"><span class="option">TYPE-D</span><span class="recommend" style="color:var(--green)">Current favourite</span></div><h3>Measured Wayfinding</h3><div class="font-list">Barlow Semi Condensed · IBM Plex Sans · IBM Plex Mono</div></header>
+          <div class="plaque-stage"><div class="plaque">CEO Office</div><div class="plaque long">Leadership &amp; People</div><div class="plaque long">Knowledge Vault</div><div class="plaque cool">Data Centre</div></div>
+          <div class="software">
+            <div class="app-header"><div class="app-wordmark">Agent Tower</div><span>● Local only</span></div>
+            <div class="page-title"><small>Organization control surface</small><strong>Engineering</strong><p>Five home members, one accountable manager and a versioned capability profile.</p></div>
+            <div class="org-node"><span class="org-icon">E</span><div><small>Department team · F4</small><strong>Engineering</strong><p>Manager: Code Lead · 0/5 members</p></div><span class="node-state">Healthy</span></div>
+            <div class="modal-sample"><div class="modal-head"><small>Agent organization member</small><strong>Head of Design · Sol</strong></div><div class="modal-body"><div class="datum"><span>Model</span><b>gpt-5.6-sol</b></div><div class="datum"><span>Context</span><b>revision-017</b></div><div class="datum"><span>Runtime</span><b>Hermes</b></div><div class="datum"><span>Observed</span><b>14:42:18</b></div></div></div>
+            <div class="reading-sample"><span>Interface reading sample</span><p>Organization identity, runtime state and cited evidence remain distinct at every level.</p><code>DC-RACK-07 · ctx_r17 · 14:42:18</code></div>
+            <div class="evidence">Runtime state is separate from presence. Latest context receipt: <code>ctx_r17 · verified</code>.</div>
+          </div>
+          <footer class="score"><div><span>Plaques</span><strong>Calmer and less compressed than A</strong></div><div><span>UI body</span><strong>Retains the strong Plex control-plane voice</strong></div><div><span>Data</span><strong>Same excellent numeral distinction</strong></div><div><span>Risk</span><strong>Loses some of A's distinctive verticality</strong></div></footer>
+        </article>
+
+        <article class="direction direction-e">
+          <header class="direction-head"><div class="dir-meta"><span class="option">TYPE-E</span><span class="recommend" style="color:var(--copper)">Challenger</span></div><h3>Engineered Humanist</h3><div class="font-list">Fira Sans Condensed · Fira Sans · Fira Mono</div></header>
+          <div class="plaque-stage"><div class="plaque">CEO Office</div><div class="plaque long">Leadership &amp; People</div><div class="plaque long">Knowledge Vault</div><div class="plaque cool">Data Centre</div></div>
+          <div class="software">
+            <div class="app-header"><div class="app-wordmark">Agent Tower</div><span>● Local only</span></div>
+            <div class="page-title"><small>Organization control surface</small><strong>Engineering</strong><p>Five home members, one accountable manager and a versioned capability profile.</p></div>
+            <div class="org-node"><span class="org-icon">E</span><div><small>Department team · F4</small><strong>Engineering</strong><p>Manager: Code Lead · 0/5 members</p></div><span class="node-state">Healthy</span></div>
+            <div class="modal-sample"><div class="modal-head"><small>Agent organization member</small><strong>Head of Design · Sol</strong></div><div class="modal-body"><div class="datum"><span>Model</span><b>gpt-5.6-sol</b></div><div class="datum"><span>Context</span><b>revision-017</b></div><div class="datum"><span>Runtime</span><b>Hermes</b></div><div class="datum"><span>Observed</span><b>14:42:18</b></div></div></div>
+            <div class="reading-sample"><span>Interface reading sample</span><p>Organization identity, runtime state and cited evidence remain distinct at every level.</p><code>DC-RACK-07 · ctx_r17 · 14:42:18</code></div>
+            <div class="evidence">Runtime state is separate from presence. Latest context receipt: <code>ctx_r17 · verified</code>.</div>
+          </div>
+          <footer class="score"><div><span>Plaques</span><strong>Technical with more human warmth</strong></div><div><span>UI body</span><strong>Strong integrated family rhythm</strong></div><div><span>Data</span><strong>Excellent code and identifier ergonomics</strong></div><div><span>Risk</span><strong>Can feel developer-tool adjacent</strong></div></footer>
+        </article>
+
+        <article class="direction direction-f">
+          <header class="direction-head"><div class="dir-meta"><span class="option">TYPE-F</span><span class="recommend" style="color:var(--copper)">Challenger</span></div><h3>Civic Directory</h3><div class="font-list">PT Sans Narrow · PT Sans · PT Mono</div></header>
+          <div class="plaque-stage"><div class="plaque">CEO Office</div><div class="plaque long">Leadership &amp; People</div><div class="plaque long">Knowledge Vault</div><div class="plaque cool">Data Centre</div></div>
+          <div class="software">
+            <div class="app-header"><div class="app-wordmark">Agent Tower</div><span>● Local only</span></div>
+            <div class="page-title"><small>Organization control surface</small><strong>Engineering</strong><p>Five home members, one accountable manager and a versioned capability profile.</p></div>
+            <div class="org-node"><span class="org-icon">E</span><div><small>Department team · F4</small><strong>Engineering</strong><p>Manager: Code Lead · 0/5 members</p></div><span class="node-state">Healthy</span></div>
+            <div class="modal-sample"><div class="modal-head"><small>Agent organization member</small><strong>Head of Design · Sol</strong></div><div class="modal-body"><div class="datum"><span>Model</span><b>gpt-5.6-sol</b></div><div class="datum"><span>Context</span><b>revision-017</b></div><div class="datum"><span>Runtime</span><b>Hermes</b></div><div class="datum"><span>Observed</span><b>14:42:18</b></div></div></div>
+            <div class="reading-sample"><span>Interface reading sample</span><p>Organization identity, runtime state and cited evidence remain distinct at every level.</p><code>DC-RACK-07 · ctx_r17 · 14:42:18</code></div>
+            <div class="evidence">Runtime state is separate from presence. Latest context receipt: <code>ctx_r17 · verified</code>.</div>
+          </div>
+          <footer class="score"><div><span>Plaques</span><strong>Institutional and utilitarian</strong></div><div><span>UI body</span><strong>Clear administrative reading voice</strong></div><div><span>Data</span><strong>Distinct and disciplined</strong></div><div><span>Risk</span><strong>Can feel public-sector or legacy</strong></div></footer>
+        </article>
+      </div>
+
+      <aside class="premium-note"><b>Premium path</b><p>DIN 2014 Condensed + Neue Haas Grotesk Text remains a valid licensed direction, but it is intentionally not simulated here. Supply licensed webfont files before judging or promoting that exact pairing.</p></aside>
+    </section>
+
+    <footer><span>AT-TYPE-01 · exploratory · TYPE-D current favourite · final selection deferred</span><span>Next review: font switcher on the live Agent Tower tree diagram</span></footer>
+  </main>
+
+  <script>
+    const buttons = [...document.querySelectorAll('[data-focus]')].filter((el) => el.tagName === 'BUTTON')
+    buttons.forEach((button) => button.addEventListener('click', () => {
+      const focus = button.dataset.focus
+      document.body.dataset.focus = focus
+      buttons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)))
+      localStorage.setItem('at-type-focus', focus)
+    }))
+    const saved = localStorage.getItem('at-type-focus')
+    if (saved && ['all','a','b','c','d','e','f'].includes(saved)) {
+      document.body.dataset.focus = saved
+      buttons.forEach((item) => item.setAttribute('aria-pressed', String(item.dataset.focus === saved)))
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "ignoredBuzzPersonaIds": [
+    "builtin:fizz",
+    "builtin:honey",
+    "builtin:bumble"
+  ],
+  "hideEmptyBuiltInTeams": true
+}

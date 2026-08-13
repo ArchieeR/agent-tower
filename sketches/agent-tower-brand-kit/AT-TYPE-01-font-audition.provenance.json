@@ -1,0 +1,121 @@
+{
+  "artifactId": "AT-TYPE-01",
+  "title": "Agent Tower Font Audition",
+  "status": "exploratory",
+  "ownerApproval": "pending",
+  "selectionRequired": true,
+  "createdAt": "2026-08-09",
+  "artifact": "AT-TYPE-01-font-audition.html",
+  "sha256": "ee8a461b3f9aa1134ea436b1efc922de568d2e2b6b7179f320bf1032ed8c812f",
+  "canonicalContext": {
+    "referenceId": "AT-REF-01",
+    "path": "references/AT-REF-01-five-storey-dollhouse-goal.png",
+    "role": "Typography must belong to the canonical miniature-office visual goal"
+  },
+  "rejectedDirection": {
+    "font": "Plus Jakarta Sans",
+    "status": "rejected",
+    "scope": "Intended Agent Tower brand voice",
+    "reason": "Rounded modern SaaS voice does not match the architectural wayfinding, operational seriousness and institutional warmth of AT-REF-01",
+    "implementationBoundary": "May remain current implementation evidence until an approved replacement is promoted"
+  },
+  "directions": [
+    {
+      "id": "TYPE-A",
+      "name": "Operational Wayfinding",
+      "status": "exploratory",
+      "recommendation": "recommended for owner review",
+      "display": "Barlow Condensed",
+      "ui": "IBM Plex Sans",
+      "mono": "IBM Plex Mono",
+      "license": "SIL Open Font License",
+      "risk": "Condensed display family must remain out of prose"
+    },
+    {
+      "id": "TYPE-B",
+      "name": "Institutional Workshop",
+      "status": "exploratory",
+      "recommendation": "alternative",
+      "display": "Archivo Narrow",
+      "ui": "Source Sans 3",
+      "mono": "Source Code Pro",
+      "license": "SIL Open Font License",
+      "risk": "Warmer and more editorial, but less ownable as an operations control plane"
+    },
+    {
+      "id": "TYPE-C",
+      "name": "Architectural Executive",
+      "status": "exploratory",
+      "recommendation": "Mac-native profile proxy only",
+      "display": "Avenir Next Condensed",
+      "ui": "Helvetica Neue",
+      "mono": "SF Mono",
+      "license": "System fonts; no redistributed binaries",
+      "risk": "Platform-specific and not a substitute for licensed DIN/Neue Haas files"
+    }
+  ],
+  "premiumBoundary": "DIN 2014 Condensed + Neue Haas Grotesk Text is not simulated. Licensed webfont files must be supplied before that exact pairing can be judged or promoted.",
+  "fontAssets": {
+    "source": "Google Fonts CSS2 / fonts.gstatic.com",
+    "downloadedForLocalReviewOnly": true,
+    "licensesStored": [
+      "font-assets/LICENSE-Archivo-Narrow.txt",
+      "font-assets/LICENSE-Barlow-Condensed.txt",
+      "font-assets/LICENSE-IBM-Plex-Sans.txt",
+      "font-assets/LICENSE-IBM-Plex-Mono.txt",
+      "font-assets/LICENSE-Source-Sans-3.txt",
+      "font-assets/LICENSE-Source-Code-Pro.txt"
+    ],
+    "files": {
+      "archivo-narrow-400.ttf": "8f870c49fabce4a26512907ce19f55d78324a0b13b43b66ee2bb2d64356d5efa",
+      "archivo-narrow-600.ttf": "2b0f5594c50e639371985699dd632a60cedd171a60b49832aa973cebc5c015e9",
+      "archivo-narrow-700.ttf": "ae9051970e75e3e260f15d103bb7642271bdb6b36b78e7604d588582cea7948e",
+      "barlow-condensed-400.ttf": "c82d65280835cb3cd1b499863cf68cae8c6193c45ffae9495d28d01f749a9ae2",
+      "barlow-condensed-600.ttf": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f",
+      "barlow-condensed-700.ttf": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7",
+      "ibm-plex-mono-400.ttf": "a7fdc993f9f0387caedba4e42521136fa97e4c0837ae6239bf0413ccf8af00c2",
+      "ibm-plex-mono-500.ttf": "4fc14a73ca53ba9d32fd759ae1ca1a3133326035d0dd337862b3ee1633cc156e",
+      "ibm-plex-sans-400.ttf": "6dbe082463cf749cfa057d45c3048c90f4df031496498e5b5bdfd0b6babb9d16",
+      "ibm-plex-sans-500.ttf": "6f7a8c4219e021ff7c9131bc5f1f7af97bcd1436a59578d444a8cb92e9791742",
+      "ibm-plex-sans-600.ttf": "5311c66fd6d04ae45671236f7eae667b671c06c1dc7e88d52c206e5fadd0fb21",
+      "source-code-pro-400.ttf": "66a11c481af5bdcdb91a72282bdb0b9bb5992208a72d89e1dd393e5e8255c7a2",
+      "source-code-pro-500.ttf": "d04c6deeebebe706b13e82b0fc91d0becba43b492ec84e3763ce4724132f05ea",
+      "source-sans-3-400.ttf": "b6f2cc8d9905e97b5cd7a294367bb529814385f299fb23057060394cbd6bbffb",
+      "source-sans-3-500.ttf": "3772689bdef0cd284428994189d89d1fd412591e8906fb5bd0c4692a3314cbe7",
+      "source-sans-3-600.ttf": "26efb7fbad9540df2595fe867a37e454d22973b9e37816d263fdc5295cb084bb"
+    }
+  },
+  "visualEvidence": [
+    {
+      "path": "evidence/AT-TYPE-01-compare-1600.png",
+      "viewport": "1600x915",
+      "sha256": "d02c04ee19f76314fff4d154ca9f837a8acb0d8a1ee86fd843de7f501ef3edb9"
+    },
+    {
+      "path": "evidence/AT-TYPE-01-software-1600.png",
+      "viewport": "1600x915",
+      "sha256": "997143aac6f048d6032e542bb8e761d341b171639c395ab63339a5aa94da3470"
+    },
+    {
+      "path": "evidence/AT-TYPE-01-mobile-500.png",
+      "viewport": "500x759 (Firefox MCP minimum narrow width)",
+      "sha256": "1c8dda8059b7983aaa0f8619eeb28020644ea39d12d83d6fc411af0504b2dd2d"
+    }
+  ],
+  "verification": {
+    "htmlParser": "passed focused verifier",
+    "fontNetworkRequests": "all required local review fonts returned HTTP 200",
+    "fontRenderProof": "distinct canvas text widths confirmed for all three display directions",
+    "alignedSpecimenRows": true,
+    "desktopHorizontalOverflow": false,
+    "mobileHorizontalOverflow": false,
+    "focusControl": "passed: selection, aria-pressed, hide/show and localStorage persistence",
+    "consoleErrors": "no artifact-specific JavaScript errors observed",
+    "visualQa": "passed at desktop comparison, aligned software specimen and narrow viewport"
+  },
+  "linear": {
+    "issue": "ALD-132",
+    "parentIssue": "ALD-126",
+    "project": "Agent Tower — Spatial Skin & UX Proof"
+  }
+}

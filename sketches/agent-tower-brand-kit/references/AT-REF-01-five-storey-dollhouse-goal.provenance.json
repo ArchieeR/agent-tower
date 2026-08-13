@@ -1,0 +1,72 @@
+{
+  "referenceId": "AT-REF-01",
+  "title": "Five-storey miniature office tower — owner visual goal",
+  "status": "canonical",
+  "ownerApproval": "approved",
+  "decisionDate": "2026-08-09",
+  "source": "Owner-supplied image in Hermes session",
+  "artifact": "AT-REF-01-five-storey-dollhouse-goal.png",
+  "sha256": "853711aa260a67779688ea1ebdc77fdf1339400c78afbfbb1deee45e6dc9ebdc",
+  "dimensions": {
+    "width": 1536,
+    "height": 1024,
+    "aspectRatio": "3:2"
+  },
+  "referenceRole": "Primary environment, composition, room-stage, material and lighting goal",
+  "canonicalScope": [
+    "Centered five-storey front-open dollhouse tower",
+    "Near-orthographic straight-on camera with slight downward pitch",
+    "Thick pale concrete slabs, roof, side walls and vertical supports",
+    "Continuous cool-gray elevator spine on the far right",
+    "Three small top rooms, paired middle-floor rooms and one broad Data Centre foundation",
+    "Miniature-office materials, broad bevels and strong contact shadows",
+    "Warm practical lighting for human and knowledge rooms",
+    "Cool blue technical lighting for elevators and Data Centre",
+    "Dark brass-trimmed mounted room plaques",
+    "One dominant furniture cluster and one unmistakable functional prop per room",
+    "One to three stylized working occupants per room",
+    "Moderate furniture density with clear silhouettes",
+    "Dark navy void with generous side negative space"
+  ],
+  "notCanonical": [
+    "Legacy room names and organization taxonomy",
+    "Creative department",
+    "Strategy department",
+    "Exact character identities, all-male cast or identical suits",
+    "Generated sign text beyond its visual treatment",
+    "Exact furniture geometry or technical dimensions",
+    "Runtime state, organization data or implementation architecture"
+  ],
+  "requiredSemanticCorrections": [
+    "Replace Creative with Engineering and replace its ideation props with engineering workstations, schematics, testing and debugging cues",
+    "Remove Strategy semantics and tactical blackboard",
+    "Represent Leadership & People, Head of Agents and System Manager explicitly",
+    "Keep Marketing and Operations as managed teams",
+    "Keep Library/Knowledge Vault and Data Centre as separate shared services",
+    "Place External Counsel outside reporting lines rather than silently making it an internal department",
+    "Diversify member presentation while preserving the stylized proportions"
+  ],
+  "referenceHierarchy": [
+    {
+      "priority": 1,
+      "role": "Primary environment and composition",
+      "reference": "AT-REF-01"
+    },
+    {
+      "priority": 2,
+      "role": "Current organization and room semantics",
+      "reference": "Accepted Agent Tower product/domain documents and Linear"
+    },
+    {
+      "priority": 3,
+      "role": "Secondary visual DNA",
+      "reference": "Operations Control Plane brand/icon system, pending owner decisions"
+    }
+  ],
+  "promotionBoundary": "This image is canonical only for its declared visual-goal scope. It is not technical canon and does not authorize Blender or R3F production before the semantic room map and master spatial contract are approved.",
+  "linear": {
+    "issue": "ALD-132",
+    "parentIssue": "ALD-126",
+    "project": "Agent Tower — Spatial Skin & UX Proof"
+  }
+}

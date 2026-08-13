@@ -1,0 +1,96 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "id": "agent-tower-brand-foundation",
+    "version": "0.1.0-provisional",
+    "status": "provisional",
+    "ownerApproval": "pending",
+    "decisionDate": null,
+    "linearIssue": "ALD-132",
+    "note": "No token is canonical before explicit owner approval. Department accents are categorical and must not encode health."
+  },
+  "color": {
+    "neutral": {
+      "canvas": { "$type": "color", "$value": "#07111B" },
+      "canvasRaised": { "$type": "color", "$value": "#0A1722" },
+      "surface": { "$type": "color", "$value": "#0D1C28" },
+      "surfaceRaised": { "$type": "color", "$value": "#122634" },
+      "surfaceWarm": { "$type": "color", "$value": "#191C20" },
+      "text": { "$type": "color", "$value": "#EFF6F8" },
+      "textMuted": { "$type": "color", "$value": "#A9BAC2" },
+      "line": { "$type": "color", "$value": "rgba(177, 211, 224, 0.14)" },
+      "lineStrong": { "$type": "color", "$value": "rgba(177, 211, 224, 0.27)" }
+    },
+    "semantic": {
+      "info": { "$type": "color", "$value": "#54B7D4" },
+      "healthy": { "$type": "color", "$value": "#7CC89D" },
+      "attention": { "$type": "color", "$value": "#E8BA66" },
+      "danger": { "$type": "color", "$value": "#EF8C8C" },
+      "stale": { "$type": "color", "$value": "#B9A7E7" },
+      "disabled": { "$type": "color", "$value": "#71858F" }
+    },
+    "department": {
+      "leadershipPeople": { "$type": "color", "$value": "#D889A2" },
+      "headOfAgents": { "$type": "color", "$value": "#E09B72" },
+      "systemManager": { "$type": "color", "$value": "#54B7D4" },
+      "marketing": { "$type": "color", "$value": "#4AA8DA" },
+      "operations": { "$type": "color", "$value": "#42B7A7" },
+      "engineering": { "$type": "color", "$value": "#8494DD" },
+      "libraryVault": { "$type": "color", "$value": "#9DAE72" },
+      "dataCentre": { "$type": "color", "$value": "#A98BD4" },
+      "externalCounsel": { "$type": "color", "$value": "#A9BAC2" }
+    }
+  },
+  "space": {
+    "1": { "$type": "dimension", "$value": "4px" },
+    "2": { "$type": "dimension", "$value": "8px" },
+    "3": { "$type": "dimension", "$value": "12px" },
+    "4": { "$type": "dimension", "$value": "16px" },
+    "6": { "$type": "dimension", "$value": "24px" },
+    "8": { "$type": "dimension", "$value": "32px" },
+    "12": { "$type": "dimension", "$value": "48px" }
+  },
+  "radius": {
+    "badge": { "$type": "dimension", "$value": "6px" },
+    "control": { "$type": "dimension", "$value": "10px" },
+    "card": { "$type": "dimension", "$value": "16px" },
+    "modal": { "$type": "dimension", "$value": "24px" },
+    "pill": { "$type": "dimension", "$value": "999px" }
+  },
+  "size": {
+    "touchMinimum": { "$type": "dimension", "$value": "44px" },
+    "iconCompact": { "$type": "dimension", "$value": "16px" },
+    "iconDefault": { "$type": "dimension", "$value": "20px" },
+    "iconNode": { "$type": "dimension", "$value": "24px" },
+    "iconHero": { "$type": "dimension", "$value": "32px" },
+    "modalMax": { "$type": "dimension", "$value": "1180px" }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": { "$type": "fontFamily", "$value": ["Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"] },
+      "mono": { "$type": "fontFamily", "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"] }
+    },
+    "fontSize": {
+      "eyebrow": { "$type": "dimension", "$value": "11px" },
+      "compact": { "$type": "dimension", "$value": "12px" },
+      "body": { "$type": "dimension", "$value": "14px" },
+      "section": { "$type": "dimension", "$value": "16px" },
+      "heading": { "$type": "dimension", "$value": "24px" },
+      "display": { "$type": "dimension", "$value": "32px" }
+    }
+  },
+  "icon": {
+    "grid": { "$type": "number", "$value": 24 },
+    "drawingBox": { "$type": "number", "$value": 20 },
+    "strokeDefault": { "$type": "number", "$value": 1.75 },
+    "strokeCompact": { "$type": "number", "$value": 1.5 },
+    "cap": { "$type": "string", "$value": "round" },
+    "join": { "$type": "string", "$value": "round" }
+  },
+  "motion": {
+    "fast": { "$type": "duration", "$value": "120ms" },
+    "standard": { "$type": "duration", "$value": "160ms" },
+    "modal": { "$type": "duration", "$value": "180ms" },
+    "reduced": { "$type": "duration", "$value": "80ms" }
+  }
+}

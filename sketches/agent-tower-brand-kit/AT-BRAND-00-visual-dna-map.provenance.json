@@ -1,0 +1,101 @@
+{
+  "artifactId": "AT-BRAND-00",
+  "title": "Agent Tower Visual DNA Map",
+  "status": "exploratory",
+  "ownerApproval": "pending",
+  "createdAt": "2026-08-09",
+  "workstream": {
+    "issue": "ALD-132",
+    "parentIssue": "ALD-126",
+    "project": "Agent Tower — Spatial Skin & UX Proof"
+  },
+  "artifact": "AT-BRAND-00-visual-dna-map.html",
+  "sha256": "72ca3bf504173107ace683ce6eaa4cef88fa629162883e4d93b8ab6c08e3286d",
+  "canonicalReferences": [
+    {
+      "referenceId": "AT-REF-01",
+      "path": "references/AT-REF-01-five-storey-dollhouse-goal.png",
+      "sha256": "853711aa260a67779688ea1ebdc77fdf1339400c78afbfbb1deee45e6dc9ebdc",
+      "scope": "Primary environment, composition, room-stage, material and lighting goal; legacy labels are excluded from canon"
+    }
+  ],
+  "visualEvidence": [
+    {
+      "path": "evidence/AT-BRAND-00-desktop-1440.png",
+      "viewport": "1440x915",
+      "sha256": "6445e430b94085549e1dc1efe4969bfbf18cbafae887e221a57cf78ba6f82b59"
+    },
+    {
+      "path": "evidence/AT-BRAND-00-mobile-500.png",
+      "viewport": "500x759 (Firefox MCP minimum narrow width)",
+      "sha256": "0602f3b960484f04ac95d668f1e7d4bf8bff3d30b470f5986c5defc2967a9972"
+    },
+    {
+      "path": "evidence/AT-BRAND-00-icon-stances-1440.png",
+      "viewport": "1440x915",
+      "sha256": "1a556d1b55a7c487bdcf56a17a537c0afa0fa9bb959d704b182ca031dffa1f35"
+    },
+    {
+      "path": "evidence/AT-BRAND-00-goal-reference-1440.png",
+      "viewport": "1440x915",
+      "sha256": "7964c73c88715662775f467543c3230ad3150746f13330631d99d4f296c87b53"
+    },
+    {
+      "path": "evidence/AT-BRAND-00-goal-reference-mobile-500.png",
+      "viewport": "500x759 (Firefox MCP minimum narrow width)",
+      "sha256": "e9bb6fea0f3451ba3747ec80d5c8505e514a8cf3a00d2bdb2ff31dc128d158ac"
+    }
+  ],
+  "surfaceArchetype": "explore",
+  "sources": [
+    "docs/handoffs/BRAND-KIT-AND-ICON-LANGUAGE-SESSION-BRIEF.md",
+    "docs/00-product/PROJECT-01-LOCAL-BUZZ-ORGANISATION-SURFACE.md",
+    "docs/01-domain/ORGANIZATION-MEMBERS-TEAMS-AND-CAPABILITY-SCOPES.md",
+    "docs/01-domain/MODEL-ROSTER-AND-GENERAL-COUNCIL.md",
+    "docs/02-architecture/BUZZ-WORKSPACE-HERMES-MESSAGING-AND-AGENTS.md",
+    "docs/03-programme/LINEAR-PROGRAMME-ORDER.md",
+    "docs/05-world/DYNAMIC-ORGANISATION-DIRECTORY-AND-GAME-STATE.md",
+    "Code/agent-tower/app/globals.css",
+    "Code/agent-tower/components/organization/organization-directory.tsx",
+    "Linear ALD-132",
+    "Linear ALD-126",
+    "AT-REF-01 owner-supplied five-storey miniature office tower goal"
+  ],
+  "evidenceBoundary": "No surviving legacy KIT or style-kit files were present in the recreated project root. Current organization UI styling was treated as implementation evidence, not visual canon.",
+  "lockedDecisions": [
+    "Dark Operations Control Plane stance",
+    "AT-REF-01 is the canonical visual goal for tower composition, camera, miniature materials and warm/cool lighting",
+    "Project 1 remains DOM-first and modal-first",
+    "Future spatial world remains a separate workstream",
+    "Active organization taxonomy shown on the board",
+    "Creative and Strategy remain removed",
+    "External Counsel remains outside reporting lines",
+    "Official provider logos use deterministic asset slots"
+  ],
+  "exploratoryDirections": [
+    "ICON-A Precision Line",
+    "ICON-B Workshop Stamp",
+    "ICON-C Signal Plaque"
+  ],
+  "recommendedForReview": "ICON-C Signal Plaque",
+  "rejectedReferences": [
+    "KIT-09 arcade direction"
+  ],
+  "openQuestions": [
+    "Provisional icon direction",
+    "Strength of warm physical material layer",
+    "Single global operational signal colour"
+  ],
+  "runtimeDependency": false,
+  "verification": {
+    "htmlParser": "passed",
+    "fontLoad": "passed",
+    "consoleErrors": "none",
+    "desktopHorizontalOverflow": false,
+    "mobileHorizontalOverflow": false,
+    "canonicalReferenceLoad": "passed at 1536x1024 and displayed uncropped at 3:2",
+    "visualQa": "passed after hierarchy, legibility and uncropped-reference repair",
+    "slopAudit": "0/10 after repair"
+  },
+  "notes": "Generated as a local self-contained discovery canvas. AT-REF-01 is embedded as a local owner-supplied canonical visual-goal reference; its legacy room labels are explicitly outside the canonical scope. No external logo asset is embedded. Firefox MCP clamps the requested 390px viewport to 500px; the CSS mobile breakpoint was active and DOM overflow checks passed."
+}

@@ -1,0 +1,46 @@
+{
+  "operation": "add-empty-agent-tower-teams",
+  "buzz_version": "0.5.8",
+  "live_path": "/Users/archieroberts60/Library/Application Support/xyz.block.buzz.app/agents/teams.json",
+  "created_at": "2026-08-09T11:13:43.553566+00:00",
+  "before_sha256": "abaf88a87ef8ba8ff0f0a3e9b7f22cf3aad1cac8861e69cb6b241c6d9e07ea8e",
+  "after_sha256": "2eb8d163b7621f5a6142bb0aa9756a89d538bf57127866a0d0d71c344fe5cd06",
+  "added_teams": [
+    {
+      "id": "9c02a776-1d7c-43e3-870f-e64dcdd0eae1",
+      "name": "Leadership & People"
+    },
+    {
+      "id": "d2816e03-af4d-43be-a7b6-f3696ec5d134",
+      "name": "Creative"
+    },
+    {
+      "id": "4e6aa893-4e17-4f40-a970-d51602c585b4",
+      "name": "Marketing"
+    },
+    {
+      "id": "60a5fa42-c1bd-4ad7-b283-a7cfa822722a",
+      "name": "Operations"
+    },
+    {
+      "id": "d36af59b-ffbf-4aab-88de-261329498de6",
+      "name": "Strategy"
+    },
+    {
+      "id": "6f1e0a69-a244-43c1-9b43-9ce78c6f4726",
+      "name": "Engineering"
+    },
+    {
+      "id": "c6d48f57-cb60-43e6-bff9-8de7df9b11ec",
+      "name": "Library & Knowledge Vault"
+    },
+    {
+      "id": "f9fb1215-fb0e-4139-bc03-48ae1ad5a2b3",
+      "name": "Data Centre"
+    }
+  ],
+  "preserved_existing_team_ids": [
+    "builtin-team:welcome"
+  ],
+  "rollback_file": "/Users/archieroberts60/Documents/ALDR Ltd/Agent-Tower/data/buzz-history/teams/20260809T111343Z/before.json"
+}

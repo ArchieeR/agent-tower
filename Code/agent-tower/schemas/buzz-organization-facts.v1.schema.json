@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-tower.local/schemas/buzz-organization-facts.v1.schema.json",
+  "title": "Buzz Organization Facts V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "observedAt", "staleAfterMs", "sourceRevision", "members", "teams", "health"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "source": { "enum": ["buzz-desktop-tauri", "buzz-local-file-fallback", "buzz-relay-public"] },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "staleAfterMs": { "type": "integer", "minimum": 1 },
+    "sourceRevision": { "type": "string", "minLength": 1 },
+    "community": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "relayUrl"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "relayUrl": { "type": "string", "pattern": "^wss?://" },
+        "membershipRole": { "enum": ["owner", "admin", "member"] }
+      }
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["buzzPubkey", "managedAgentId", "displayName", "runtime", "messaging"],
+        "properties": {
+          "buzzPubkey": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" },
+          "managedAgentId": { "type": "string", "minLength": 1 },
+          "personaId": { "type": "string" },
+          "displayName": { "type": "string", "minLength": 1 },
+          "npub": { "type": "string", "pattern": "^npub1" },
+          "nip05Handle": { "type": "string" },
+          "runtime": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "backend", "parallelism", "startOnAppLaunch", "needsRestart", "personaOutOfDate", "personaOrphaned"],
+            "properties": {
+              "status": { "enum": ["running", "stopped", "deployed", "not_deployed", "unknown"] },
+              "runtime": { "type": "string" },
+              "backend": { "enum": ["local", "provider", "unknown"] },
+              "provider": { "type": "string" },
+              "model": { "type": "string" },
+              "parallelism": { "type": "integer", "minimum": 1 },
+              "startOnAppLaunch": { "type": "boolean" },
+              "needsRestart": { "type": "boolean" },
+              "personaOutOfDate": { "type": "boolean" },
+              "personaOrphaned": { "type": "boolean" },
+              "lastErrorCode": { "type": ["string", "number"] }
+            }
+          },
+          "messaging": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["senderPolicy"],
+            "properties": {
+              "senderPolicy": { "enum": ["owner-only", "allowlist", "anyone", "unknown"] }
+            }
+          }
+        }
+      }
+    },
+    "teams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "personaIds", "isBuiltin"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "personaIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "isBuiltin": { "type": "boolean" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "observedAt"],
+      "properties": {
+        "state": { "enum": ["connected", "degraded", "disconnected"] },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "detail": { "type": "string" }
+      }
+    }
+  }
+}
