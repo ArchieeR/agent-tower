@@ -1,54 +1,25 @@
 "use client"
 
 import {
-  Activity,
-  AppWindow,
   ArrowUpRight,
-  BookOpen,
-  Boxes,
-  BriefcaseBusiness,
-  Building2,
   Cable,
   CheckCircle2,
-  CircleDot,
-  Cpu,
-  Database,
-  ExternalLink,
-  Layers,
-  Megaphone,
-  Network,
-  PackageCheck,
   PlugZap,
   Plus,
-  RefreshCw,
   Search,
-  ServerCog,
-  ShieldCheck,
   Sparkles,
-  Terminal,
-  TriangleAlert,
   Wrench,
   X,
-  Zap,
 } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
 import { useMemo, useState, type FormEvent } from "react"
-import type { CapabilityCatalogEntry, CapabilityKind, ProvisioningState } from "@/lib/capability-catalog"
+import type { CapabilityCatalogEntry, CapabilityKind } from "@/lib/capability-catalog"
 import type { OrganizationReadModel } from "@/lib/organization-model"
-import { skillsCatalog, type SkillEntry, type SkillScope } from "@/lib/skills-catalog"
-import { composioToolsCatalog, type ComposioTool } from "@/lib/composio-tools-catalog"
+import { skillsCatalog, type SkillScope } from "@/lib/skills-catalog"
+import { composioToolsCatalog } from "@/lib/composio-tools-catalog"
 import { useLiveOrganizationModel } from "@/lib/use-live-organization-model"
 import { ToolIcon, SkillIcon } from "@/components/icons/tool-icons"
 import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
 import { useCustomEntriesStore } from "@/lib/custom-entries-store"
-
-const stateLabels: Record<ProvisioningState, string> = {
-  healthy: "Healthy",
-  configured: "Configured",
-  planned: "Planned",
-  degraded: "Degraded",
-  unavailable: "Unavailable",
-}
 
 const departmentNames: Record<string, string> = {
   marketing: "Growth & Marketing",
@@ -81,8 +52,6 @@ const departmentBadges: Record<string, string> = {
 }
 
 export function ConnectionsDirectory({ model, catalog }: { model: OrganizationReadModel; catalog: CapabilityCatalogEntry[] }) {
-  const router = useRouter()
-  const params = useSearchParams()
   const live = useLiveOrganizationModel(model)
 
   const [activeTab, setActiveTab] = useState<"skills" | "tools" | "composio">("skills")
@@ -125,7 +94,7 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
   const allSkills = useMemo(() => [...customSkills, ...skillsCatalog], [customSkills])
 
   // All combined tools (Static + Custom)
-  const allTools = useMemo(() => [...customTools, ...catalog], [customTools])
+  const allTools = useMemo(() => [...customTools, ...catalog], [customTools, catalog])
 
   // Filter skills
   const filteredSkills = useMemo(() => {
@@ -247,9 +216,10 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
               <option value="everyone">🌐 Baseline (Everyone)</option>
               {activeWorkspaceId === "aldr" ? (
                 <>
-                  <option value="growth">📊 Investment Committee & Sourcing</option>
-                  <option value="operations">📈 Financial Valuation & Diligence</option>
-                  <option value="system">🛡️ Portfolio Operations & Governance</option>
+                  <option value="investment-committee">📊 Investment Committee</option>
+                  <option value="deal-sourcing">🔍 Deal Sourcing & Market Intel</option>
+                  <option value="financial-modeling">📈 Financial Modeling & Valuation</option>
+                  <option value="portfolio-ops">🛡️ Portfolio Operations & Risk</option>
                 </>
               ) : (
                 <>

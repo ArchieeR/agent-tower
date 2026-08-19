@@ -1,12 +1,9 @@
 "use client"
 
 import {
-  Activity,
-  BookOpen,
   Bot,
   Boxes,
   BriefcaseBusiness,
-  CalendarClock,
   Database,
   Megaphone,
   MessagesSquare,
@@ -29,7 +26,7 @@ import { getWorkspaceDepartments } from "@/lib/organization-model"
 import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
 import { DetailModal } from "@/components/organization/detail-modal"
 import { DepartmentConfigurationPanel } from "@/components/organization/department-configuration-panel"
-import { capabilityCatalog, type CapabilityKind } from "@/lib/capability-catalog"
+import { capabilityCatalog } from "@/lib/capability-catalog"
 import { skillsCatalog } from "@/lib/skills-catalog"
 import { ToolIcon, SkillIcon } from "@/components/icons/tool-icons"
 import { useLiveOrganizationModel, type OrganizationSyncStatus } from "@/lib/use-live-organization-model"
@@ -154,15 +151,6 @@ const departmentMetadata: Record<
       { name: "Secrets Vault", slug: "google-secrets-manager", state: "configured", iconSlug: "gcp" },
     ],
   },
-}
-
-function CapabilityGlyph({ kind }: { kind: CapabilityKind }) {
-  if (kind === "connector") return <PlugZap size={15} />
-  if (kind === "runtime") return <ServerCog size={15} />
-  if (kind === "software") return <Boxes size={15} />
-  if (kind === "knowledge") return <BookOpen size={15} />
-  if (kind === "report") return <Activity size={15} />
-  return <Wrench size={15} />
 }
 
 function assignedCapabilities(department: DepartmentView) {

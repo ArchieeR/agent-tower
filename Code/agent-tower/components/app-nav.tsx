@@ -5,7 +5,7 @@ import { Building2, Cable, ChevronDown, CircleUserRound, Layers, Plus, Settings,
 import { usePathname } from "next/navigation"
 import { useMemo, useState, type FormEvent } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useOrganizationSelection, defaultWorkspaces, type WorkspaceId } from "@/lib/selection-store"
+import { useOrganizationSelection, defaultWorkspaces } from "@/lib/selection-store"
 import { useCustomEntriesStore } from "@/lib/custom-entries-store"
 
 export function AppNav() {

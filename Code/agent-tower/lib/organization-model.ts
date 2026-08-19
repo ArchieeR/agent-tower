@@ -19,6 +19,7 @@ export type DepartmentView = {
   id: string
   name: string
   kind: DepartmentKind
+  workspaceId?: "rheos" | "aldr" | string
   floor: string
   roomId: string
   accent: string
@@ -165,6 +166,7 @@ export const rheosDepartments: DepartmentView[] = [
     id: "marketing",
     name: "Growth & Marketing",
     kind: "custom",
+    workspaceId: "rheos",
     floor: "F4",
     roomId: "marketing",
     accent: "orange",
@@ -183,6 +185,7 @@ export const rheosDepartments: DepartmentView[] = [
     id: "engineering",
     name: "Engineering",
     kind: "custom",
+    workspaceId: "rheos",
     floor: "F3",
     roomId: "engineering",
     accent: "indigo",
@@ -201,6 +204,7 @@ export const rheosDepartments: DepartmentView[] = [
     id: "operations",
     name: "Operations & Finance",
     kind: "system",
+    workspaceId: "rheos",
     floor: "F2",
     roomId: "operations-finance",
     accent: "teal",
@@ -219,6 +223,7 @@ export const rheosDepartments: DepartmentView[] = [
     id: "knowledge",
     name: "Knowledge & Data Centre",
     kind: "system",
+    workspaceId: "rheos",
     floor: "F1",
     roomId: "knowledge-data-centre",
     accent: "olive",
@@ -240,6 +245,7 @@ export const aldrDepartments: DepartmentView[] = [
     id: "investment-committee",
     name: "Investment Committee",
     kind: "custom",
+    workspaceId: "aldr",
     floor: "F4",
     roomId: "investment-committee",
     accent: "orange",
@@ -258,6 +264,7 @@ export const aldrDepartments: DepartmentView[] = [
     id: "deal-sourcing",
     name: "Deal Sourcing & Market Intel",
     kind: "custom",
+    workspaceId: "aldr",
     floor: "F3",
     roomId: "deal-sourcing",
     accent: "teal",
@@ -276,6 +283,7 @@ export const aldrDepartments: DepartmentView[] = [
     id: "financial-modeling",
     name: "Financial Modeling & Valuation",
     kind: "custom",
+    workspaceId: "aldr",
     floor: "F2",
     roomId: "financial-modeling",
     accent: "indigo",
@@ -294,6 +302,7 @@ export const aldrDepartments: DepartmentView[] = [
     id: "portfolio-ops",
     name: "Portfolio Operations & Risk",
     kind: "system",
+    workspaceId: "aldr",
     floor: "F1",
     roomId: "portfolio-ops",
     accent: "olive",

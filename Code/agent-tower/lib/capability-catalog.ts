@@ -394,6 +394,19 @@ export const capabilityCatalog: CapabilityCatalogEntry[] = [
 
   // Investment Team Tools (ALDR Ltd)
   {
+    id: "xero",
+    name: "Xero Accounting API",
+    kind: "connector",
+    provider: "Composio / Xero",
+    state: "healthy",
+    organizationWide: false,
+    permissionPolicy: "department-use",
+    departmentIds: ["financial-modeling", "operations"],
+    description: "Financial ledger, invoices, balance sheet & cashflow statement sync.",
+    evidence: "Connected via Composio Xero integration.",
+    iconSlug: "xero",
+  },
+  {
     id: "crunchbase-intel",
     name: "Crunchbase & Funding Data",
     kind: "connector",

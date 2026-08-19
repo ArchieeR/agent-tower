@@ -72,6 +72,7 @@ export const useCustomEntriesStore = create<CustomEntriesState>()(
             id: dept.id,
             name: dept.name,
             kind: "custom",
+            workspaceId: dept.workspaceId,
             floor: `F${state.customDepartments.length + 5}`,
             roomId: dept.id,
             accent: dept.accent || randomAccent,

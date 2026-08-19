@@ -1,72 +1,35 @@
 import React from "react"
 import {
-  Activity,
-  BarChart3,
   Binary,
-  BookOpen,
   Bot,
   Box,
-  Boxes,
   BrainCircuit,
   Briefcase,
-  Bug,
-  Cable,
-  Calculator,
-  Calendar,
-  CheckCircle2,
-  CheckSquare,
-  CircleDot,
   Clapperboard,
-  Compass,
   Cpu,
-  CreditCard,
-  Crosshair,
-  Database,
-  Eye,
-  FileSpreadsheet,
-  FileText,
-  Flame,
   Globe,
   HardDrive,
-  Hash,
   HeartPulse,
   HelpCircle,
   KeyRound,
   Laptop,
-  Layers,
-  LineChart,
   ListTodo,
   Lock,
-  Mail,
   Megaphone,
-  MessageCircle,
   MessagesSquare,
-  Milestone,
-  Network,
-  PackageCheck,
-  Palette,
-  PlaySquare,
   PlugZap,
   Radio,
   Receipt,
-  Search,
-  Send,
-  Server,
   ServerCog,
   Share2,
-  ShieldAlert,
-  ShieldCheck,
   Sparkles,
   Table,
   Target,
-  Terminal,
   TestTube,
   TrendingUp,
   UserCheck,
   Users,
-  Video,
   Workflow,
-  Wrench,
   Zap,
 } from "lucide-react"
 
@@ -343,11 +306,20 @@ export function ToolIcon({
 }) {
   const key = (slug || name || "").toLowerCase().replace(/[_\s-]+/g, "-")
 
+  // Dedicated Product/Platform Tool Mappings
+  if (key.includes("secrets") || key.includes("secret") || key.includes("gcp")) return <KeyRound size={size} className={className} style={{ color: "#EF4444", ...style }} />
+  if (key.includes("observability") || key.includes("monitoring")) return <HeartPulse size={size} className={className} style={{ color: "#10B981", ...style }} />
+  if (key.includes("eden")) return <Share2 size={size} className={className} style={{ color: "#F472B6", ...style }} />
+  if (key.includes("buzz")) return <Bot size={size} className={className} style={{ color: "#10B981", ...style }} />
+  if (key.includes("brain") || key.includes("rheos-brain")) return <BrainCircuit size={size} className={className} style={{ color: "#38BDF8", ...style }} />
+  if (key.includes("rig") || key.includes("local-rig")) return <Cpu size={size} className={className} style={{ color: "#F59E0B", ...style }} />
+  if (key.includes("qa") || key.includes("devtools")) return <Laptop size={size} className={className} style={{ color: "#818CF8", ...style }} />
+
   // Official Brand Vector Logos
   if (key.includes("stripe")) return <StripeLogo size={size} className={className} style={style} />
   if (key.includes("linear")) return <LinearLogo size={size} className={className} style={style} />
   if (key.includes("slack")) return <SlackLogo size={size} className={className} style={style} />
-  if (key.includes("github") || key.includes("repo") || key.includes("code")) return <GithubLogo size={size} className={className} style={style} />
+  if (key.includes("github") || key.includes("rheos-repos")) return <GithubLogo size={size} className={className} style={style} />
   if (key.includes("firebase")) return <FirebaseLogo size={size} className={className} style={style} />
   if (key.includes("vercel")) return <VercelLogo size={size} className={className} style={style} />
   if (key.includes("sentry")) return <SentryLogo size={size} className={className} style={style} />
@@ -369,15 +341,6 @@ export function ToolIcon({
   if (key.includes("react") || key.includes("remotion")) return <ReactLogo size={size} className={className} style={style} />
   if (key.includes("paper")) return <PaperLogo size={size} className={className} style={style} />
   if (key.includes("amplitude")) return <AmplitudeLogo size={size} className={className} style={style} />
-
-  // Dedicated Product/Platform Tool Mappings
-  if (key.includes("eden")) return <Share2 size={size} className={className} style={{ color: "#F472B6", ...style }} />
-  if (key.includes("buzz")) return <Bot size={size} className={className} style={{ color: "#10B981", ...style }} />
-  if (key.includes("brain") || key.includes("rheos-brain")) return <BrainCircuit size={size} className={className} style={{ color: "#38BDF8", ...style }} />
-  if (key.includes("rig") || key.includes("local-rig")) return <Cpu size={size} className={className} style={{ color: "#F59E0B", ...style }} />
-  if (key.includes("secrets") || key.includes("secret") || key.includes("gcp")) return <KeyRound size={size} className={className} style={{ color: "#EF4444", ...style }} />
-  if (key.includes("observability") || key.includes("monitoring")) return <HeartPulse size={size} className={className} style={{ color: "#10B981", ...style }} />
-  if (key.includes("qa") || key.includes("devtools")) return <Laptop size={size} className={className} style={{ color: "#818CF8", ...style }} />
 
   return <RheosLogo size={size} className={className} style={style} />
 }
