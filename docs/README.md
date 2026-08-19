@@ -7,6 +7,7 @@ This directory is the canonical local documentation entry point for Agent Tower.
 | Document | Status | Purpose |
 |---|---|---|
 | [`00-product/PROJECT-01-LOCAL-BUZZ-ORGANISATION-SURFACE.md`](00-product/PROJECT-01-LOCAL-BUZZ-ORGANISATION-SURFACE.md) | Accepted project direction | Local-first Buzz communication/orchestration and dynamic organization UI; spatial world and cloud/auth deferred. |
+| [`00-product/BUZZ-OWNER-WORKFLOW-AND-FIRST-PILOT.md`](00-product/BUZZ-OWNER-WORKFLOW-AND-FIRST-PILOT.md) | Session-grounded proposal; owner approval pending | Concrete daily Buzz experience derived from actual session/subagent use, Linear authority and Rheos Brain knowledge workflows; defines project rooms, task threads, owner checkpoints and the first cited concierge pilot. |
 | [`01-domain/ORGANIZATION-MEMBERS-TEAMS-AND-CAPABILITY-SCOPES.md`](01-domain/ORGANIZATION-MEMBERS-TEAMS-AND-CAPABILITY-SCOPES.md) | Accepted domain contract | Humans and agents as first-class members, mixed teams, manager rules and organization/department/member capability inheritance. |
 | [`01-domain/MODEL-ROSTER-AND-GENERAL-COUNCIL.md`](01-domain/MODEL-ROSTER-AND-GENERAL-COUNCIL.md) | Accepted staffing direction | Fable/Sol/Opus Engineering roster and a top-right external multi-model Council with bounded research tools. |
 | [`02-architecture/BUZZ-WORKSPACE-HERMES-MESSAGING-AND-AGENTS.md`](02-architecture/BUZZ-WORKSPACE-HERMES-MESSAGING-AND-AGENTS.md) | Verified capability map + proposed integration | Buzz 0.5.8 Desktop/CLI, relay and ACP architecture, Hermes messaging configuration, agent/team lifecycle, source-of-truth boundaries and integration phases. |
@@ -67,6 +68,7 @@ Code/agent-tower/sketches/002-agent-tower-design-board/public/production/
 3. Expose the core through read-only CLI and session-bound stdio MCP transports.
 4. Replace the native `/organization` fixture through Buzz/Tauri handlers backed by that same core.
 5. Join scoped Brain/Vault, Linear, calendar, Hermes and Local Rig state.
-6. Prove one bounded System Manager Buzz/Hermes run with citations and a receipt.
-7. Define the separate versioned projection consumed by the future world.
-8. Add owner-reviewed actions only after exact Buzz and Agent Tower action contracts are proven.
+6. Prove the read-only cited project-concierge pilot from the owner workflow.
+7. Prove one bounded Linear issue through manager delegation, evidence and owner disposition.
+8. Define the separate versioned projection consumed by the future world.
+9. Add owner-reviewed actions only after exact Buzz and Agent Tower action contracts are proven.

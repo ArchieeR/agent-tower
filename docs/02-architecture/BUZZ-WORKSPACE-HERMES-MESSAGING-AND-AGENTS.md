@@ -40,6 +40,13 @@ It separates:
 - README/architecture/agent vision reviewed from `main` on 2026-08-09.
 - No `v0.5.8` or `0.5.8` raw tag resolved during this audit; installed CLI help is therefore authoritative for 0.5.8 command availability.
 
+### External MCP implementation reference
+
+- Repository: `https://github.com/0xtsotsi/buzz-mcp`
+- Audited commit: `83f6aa5d57ce7718dcce883708f4b14c13ae6a6f` on 2026-08-14.
+- Licence: Apache-2.0.
+- Scope: a TypeScript stdio MCP for the separate CorePrt Nostr relay. It is not part of `block/buzz`, is not evidence of compatibility with the installed Buzz identity/keychain boundary, and is reference code rather than an accepted dependency.
+
 ## 3. Architecture
 
 ```text
@@ -487,4 +494,28 @@ Verify inbound/outbound messages and identity isolation.
 - Whether Buzz notes/mem should mirror or reference Agent Tower Library/Vault data
 
 These remain open. No secrets or production configuration should be guessed.
+
+## 17. External `buzz-mcp` reference disposition
+
+The external repository is useful because it proves that a small TypeScript MCP can expose NIP-29/NIP-98 relay operations through typed stdio tools. Its reusable patterns are:
+
+- explicit identity, channel, message, search, subscription and summary tools;
+- Zod-bounded inputs and result limits;
+- relay allowlists, timeouts and CWD/realpath checks for media;
+- `read-only`, confirmation and preview concepts;
+- pull-based subscription buffers rather than unbounded MCP notifications;
+- shared Nostr event kinds that overlap with current `block/buzz` (`9000`, `9007`, `39005`, `43001`, `46030`, `46031`).
+
+It must **not** be installed or wired directly into Agent Tower in its current state:
+
+- it targets CorePrt and defaults to `coreprt.webrnds.com`, while the product fork is based on `block/buzz` and its community/tenant rules;
+- it requires a raw 64-hex `BUZZ_PRIVATE_KEY` environment value and gives one process/operator key broad authority, bypassing Buzz Desktop's app-owned identity/keychain and Agent Tower session binding;
+- its `confirm: true` flag is model-callable and is not an authenticated owner approval or immutable prepare/review/apply receipt;
+- preview/confirmation events are already signed before the gate and the complete signed event, including message content and signature, is returned/logged as `unsigned_event`; that artifact can be replayed by any holder;
+- `buzz_create_job`, `buzz_approve_workflow` and `buzz_post_thread_summary` hard-code `mode: "mutate"`, bypassing the advertised global read-only/confirmation mode; `buzz_upload_media` bypasses that gate entirely;
+- fetch/search tools are operator-wide and do not enforce Agent Tower member, project, channel or knowledge scope;
+- the job and workflow-approval builders describe placeholder/noncanonical shapes rather than using the current Block Buzz SDK contract;
+- the checked-out source is not release-ready: `npm test` returned 194 passing and 20 failing tests, `npm run typecheck` fails because `BuzzConfig.personas` is missing, runtime audit reports one high and one moderate dependency vulnerability, GitHub has no Actions runs or releases, and `@buzz/mcp` returns npm registry `404` despite the README claiming publication.
+
+Accepted use: treat the repository as an **implementation pattern catalogue**. Build the Agent Tower messaging MCP over the current Block Buzz SDK/CLI or shared Rust application services, with stable member/session binding, explicit channel/project allowlists, unsigned prepare output, owner-bound approval receipts, sign-after-approval, redacted logs and execution receipts. Start with read-only identity/channel/message/search operations; add message/thread-summary preparation next; defer jobs and workflow approvals until their native SDK shapes and the Linear task contract are proven.
 

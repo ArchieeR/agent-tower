@@ -7,6 +7,7 @@ import { useMemo, useState, type FormEvent } from "react"
 import type { CapabilityCatalogEntry } from "@/lib/capability-catalog"
 import type { DepartmentView, OrganizationReadModel } from "@/lib/organization-model"
 import { validateDepartmentConfiguration, type DepartmentConfiguration } from "@/lib/organization-configuration"
+import { ToolIcon } from "@/components/icons/tool-icons"
 
 type ConfigurationReceipt = {
   departmentId: string
@@ -182,7 +183,23 @@ export function DepartmentConfigurationPanel({ department, model, toolCapabiliti
             <label><span>Department skills</span><input onChange={(event) => setSkillText(event.target.value)} placeholder="campaign-planning, reporting" value={skillText} /><small>Comma-separated local scope IDs</small></label>
             <label><span>Recurring routines</span><input onChange={(event) => setRoutineText(event.target.value)} placeholder="weekly-review, daily-brief" value={routineText} /><small>Scheduling is not execution proof</small></label>
           </div>
-          <fieldset className="config-tool-fieldset"><legend>Direct department tool grants</legend><div>{toolCapabilities.map((tool) => <label key={tool.id}><input checked={configuration.toolIds.includes(tool.id)} onChange={() => toggleTool(tool.id)} type="checkbox" /><span><strong>{tool.name}</strong><small>{tool.state} · {tool.permissionPolicy}</small></span></label>)}</div></fieldset>
+          <fieldset className="config-tool-fieldset">
+            <legend>Direct department tool grants</legend>
+            <div className="config-tool-grid">
+              {toolCapabilities.map((tool) => (
+                <label className="config-tool-item" key={tool.id}>
+                  <input checked={configuration.toolIds.includes(tool.id)} onChange={() => toggleTool(tool.id)} type="checkbox" />
+                  <span className="config-tool-icon-wrap">
+                    <ToolIcon slug={tool.iconSlug || tool.id} name={tool.name} size={20} />
+                  </span>
+                  <span className="config-tool-text">
+                    <strong>{tool.name}</strong>
+                    <small>{tool.state} · {tool.permissionPolicy}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           {configurationErrors.length > 0 && <div className="config-feedback is-error" role="alert">{configurationErrors.map((error) => <span key={error}>{error}</span>)}</div>}
           {configurationReceipt && <div className="config-feedback is-success" role="status"><CheckCircle2 size={16} /><span>Saved revision {configurationReceipt.revision} · {configurationReceipt.managerCount} manager · {configurationReceipt.memberCount} members</span></div>}
           <button className="primary-action config-save" disabled={saving} type="submit"><Save size={15} />{saving ? "Saving…" : "Save local configuration"}</button>

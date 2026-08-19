@@ -14,7 +14,8 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import Link from "next/link"
-import { useState, type ComponentType } from "react"
+import { useMemo, useState, type ComponentType } from "react"
+import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
 
 type SettingRow = {
   label: string
@@ -108,7 +109,26 @@ const stateLabel = {
 
 export function SettingsDirectory() {
   const [activeId, setActiveId] = useState("general")
-  const active = sections.find((section) => section.id === activeId) ?? sections[0]
+  const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
+  const activeWorkspace = workspaces[activeWorkspaceId]
+
+  const dynamicSections = useMemo(() => [
+    {
+      id: "general",
+      title: "General",
+      description: "Local workspace identity and operating mode.",
+      icon: Settings2,
+      rows: [
+        { label: "Active Workspace", detail: activeWorkspace.tagline, value: activeWorkspace.name, state: "current" as const },
+        { label: "Operating Domain", detail: "Workspace focus & department lineup", value: activeWorkspace.subtitle, state: "current" as const },
+        { label: "Environment", detail: "Private owner-operated runtime", value: "Local", state: "current" as const },
+        { label: "Organization source", detail: "Safe-field adapter and local read model", value: "Buzz", state: "current" as const },
+      ],
+    },
+    ...sections.slice(1),
+  ], [activeWorkspace])
+
+  const active = dynamicSections.find((section) => section.id === activeId) ?? dynamicSections[0]
   const ActiveIcon = active.icon
 
   return (
@@ -117,7 +137,7 @@ export function SettingsDirectory() {
         <aside className="settings-sidebar">
           <h1>Settings</h1>
           <nav aria-label="Settings sections">
-            {sections.map((section) => {
+            {dynamicSections.map((section) => {
               const Icon = section.icon
               return (
                 <button

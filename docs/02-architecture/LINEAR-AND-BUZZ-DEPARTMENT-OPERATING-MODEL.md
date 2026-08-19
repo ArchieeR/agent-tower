@@ -3,6 +3,8 @@
 Date: 2026-08-09
 Status: accepted operating direction; automation remains to be implemented
 
+Owner workflow and first-pilot evidence: `../00-product/BUZZ-OWNER-WORKFLOW-AND-FIRST-PILOT.md`
+
 ## 1. Decision
 
 Linear is the canonical work and programme system for Agent Tower. Buzz is the communication, orchestration and execution substrate.
@@ -16,6 +18,8 @@ Git/PR/artifact store = implementation evidence
 
 A task does not exist operationally until it has a Linear issue or is explicitly recorded as a short-lived incident under a policy that creates one afterward.
 
+The session-grounded product model uses one long-lived Buzz room per active Linear project, with issue-linked task threads and one accountable manager conversation. Specialist runs remain collapsed beneath that manager by default; owner checkpoints and evidence are promoted into the main conversation.
+
 ## 2. Department boards
 
 Every department receives a focused Linear board experience, but not automatically a separate Linear team or project.
@@ -26,8 +30,8 @@ Start with one ALDR Ltd Linear team and use saved views, labels, projects and as
 |---|---|
 | Engineering | `department:engineering`; implementation, review, QA, platform and technical debt |
 | Marketing | `department:marketing`; campaigns, content, research and performance work |
-| Operations | `department:operations`; runbooks, reporting, incidents and recurring operations |
-| Finance | `function:finance`; cash, runway, budgets, spend review, forecasting and financial controls |
+| Operations & Finance | `department:operations`; runbooks, reporting, incidents, cash, runway, budgets, spend review, forecasting and financial controls |
+| Knowledge & Data Centre | `department:knowledge`; Brain/Vault retrieval, Librarian proposals, runtime/infrastructure evidence and retrieval quality |
 | Leadership & People | people, evaluation, capacity, policy and manager-council work |
 | System Health | System Manager connector, skill, routine, software and context-drift alerts |
 | Council Requests | material external-consultation requests and manager dispositions |
@@ -110,12 +114,12 @@ The receipt stores model/tool/context identities, not credentials or raw private
 Engineering uses Linear for all substantial coding work:
 
 1. issue is ordered against the project/milestone dependency chain;
-2. Code Lead validates scope, repo, base branch, worktree and verification commands;
+2. Head of Engineering validates scope, repo, base branch, worktree and verification commands;
 3. an engineering member works in an isolated branch/worktree where required;
 4. tests/lint/build run according to repository policy;
 5. PR or local artifact links back to the issue;
 6. QA/Reviewer checks acceptance and regression evidence;
-7. Code Lead decides implementation disposition;
+7. Head of Engineering decides implementation disposition;
 8. merge/deploy remains owner- or policy-approved.
 
 Fable/Opus/Sol/Qwen/Gemini/Kimi/Grok are execution resources, not substitutes for Linear ownership or review.
@@ -210,11 +214,12 @@ The future Linear↔Buzz adapter must provide:
 
 ## 12. First implementation sequence
 
-1. Define department labels and saved views in the existing ALDR Ltd team.
-2. Define the issue and receipt schemas.
-3. Prove one Engineering issue from Linear through Buzz to manager review.
-4. Add Project 1 widget/health evidence.
-5. Add System Manager drift alerts.
-6. Add Marketing and Operations views.
-7. Add model-experiment and Council Request templates.
-8. Only then automate broader two-way synchronization.
+1. Define project-room, issue-thread, owner-inbox and department-view contracts.
+2. Prove the separate revocable read-only Brain identity and cited retrieval path.
+3. Run the cited Agent Tower project-concierge pilot without canonical writes.
+4. Define the issue and receipt schemas.
+5. Prove one Engineering issue from Linear through Buzz to manager review and owner disposition.
+6. Add Project 1 widget/health evidence and System Manager drift alerts.
+7. Add Marketing, Operations & Finance, and Knowledge & Data Centre views.
+8. Add model-experiment and Council Request templates.
+9. Only then automate broader two-way synchronization.

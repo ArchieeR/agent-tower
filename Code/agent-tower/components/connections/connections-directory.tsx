@@ -1,32 +1,44 @@
 "use client"
 
 import {
+  Activity,
+  AppWindow,
+  ArrowUpRight,
   BookOpen,
   Boxes,
+  BriefcaseBusiness,
+  Building2,
+  Cable,
   CheckCircle2,
   CircleDot,
   Cpu,
+  Database,
+  ExternalLink,
+  Layers,
+  Megaphone,
+  Network,
   PackageCheck,
   PlugZap,
   RefreshCw,
+  Search,
+  ServerCog,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
   TriangleAlert,
   Wrench,
+  Zap,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { DetailModal } from "@/components/organization/detail-modal"
 import type { CapabilityCatalogEntry, CapabilityKind, ProvisioningState } from "@/lib/capability-catalog"
 import type { OrganizationReadModel } from "@/lib/organization-model"
+import { skillsCatalog, type SkillEntry, type SkillScope } from "@/lib/skills-catalog"
+import { composioToolsCatalog, type ComposioTool } from "@/lib/composio-tools-catalog"
 import { useLiveOrganizationModel } from "@/lib/use-live-organization-model"
-
-const kindIcons: Record<CapabilityKind, typeof PlugZap> = {
-  connector: PlugZap,
-  tool: Wrench,
-  software: PackageCheck,
-  knowledge: BookOpen,
-  runtime: Cpu,
-  report: CircleDot,
-}
+import { ToolIcon, SkillIcon } from "@/components/icons/tool-icons"
+import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
 
 const stateLabels: Record<ProvisioningState, string> = {
   healthy: "Healthy",
@@ -36,46 +48,32 @@ const stateLabels: Record<ProvisioningState, string> = {
   unavailable: "Unavailable",
 }
 
-function effectiveEntries(model: OrganizationReadModel, entries: CapabilityCatalogEntry[]) {
-  return entries.map((entry) => {
-    if (entry.id !== "buzz-local") return entry
-    const adapter = model.adapterHealth.find((item) => item.id === "buzz-local")
-    if (!adapter) return entry
-    const state: ProvisioningState = adapter.state === "connected" ? "healthy" : adapter.state === "degraded" ? "degraded" : "unavailable"
-    return { ...entry, state, evidence: `${entry.evidence} Current adapter: ${adapter.detail}` }
-  })
+const departmentNames: Record<string, string> = {
+  marketing: "Growth & Marketing",
+  engineering: "Engineering",
+  operations: "Operations & Finance",
+  knowledge: "Knowledge & Data Centre",
+  "investment-committee": "Investment Committee",
+  "deal-sourcing": "Deal Sourcing & Market Intel",
+  "financial-modeling": "Financial Modeling & Valuation",
+  "portfolio-ops": "Portfolio Operations & Risk",
+  everyone: "Everyone (Org-wide)",
+  hoa: "Head of Agents",
+  system: "System Manager",
 }
 
-function CapabilityCard({ entry, accent, onOpen }: { entry: CapabilityCatalogEntry; accent: string; onOpen: () => void }) {
-  const Icon = kindIcons[entry.kind]
-  return (
-    <button className={`capability-card accent-${accent}`} onClick={onOpen}>
-      <span className="capability-card-icon"><Icon size={18} /></span>
-      <span className="capability-card-copy"><small>{entry.kind}{entry.organizationWide ? " · org baseline" : ""}</small><strong>{entry.name}</strong><span>{entry.provider}</span></span>
-      <i className={`capability-state state-${entry.state}`}>{stateLabels[entry.state]}</i>
-    </button>
-  )
-}
-
-function ConnectionDetail({ entry, model }: { entry: CapabilityCatalogEntry; model: OrganizationReadModel }) {
-  const assignedDepartments = model.departments.filter((department) => department.toolIds.includes(entry.id))
-  const Icon = kindIcons[entry.kind]
-  return (
-    <div className="detail-layout connection-detail-layout">
-      <div className="detail-main">
-        <div className="connection-detail-heading"><span><Icon size={22} /></span><div><small>{entry.kind}</small><h3>{entry.name}</h3><p>{entry.description}</p></div></div>
-        <div className="detail-stat-grid">
-          <article><small>Provisioning</small><strong>{stateLabels[entry.state]}</strong><span>Separate from assignment</span></article>
-          <article><small>Provider</small><strong>{entry.provider}</strong><span>No credentials exposed</span></article>
-          <article><small>Organization baseline</small><strong>{entry.organizationWide ? "Yes" : "No"}</strong><span>Catalog-level availability</span></article>
-          <article><small>Permission policy</small><strong>{entry.permissionPolicy}</strong><span>Reconnect/grant changes remain reviewed</span></article>
-        </div>
-        <section className="detail-section"><div className="detail-section-title"><span>Evidence</span><h3>Why this state is shown</h3></div><div className="detail-empty"><CircleDot size={18} /><p>{entry.evidence}</p></div></section>
-        <section className="detail-section"><div className="detail-section-title"><span>Department scopes</span><h3>Available to these teams</h3></div><div className="connection-department-grid">{assignedDepartments.map((department) => <article className={`accent-${department.accent}`} key={department.id}><span><Boxes size={16} /></span><strong>{department.name}</strong><small>{department.floor}</small></article>)}</div></section>
-      </div>
-      <aside className="detail-side"><small>System Manager</small><h3>Health and drift</h3><p>The first catalog is read-only. ALD-125 and ALD-129 add live tests, freshness, setup/reconnect actions and evidence history.</p><button className="primary-action" disabled>{entry.state === "healthy" || entry.state === "configured" ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}Owner-reviewed actions coming next</button></aside>
-    </div>
-  )
+const departmentBadges: Record<string, string> = {
+  marketing: "accent-orange",
+  engineering: "accent-indigo",
+  operations: "accent-teal",
+  knowledge: "accent-olive",
+  "investment-committee": "accent-orange",
+  "deal-sourcing": "accent-teal",
+  "financial-modeling": "accent-indigo",
+  "portfolio-ops": "accent-olive",
+  everyone: "accent-cyan",
+  hoa: "accent-rose",
+  system: "accent-lime",
 }
 
 export function ConnectionsDirectory({ model, catalog }: { model: OrganizationReadModel; catalog: CapabilityCatalogEntry[] }) {
@@ -83,52 +81,244 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
   const params = useSearchParams()
   const live = useLiveOrganizationModel(model)
   const currentModel = live.model
-  const entries = useMemo(() => effectiveEntries(currentModel, catalog), [currentModel, catalog])
-  const requestedId = params.get("connection")
-  const organizationScope = params.get("scope") === "organization"
-  const selectedId = requestedId && entries.some((entry) => entry.id === requestedId) ? requestedId : undefined
-  const selected = entries.find((entry) => entry.id === selectedId)
-  const organizationEntries = entries.filter((entry) => entry.organizationWide)
-  const counts = entries.reduce<Record<ProvisioningState, number>>((acc, entry) => ({ ...acc, [entry.state]: acc[entry.state] + 1 }), { healthy: 0, configured: 0, planned: 0, degraded: 0, unavailable: 0 })
 
-  function openConnection(id: string) {
-    router.replace(`/connections?connection=${encodeURIComponent(id)}`, { scroll: false })
-  }
+  const [activeTab, setActiveTab] = useState<"skills" | "tools" | "composio">("skills")
+  const [selectedDept, setSelectedDept] = useState<string>("all")
+  const [searchQuery, setSearchQuery] = useState<string>("")
 
-  function closeConnection() {
-    router.replace("/connections", { scroll: false })
-  }
+  const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
+  const activeWorkspace = workspaces[activeWorkspaceId]
+
+  const aldrSkillIds = useMemo(() => new Set([
+    "brain", "ask", "recap", "counsel", "i-have-adhd", "search-fetch-agent",
+    "deal-sourcing-screening", "term-sheet-analyzer", "cap-table-analyzer",
+    "financial-modeling", "valuation-discounted-cashflow", "lbo-modeler",
+    "founder-background-check", "due-diligence-checker", "portfolio-tracker",
+    "exit-scenario-planner", "salary-market-scanner", "company-hiring-intel",
+    "competitor-update", "tech-stack-detective", "tinyfish-social-listening",
+    "gws", "finance-crm-set", "sentry-lookup", "auth-handling", "mcp-config"
+  ]), [])
+
+  // Filter skills
+  const filteredSkills = useMemo(() => {
+    return skillsCatalog.filter((s) => {
+      if (activeWorkspaceId === "aldr" && !aldrSkillIds.has(s.id) && s.scope !== "everyone") {
+        return false
+      }
+      const matchDept = selectedDept === "all" || s.scope === selectedDept || (selectedDept === "knowledge" && (s.scope === "system" || s.scope === "hoa"))
+      const matchQuery = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase()) || (s.provider && s.provider.toLowerCase().includes(searchQuery.toLowerCase()))
+      return matchDept && matchQuery
+    })
+  }, [selectedDept, searchQuery, activeWorkspaceId, aldrSkillIds])
+
+  // Filter tools / capabilities
+  const filteredTools = useMemo(() => {
+    return catalog.filter((t) => {
+      const matchDept = selectedDept === "all" || t.organizationWide || t.departmentIds.includes(selectedDept)
+      const matchQuery = !searchQuery || t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.description.toLowerCase().includes(searchQuery.toLowerCase()) || t.provider.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchDept && matchQuery
+    })
+  }, [catalog, selectedDept, searchQuery])
+
+  // Filter Composio tools
+  const filteredComposio = useMemo(() => {
+    return composioToolsCatalog.filter((c) => {
+      const matchDept = selectedDept === "all" || c.assignedDepartments.includes(selectedDept)
+      const matchQuery = !searchQuery || c.slug.toLowerCase().includes(searchQuery.toLowerCase()) || c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.description.toLowerCase().includes(searchQuery.toLowerCase()) || c.toolkit.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchDept && matchQuery
+    })
+  }, [selectedDept, searchQuery])
 
   return (
     <div className="connections-page">
+      {/* Top Header */}
       <section className="connections-hero">
-        <div><span className="eyebrow"><PlugZap size={12} />Capability control plane</span><h1>Connections</h1><p>Department availability and provisioning health are separate. A card can be assigned to a team without claiming its software, connector or credentials are healthy.</p></div>
-        <div className="connections-live-panel"><div className={`connection-sync-status state-${live.status}`} title={live.error}><span aria-hidden="true" /><strong>{live.status === "live" ? "Buzz live" : live.status === "connecting" ? "Connecting" : live.status === "degraded" ? "Buzz degraded" : "Snapshot stale"}</strong><small>{new Date(live.lastSyncedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</small><button aria-label="Refresh Buzz connection data" onClick={() => { void live.refresh() }} title="Refresh Buzz connection data"><RefreshCw size={13} /></button></div><div className="connection-stats" aria-label="Connection status summary"><em>{entries.length} unique capabilities</em><span><strong>{counts.healthy}</strong> healthy</span><span><strong>{counts.configured}</strong> configured</span><span><strong>{counts.planned}</strong> planned</span><span><strong>{counts.degraded + counts.unavailable}</strong> attention</span></div></div>
+        <div>
+          <span className="eyebrow"><Cable size={12} />Rheos Agent Capability Matrix</span>
+          <h1>Skills & Tools</h1>
+          <p>
+            Three layer capability architecture: <strong>Composio</strong> (26 toolkits / external APIs), <strong>TinyFish</strong> (web automation & search), and <strong>rheos-agent-config</strong> (internal skills, prompts & MCP plugins).
+          </p>
+        </div>
+        <div className="connections-live-panel">
+          <div className={`connection-sync-status state-${live.status}`}>
+            <span aria-hidden="true" />
+            <strong>{live.status === "live" ? "Live Architecture" : "Sync Active"}</strong>
+            <small>Workspace: {activeWorkspace.name}</small>
+          </div>
+          <div className="connection-stats">
+            <em>{skillsCatalog.length} Skills</em>
+            <span><strong>{catalog.length}</strong> Platform Tools</span>
+            <span><strong>{composioToolsCatalog.length}</strong> Composio Slugs</span>
+          </div>
+        </div>
       </section>
 
-      <section className="connection-legend" aria-label="Provisioning legend">
-        {(Object.keys(stateLabels) as ProvisioningState[]).map((state) => <span className={`capability-state state-${state}`} key={state}>{stateLabels[state]}</span>)}
-        <p>Department colour identifies organizational scope; health colour identifies runtime state.</p>
-      </section>
+      {/* Control Bar: Tabs + Dept Filter + Search */}
+      <div className="capability-view-controls">
+        <div className="capability-tabs">
+          <button className={`cap-tab ${activeTab === "skills" ? "is-active" : ""}`} onClick={() => setActiveTab("skills")}>
+            <Sparkles size={16} />
+            <span>Department Skills</span>
+            <small>{skillsCatalog.length}</small>
+          </button>
+          <button className={`cap-tab ${activeTab === "tools" ? "is-active" : ""}`} onClick={() => setActiveTab("tools")}>
+            <Wrench size={16} />
+            <span>Platform Tools</span>
+            <small>{catalog.length}</small>
+          </button>
+          <button className={`cap-tab ${activeTab === "composio" ? "is-active" : ""}`} onClick={() => setActiveTab("composio")}>
+            <PlugZap size={16} />
+            <span>Composio Explorer</span>
+            <span className="live-pill">External Link</span>
+          </button>
+        </div>
 
-      <section className="organization-connection-lane accent-rose" id="organization-connections">
-        <header><span className="department-icon"><Boxes size={19} /></span><div><small>CEO · organization-wide configuration</small><h2>Baseline connections and permissions</h2><p>{organizationEntries.length} catalog capabilities establish the organization baseline before department and member grants.</p></div></header>
-        <div className="permission-flow"><span>Organization baseline</span><i /> <span>Department grants</span><i /> <span>Member exceptions</span></div>
-        <div className="capability-card-grid">{organizationEntries.map((entry) => <CapabilityCard accent="rose" entry={entry} key={`organization:${entry.id}`} onOpen={() => openConnection(entry.id)} />)}</div>
-      </section>
+        <div className="capability-filters">
+          <div className="dept-select-wrap">
+            <select value={selectedDept} onChange={(e) => setSelectedDept(e.target.value)}>
+              <option value="all">All Departments ({activeWorkspace.name})</option>
+              <option value="everyone">🌐 Baseline (Everyone)</option>
+              {activeWorkspaceId === "aldr" ? (
+                <>
+                  <option value="growth">📊 Investment Committee & Sourcing</option>
+                  <option value="operations">📈 Financial Valuation & Diligence</option>
+                  <option value="system">🛡️ Portfolio Operations & Governance</option>
+                </>
+              ) : (
+                <>
+                  <option value="engineering">🤖 Engineering</option>
+                  <option value="growth">🤖 Growth & Marketing</option>
+                  <option value="operations">🤖 Operations & Finance</option>
+                  <option value="knowledge">🤖 Knowledge & Infrastructure</option>
+                </>
+              )}
+            </select>
+          </div>
+          <div className="search-box">
+            <Search size={14} />
+            <input
+              placeholder="Filter by name, description or provider..."
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
-      {!organizationScope && <div className="department-connections">
-        {currentModel.departments.map((department) => {
-          const departmentEntryIds = new Set(department.toolIds)
-          const departmentEntries = entries.filter((entry) => departmentEntryIds.has(entry.id))
-          return <section className={`department-connection-lane accent-${department.accent}`} key={department.id}>
-            <header><span className="department-icon"><Boxes size={19} /></span><div><small>{department.floor} · {department.kind}</small><h2>{department.name}</h2><p>{departmentEntries.length} assigned capabilities</p></div></header>
-            <div className="capability-card-grid">{departmentEntries.map((entry) => <CapabilityCard accent={department.accent} entry={entry} key={`${department.id}:${entry.id}`} onOpen={() => openConnection(entry.id)} />)}</div>
-          </section>
-        })}
-      </div>}
+      {/* TAB 1: SKILLS */}
+      {activeTab === "skills" && (
+        <section className="skills-grid-section">
+          <div className="skills-card-grid">
+            {filteredSkills.map((skill) => (
+              <article className={`skill-card ${departmentBadges[skill.scope] ?? "accent-cyan"}`} key={skill.id}>
+                <div className="skill-card-head">
+                  <div className="skill-icon-pill">
+                    <SkillIcon id={skill.id} name={skill.name} scope={skill.scope} size={22} />
+                    <span className="skill-scope-badge">{departmentNames[skill.scope] ?? skill.scope}</span>
+                  </div>
+                  <span className={`skill-status-tag status-${skill.status}`}>{skill.status}</span>
+                </div>
+                <h3 className="skill-name">
+                  <code>{skill.name}</code>
+                </h3>
+                <p className="skill-desc">{skill.description}</p>
+                <div className="skill-footer">
+                  <small>Provider: <strong>{skill.provider}</strong></small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {selected && <DetailModal accent={currentModel.departments.find((department) => department.toolIds.includes(selected.id))?.accent ?? "cyan"} eyebrow={`${selected.kind} capability`} title={selected.name} onClose={closeConnection}><ConnectionDetail entry={selected} model={currentModel} /></DetailModal>}
+      {/* TAB 2: PLATFORM TOOLS (Composio Horizontal Card Layout) */}
+      {activeTab === "tools" && (
+        <section className="tools-grid-section">
+          <div className="composio-cards-grid">
+            {filteredTools.map((tool) => (
+              <article className="composio-horizontal-card" key={tool.id}>
+                <div className="composio-card-left">
+                  <div className="composio-card-logo">
+                    <ToolIcon slug={tool.iconSlug ?? tool.id} name={tool.name} size={24} />
+                  </div>
+                  <div className="composio-card-body">
+                    <div className="composio-card-title-row">
+                      <h3 className="composio-card-title">{tool.name}</h3>
+                      <CheckCircle2 className="composio-verified-icon" size={13} />
+                    </div>
+                    <p className="composio-card-desc">{tool.description}</p>
+                  </div>
+                </div>
+                <div className="composio-card-right">
+                  <span className={`composio-status-tag state-${tool.state}`}>
+                    {tool.state === "healthy" ? "1 Active" : tool.state === "configured" ? "Configured" : "Planned"}
+                  </span>
+                  <button className="composio-card-action">
+                    {tool.state === "healthy" ? "+ New" : "Connect"}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* TAB 3: COMPOSIO EXPLORER & ACTIONS */}
+      {activeTab === "composio" && (
+        <section className="composio-explorer-section">
+          <div className="composio-header-banner">
+            <div className="composio-header-copy">
+              <div className="composio-badge-row">
+                <span className="composio-brand-badge">⚡ Composio Workspace</span>
+                <code>Project ID: pr_vHsGfSDyt7p6</code>
+                <code>Org: ok_AWwdqdSVuPgq</code>
+                <span className="live-status-pill">Connected (archie@rheos.app)</span>
+              </div>
+              <h2>Composio Actions & Toolkits</h2>
+              <p>
+                Authenticated tool hub managing API connections for Rheos Buzz agents. Agents call these actions via native JSON-RPC MCP calls.
+              </p>
+            </div>
+            <div className="composio-header-actions">
+              <a
+                className="composio-external-btn"
+                href="https://dashboard.composio.dev/archie_workspace/agenttower/settings/general"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span>Open Composio Dashboard</span>
+                <ArrowUpRight size={15} />
+              </a>
+            </div>
+          </div>
+
+          {/* Action Slugs Grid (Horizontal Composio Cards) */}
+          <div className="composio-cards-grid">
+            {filteredComposio.map((tool) => (
+              <article className="composio-horizontal-card" key={tool.slug}>
+                <div className="composio-card-left">
+                  <div className="composio-card-logo">
+                    <ToolIcon slug={tool.iconName || tool.toolkit} name={tool.name} size={24} />
+                  </div>
+                  <div className="composio-card-body">
+                    <div className="composio-card-title-row">
+                      <h3 className="composio-card-title">{tool.name}</h3>
+                      <CheckCircle2 className="composio-verified-icon" size={13} />
+                    </div>
+                    <code className="composio-slug-code">{tool.slug}</code>
+                  </div>
+                </div>
+                <div className="composio-card-right">
+                  <span className="composio-status-tag state-healthy">1 Active</span>
+                  <button className="composio-card-action">+ New</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

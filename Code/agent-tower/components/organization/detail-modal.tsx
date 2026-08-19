@@ -6,12 +6,13 @@ import { useEffect, useId, useRef, type ReactNode } from "react"
 type DetailModalProps = {
   eyebrow?: string
   title: string
+  subtitle?: string
   accent?: string
   children: ReactNode
   onClose: () => void
 }
 
-export function DetailModal({ eyebrow, title, accent = "cyan", children, onClose }: DetailModalProps) {
+export function DetailModal({ eyebrow, title, subtitle, accent = "cyan", children, onClose }: DetailModalProps) {
   const titleId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -48,12 +49,18 @@ export function DetailModal({ eyebrow, title, accent = "cyan", children, onClose
         role="dialog"
       >
         <header className="detail-modal-header">
-          <div>
-            {eyebrow && <span>{eyebrow}</span>}
+          <div className="detail-modal-header-text">
+            {eyebrow && (
+              <div className="detail-modal-eyebrow">
+                <span className="eyebrow-dot" />
+                <span>{eyebrow}</span>
+              </div>
+            )}
             <h2 id={titleId}>{title}</h2>
+            {subtitle && <p className="detail-modal-subtitle">{subtitle}</p>}
           </div>
           <button aria-label="Close details" className="detail-modal-close" onClick={onClose} ref={closeRef}>
-            <X size={19} />
+            <X size={18} />
           </button>
         </header>
         <div className="detail-modal-body">{children}</div>

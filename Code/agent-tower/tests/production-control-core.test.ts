@@ -14,8 +14,8 @@ test("production core assembles a real System Manager context from safe local ad
     buzzMemberId: "buzz-agent:2d9424195e68d77a8cd1183c543f86fde64df1ac783296d6d309e31ab8b255e6",
     allowedChannelIds: [],
     toolGrantCeiling: ["linear", "rheos-brain", "local-rig-worker"],
-    issuedAt: "2026-08-11T19:00:00.000Z",
-    expiresAt: "2026-08-12T19:00:00.000Z",
+    issuedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 86400000 * 365).toISOString(),
   }
   const context = await core.getCurrentContext(binding)
 
