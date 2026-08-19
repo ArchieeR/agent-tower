@@ -19,10 +19,11 @@ import {
   Sparkles,
   UserRound,
   Wrench,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import type { CouncilProfile, DepartmentView, OrganizationMemberView, OrganizationReadModel, RoleProfile } from "@/lib/organization-model"
 import { getWorkspaceDepartments } from "@/lib/organization-model"
 import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
@@ -32,6 +33,7 @@ import { capabilityCatalog, type CapabilityKind } from "@/lib/capability-catalog
 import { skillsCatalog } from "@/lib/skills-catalog"
 import { ToolIcon, SkillIcon } from "@/components/icons/tool-icons"
 import { useLiveOrganizationModel, type OrganizationSyncStatus } from "@/lib/use-live-organization-model"
+import { useCustomEntriesStore } from "@/lib/custom-entries-store"
 
 const departmentIcons = {
   leadership: BriefcaseBusiness,
@@ -219,7 +221,12 @@ function CouncilCard({ council, onOpen }: { council: CouncilProfile; onOpen: () 
 function OrgChart({ model, selectedDepartmentId, onSelect, onOpenCouncil, onOpenRole, sync }: { model: OrganizationReadModel; selectedDepartmentId?: string; onSelect: (id: string) => void; onOpenCouncil: () => void; onOpenRole: (id: string) => void; sync: { status: OrganizationSyncStatus; lastSyncedAt: string; error?: string; refresh: () => Promise<void> } }) {
   const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
   const activeWorkspace = workspaces[activeWorkspaceId]
-  const workspaceDepartments = getWorkspaceDepartments(activeWorkspaceId)
+  const staticWorkspaceDepartments = getWorkspaceDepartments(activeWorkspaceId as "rheos" | "aldr")
+  const { customDepartments, addCustomDepartment } = useCustomEntriesStore()
+
+  const workspaceDepartments = useMemo(() => {
+    return [...staticWorkspaceDepartments, ...customDepartments]
+  }, [staticWorkspaceDepartments, customDepartments])
 
   const departmentTeams = workspaceDepartments.filter((department) => !["leadership", "knowledge", "data-centre", "portfolio-ops"].includes(department.id))
   const systemServices = workspaceDepartments.filter((department) => ["knowledge", "data-centre", "portfolio-ops"].includes(department.id))
@@ -229,6 +236,27 @@ function OrgChart({ model, selectedDepartmentId, onSelect, onOpenCouncil, onOpen
   const [chartScale, setChartScale] = useState(1)
   const syncLabel = sync.status === "live" ? "Buzz live" : sync.status === "connecting" ? "Connecting" : sync.status === "degraded" ? "Buzz degraded" : "Snapshot stale"
   const syncTime = new Date(sync.lastSyncedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+
+  // Department Creation Modal State
+  const [showAddDeptModal, setShowAddDeptModal] = useState(false)
+  const [deptName, setDeptName] = useState("")
+  const [deptRoles, setDeptRoles] = useState("")
+
+  function handleCreateDepartment(event: FormEvent) {
+    event.preventDefault()
+    if (!deptName.trim()) return
+    const id = deptName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `dept-${Date.now()}`
+    const rolesList = deptRoles.split(",").map((r) => r.trim()).filter(Boolean)
+    addCustomDepartment({
+      id,
+      name: deptName.trim(),
+      workspaceId: activeWorkspaceId,
+      desiredRoles: rolesList.length ? rolesList : ["Department Lead", "Specialist"],
+    })
+    setShowAddDeptModal(false)
+    setDeptName("")
+    setDeptRoles("")
+  }
 
   useLayoutEffect(() => {
     let frame = 0
@@ -258,6 +286,10 @@ function OrgChart({ model, selectedDepartmentId, onSelect, onOpenCouncil, onOpen
         <div className="chart-title-wrap">
           <h1 className="chart-title">{activeWorkspace.name}</h1>
           <span className="chart-workspace-badge">{activeWorkspace.badge}</span>
+          <button className="add-entry-trigger-btn" onClick={() => setShowAddDeptModal(true)}>
+            <Plus size={14} />
+            <span>Add Department</span>
+          </button>
         </div>
         <div className={`chart-sync-status state-${sync.status}`} title={sync.error ?? `Last checked ${syncTime}`}><span aria-hidden="true" /><strong>{syncLabel}</strong><small>{syncTime}</small><button aria-label="Refresh Buzz organization data" onClick={() => { void sync.refresh() }} title="Refresh Buzz organization data"><RefreshCw size={13} /></button></div>
       </div>
@@ -301,6 +333,37 @@ function OrgChart({ model, selectedDepartmentId, onSelect, onOpenCouncil, onOpen
           </article>
         </div>
       </div>
+
+      {/* Modal: Add Custom Department */}
+      {showAddDeptModal && (
+        <div className="detail-modal-backdrop" onClick={() => setShowAddDeptModal(false)}>
+          <div className="custom-entry-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="custom-entry-modal-header">
+              <div className="custom-entry-modal-title">
+                <Boxes size={18} className="icon-cyan" />
+                <h3>Add Department to {activeWorkspace.name}</h3>
+              </div>
+              <button aria-label="Close modal" className="modal-close-btn" onClick={() => setShowAddDeptModal(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <form className="custom-entry-form" onSubmit={handleCreateDepartment}>
+              <label>
+                <span>Department Name</span>
+                <input required placeholder="e.g. Data Science & AI Research" value={deptName} onChange={(e) => setDeptName(e.target.value)} />
+              </label>
+              <label>
+                <span>Staff Roles (comma-separated)</span>
+                <input placeholder="e.g. Lead Data Scientist, ML Engineer, Data Analyst" value={deptRoles} onChange={(e) => setDeptRoles(e.target.value)} />
+              </label>
+              <div className="custom-entry-actions">
+                <button type="button" className="secondary-btn" onClick={() => setShowAddDeptModal(false)}>Cancel</button>
+                <button type="submit" className="primary-btn">+ Create Department</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
@@ -590,7 +653,7 @@ export function OrganizationDirectory({ model }: { model: OrganizationReadModel 
   }, [clearSelection, params, selectDepartment, selectMember])
 
   const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
-  const workspaceDepartments = useMemo(() => getWorkspaceDepartments(activeWorkspaceId), [activeWorkspaceId])
+  const workspaceDepartments = useMemo(() => getWorkspaceDepartments(activeWorkspaceId as "rheos" | "aldr"), [activeWorkspaceId])
 
   const activeDepartment = useMemo(() => {
     if (activeDetail?.kind !== "department") return undefined

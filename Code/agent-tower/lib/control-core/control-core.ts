@@ -207,6 +207,36 @@ export class AgentTowerControlCore {
         }
         return dispatchLocalWorkerJob(snapshot, workerJob, this.dependencies.fetcher)
       },
+      configureDepartment: async (departmentId, config) => {
+        assertActive()
+        const model = await this.dependencies.loadOrganization()
+        const department = model.departments.find((d) => d.id === departmentId)
+        if (!department) throw new Error(`Department not found: ${departmentId}`)
+        return {
+          ok: true,
+          departmentId,
+          revision: (department.configurationRevision ?? 0) + 1,
+          configuration: {
+            departmentId,
+            memberIds: config.memberIds ?? department.memberIds,
+            managerMemberIds: config.managerMemberIds ?? department.managerMemberIds,
+            skillIds: config.skillIds ?? department.skillIds,
+            routineIds: config.routineIds ?? department.routineIds,
+            toolIds: config.toolIds ?? department.toolIds,
+          },
+          status: "configured",
+          updatedAt: (this.dependencies.now?.() ?? new Date()).toISOString(),
+        }
+      },
+      prepareChange: async (change) => {
+        assertActive()
+        return {
+          ok: true,
+          status: "change-prepared",
+          change,
+          preparedAt: (this.dependencies.now?.() ?? new Date()).toISOString(),
+        }
+      },
     }
   }
 }

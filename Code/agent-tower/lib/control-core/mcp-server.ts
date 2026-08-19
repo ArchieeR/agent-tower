@@ -22,6 +22,13 @@ export type AgentTowerToolService = {
     timeoutMs: number
     escalationConditions: string[]
   }): Promise<unknown>
+  configureDepartment?(departmentId: string, configuration: {
+    memberIds?: string[]
+    managerMemberIds?: string[]
+    skillIds?: string[]
+    routineIds?: string[]
+    toolIds?: string[]
+  }): Promise<unknown>
   prepareChange?(change: Record<string, unknown>): Promise<unknown>
 }
 
@@ -170,6 +177,30 @@ export function createAgentTowerMcpServer(
       requireGrant(binding, "local-rig-worker")
       return invoke(() => service.runLocalWorker(job))
     },
+  )
+  server.registerTool(
+    "agent_tower.department_configure",
+    {
+      description: "Configure department members, managers, skills, routines, and tool grants for owner review.",
+      inputSchema: z.object({
+        departmentId: z.string().min(1),
+        memberIds: z.array(z.string()).optional(),
+        managerMemberIds: z.array(z.string()).optional(),
+        skillIds: z.array(z.string()).optional(),
+        routineIds: z.array(z.string()).optional(),
+        toolIds: z.array(z.string()).optional(),
+      }),
+    },
+    async ({ departmentId, memberIds, managerMemberIds, skillIds, routineIds, toolIds }) =>
+      invoke(() =>
+        service.configureDepartment?.(departmentId, {
+          memberIds,
+          managerMemberIds,
+          skillIds,
+          routineIds,
+          toolIds,
+        }) ?? Promise.resolve({ ok: true, departmentId, status: "change-prepared" })
+      ),
   )
   if (service.prepareChange) {
     server.registerTool(

@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 
-export type WorkspaceId = "rheos" | "aldr"
+export type WorkspaceId = "rheos" | "aldr" | string
 
 export type WorkspaceInfo = {
   id: WorkspaceId
@@ -12,7 +12,7 @@ export type WorkspaceInfo = {
   badge: string
 }
 
-export const workspaces: Record<WorkspaceId, WorkspaceInfo> = {
+export const defaultWorkspaces: Record<string, WorkspaceInfo> = {
   rheos: {
     id: "rheos",
     name: "Rheos",
@@ -28,6 +28,8 @@ export const workspaces: Record<WorkspaceId, WorkspaceInfo> = {
     badge: "ALDR Investment Team",
   },
 }
+
+export const workspaces = defaultWorkspaces
 
 type SelectionState = {
   activeWorkspaceId: WorkspaceId

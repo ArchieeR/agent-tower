@@ -82,6 +82,31 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
     writeJson(runtime, await core.bind(binding).getLocalWorkerStatus())
     return 0
   }
+  if (args[0] === "department" && args[1] === "configure") {
+    const deptId = argument(args, "--department")
+    if (!deptId) throw new Error("department configure requires --department <department-id>.")
+    const skills = argument(args, "--skills")?.split(",").map((s) => s.trim()).filter(Boolean)
+    const tools = argument(args, "--tools")?.split(",").map((t) => t.trim()).filter(Boolean)
+    const members = argument(args, "--members")?.split(",").map((m) => m.trim()).filter(Boolean)
+    const managers = argument(args, "--managers")?.split(",").map((m) => m.trim()).filter(Boolean)
+    const binding = await operatorBinding(runtime.projectRoot, "system-manager")
+    writeJson(
+      runtime,
+      await core.bind(binding).configureDepartment?.(deptId, {
+        memberIds: members,
+        managerMemberIds: managers,
+        skillIds: skills,
+        toolIds: tools,
+      }),
+    )
+    return 0
+  }
+  if (args[0] === "change" && args[1] === "prepare") {
+    const changeJson = argument(args, "--change") ?? "{}"
+    const binding = await operatorBinding(runtime.projectRoot, "system-manager")
+    writeJson(runtime, await core.bind(binding).prepareChange?.(JSON.parse(changeJson)))
+    return 0
+  }
   if (args[0] === "status") {
     const binding = await operatorBinding(runtime.projectRoot, "system-manager")
     const [organization, localWorker] = await Promise.all([
@@ -92,6 +117,6 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
     return 0
   }
   throw new Error(
-    "Usage: agent-tower status | organization snapshot | members get <id> | context get --member <id> | knowledge search --query <text> [--member <id>] | local-worker status | mcp",
+    "Usage: agent-tower status | organization snapshot | members get <id> | context get --member <id> | department configure --department <id> [--skills <s1,s2>] [--tools <t1,t2>] | knowledge search --query <text> [--member <id>] | local-worker status | mcp",
   )
 }

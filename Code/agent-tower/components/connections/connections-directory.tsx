@@ -19,6 +19,7 @@ import {
   Network,
   PackageCheck,
   PlugZap,
+  Plus,
   RefreshCw,
   Search,
   ServerCog,
@@ -27,11 +28,11 @@ import {
   Terminal,
   TriangleAlert,
   Wrench,
+  X,
   Zap,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useMemo, useState } from "react"
-import { DetailModal } from "@/components/organization/detail-modal"
+import { useMemo, useState, type FormEvent } from "react"
 import type { CapabilityCatalogEntry, CapabilityKind, ProvisioningState } from "@/lib/capability-catalog"
 import type { OrganizationReadModel } from "@/lib/organization-model"
 import { skillsCatalog, type SkillEntry, type SkillScope } from "@/lib/skills-catalog"
@@ -39,6 +40,7 @@ import { composioToolsCatalog, type ComposioTool } from "@/lib/composio-tools-ca
 import { useLiveOrganizationModel } from "@/lib/use-live-organization-model"
 import { ToolIcon, SkillIcon } from "@/components/icons/tool-icons"
 import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
+import { useCustomEntriesStore } from "@/lib/custom-entries-store"
 
 const stateLabels: Record<ProvisioningState, string> = {
   healthy: "Healthy",
@@ -60,6 +62,7 @@ const departmentNames: Record<string, string> = {
   everyone: "Everyone (Org-wide)",
   hoa: "Head of Agents",
   system: "System Manager",
+  growth: "Growth & Marketing",
 }
 
 const departmentBadges: Record<string, string> = {
@@ -74,13 +77,13 @@ const departmentBadges: Record<string, string> = {
   everyone: "accent-cyan",
   hoa: "accent-rose",
   system: "accent-lime",
+  growth: "accent-orange",
 }
 
 export function ConnectionsDirectory({ model, catalog }: { model: OrganizationReadModel; catalog: CapabilityCatalogEntry[] }) {
   const router = useRouter()
   const params = useSearchParams()
   const live = useLiveOrganizationModel(model)
-  const currentModel = live.model
 
   const [activeTab, setActiveTab] = useState<"skills" | "tools" | "composio">("skills")
   const [selectedDept, setSelectedDept] = useState<string>("all")
@@ -88,6 +91,25 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
 
   const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
   const activeWorkspace = workspaces[activeWorkspaceId]
+
+  const { customSkills, customTools, addCustomSkill, addCustomTool } = useCustomEntriesStore()
+
+  // Modal states for adding entries
+  const [showAddSkillModal, setShowShowAddSkillModal] = useState(false)
+  const [showAddToolModal, setShowAddToolModal] = useState(false)
+
+  // Skill Form State
+  const [skillName, setSkillName] = useState("")
+  const [skillScope, setSkillScope] = useState<SkillScope>("everyone")
+  const [skillDesc, setSkillDesc] = useState("")
+  const [skillProvider, setSkillProvider] = useState("")
+
+  // Tool Form State
+  const [toolName, setToolName] = useState("")
+  const [toolKind, setToolKind] = useState<CapabilityKind>("tool")
+  const [toolProvider, setToolProvider] = useState("")
+  const [toolDesc, setToolDesc] = useState("")
+  const [toolEvidence, setToolEvidence] = useState("")
 
   const aldrSkillIds = useMemo(() => new Set([
     "brain", "ask", "recap", "counsel", "i-have-adhd", "search-fetch-agent",
@@ -99,26 +121,32 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
     "gws", "finance-crm-set", "sentry-lookup", "auth-handling", "mcp-config"
   ]), [])
 
+  // All combined skills (Static + Custom)
+  const allSkills = useMemo(() => [...customSkills, ...skillsCatalog], [customSkills])
+
+  // All combined tools (Static + Custom)
+  const allTools = useMemo(() => [...customTools, ...catalog], [customTools])
+
   // Filter skills
   const filteredSkills = useMemo(() => {
-    return skillsCatalog.filter((s) => {
-      if (activeWorkspaceId === "aldr" && !aldrSkillIds.has(s.id) && s.scope !== "everyone") {
+    return allSkills.filter((s) => {
+      if (activeWorkspaceId === "aldr" && !aldrSkillIds.has(s.id) && s.scope !== "everyone" && !customSkills.some(cs => cs.id === s.id)) {
         return false
       }
       const matchDept = selectedDept === "all" || s.scope === selectedDept || (selectedDept === "knowledge" && (s.scope === "system" || s.scope === "hoa"))
       const matchQuery = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase()) || (s.provider && s.provider.toLowerCase().includes(searchQuery.toLowerCase()))
       return matchDept && matchQuery
     })
-  }, [selectedDept, searchQuery, activeWorkspaceId, aldrSkillIds])
+  }, [allSkills, selectedDept, searchQuery, activeWorkspaceId, aldrSkillIds, customSkills])
 
   // Filter tools / capabilities
   const filteredTools = useMemo(() => {
-    return catalog.filter((t) => {
+    return allTools.filter((t) => {
       const matchDept = selectedDept === "all" || t.organizationWide || t.departmentIds.includes(selectedDept)
       const matchQuery = !searchQuery || t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.description.toLowerCase().includes(searchQuery.toLowerCase()) || t.provider.toLowerCase().includes(searchQuery.toLowerCase())
       return matchDept && matchQuery
     })
-  }, [catalog, selectedDept, searchQuery])
+  }, [allTools, selectedDept, searchQuery])
 
   // Filter Composio tools
   const filteredComposio = useMemo(() => {
@@ -128,6 +156,44 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
       return matchDept && matchQuery
     })
   }, [selectedDept, searchQuery])
+
+  function handleCreateSkill(event: FormEvent) {
+    event.preventDefault()
+    if (!skillName.trim()) return
+    const id = skillName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `skill-${Date.now()}`
+    addCustomSkill({
+      id,
+      name: skillName.trim(),
+      scope: skillScope,
+      description: skillDesc.trim() || "Custom agent skill capability",
+      status: "active",
+      provider: skillProvider.trim() || "Custom Skill",
+    })
+    setShowShowAddSkillModal(false)
+    setSkillName("")
+    setSkillDesc("")
+    setSkillProvider("")
+  }
+
+  function handleCreateTool(event: FormEvent) {
+    event.preventDefault()
+    if (!toolName.trim()) return
+    const id = toolName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `tool-${Date.now()}`
+    addCustomTool({
+      id,
+      name: toolName.trim(),
+      kind: toolKind,
+      provider: toolProvider.trim() || "Custom Provider",
+      description: toolDesc.trim() || "Custom platform tool connector",
+      evidence: toolEvidence.trim() || "User registered custom capability",
+      iconSlug: id,
+    })
+    setShowAddToolModal(false)
+    setToolName("")
+    setToolProvider("")
+    setToolDesc("")
+    setToolEvidence("")
+  }
 
   return (
     <div className="connections-page">
@@ -147,25 +213,25 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
             <small>Workspace: {activeWorkspace.name}</small>
           </div>
           <div className="connection-stats">
-            <em>{skillsCatalog.length} Skills</em>
-            <span><strong>{catalog.length}</strong> Platform Tools</span>
+            <em>{allSkills.length} Skills</em>
+            <span><strong>{allTools.length}</strong> Platform Tools</span>
             <span><strong>{composioToolsCatalog.length}</strong> Composio Slugs</span>
           </div>
         </div>
       </section>
 
-      {/* Control Bar: Tabs + Dept Filter + Search */}
+      {/* Control Bar: Tabs + Dept Filter + Search + Add Button */}
       <div className="capability-view-controls">
         <div className="capability-tabs">
           <button className={`cap-tab ${activeTab === "skills" ? "is-active" : ""}`} onClick={() => setActiveTab("skills")}>
             <Sparkles size={16} />
             <span>Department Skills</span>
-            <small>{skillsCatalog.length}</small>
+            <small>{allSkills.length}</small>
           </button>
           <button className={`cap-tab ${activeTab === "tools" ? "is-active" : ""}`} onClick={() => setActiveTab("tools")}>
             <Wrench size={16} />
             <span>Platform Tools</span>
-            <small>{catalog.length}</small>
+            <small>{allTools.length}</small>
           </button>
           <button className={`cap-tab ${activeTab === "composio" ? "is-active" : ""}`} onClick={() => setActiveTab("composio")}>
             <PlugZap size={16} />
@@ -195,6 +261,7 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
               )}
             </select>
           </div>
+
           <div className="search-box">
             <Search size={14} />
             <input
@@ -204,6 +271,20 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+
+          {activeTab === "skills" && (
+            <button className="add-entry-trigger-btn" onClick={() => setShowShowAddSkillModal(true)}>
+              <Plus size={15} />
+              <span>Add Skill</span>
+            </button>
+          )}
+
+          {activeTab === "tools" && (
+            <button className="add-entry-trigger-btn" onClick={() => setShowAddToolModal(true)}>
+              <Plus size={15} />
+              <span>Add Tool</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -318,6 +399,101 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
             ))}
           </div>
         </section>
+      )}
+
+      {/* Modal: Add Custom Skill */}
+      {showAddSkillModal && (
+        <div className="detail-modal-backdrop" onClick={() => setShowShowAddSkillModal(false)}>
+          <div className="custom-entry-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="custom-entry-modal-header">
+              <div className="custom-entry-modal-title">
+                <Sparkles size={18} className="icon-cyan" />
+                <h3>Add Custom Skill</h3>
+              </div>
+              <button aria-label="Close modal" className="modal-close-btn" onClick={() => setShowShowAddSkillModal(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <form className="custom-entry-form" onSubmit={handleCreateSkill}>
+              <label>
+                <span>Skill Name / ID</span>
+                <input required placeholder="e.g. pitchdeck-analyst" value={skillName} onChange={(e) => setSkillName(e.target.value)} />
+              </label>
+              <label>
+                <span>Scope / Department</span>
+                <select value={skillScope} onChange={(e) => setSkillScope(e.target.value as SkillScope)}>
+                  <option value="everyone">Baseline (Everyone)</option>
+                  <option value="growth">Growth & Marketing</option>
+                  <option value="engineering">Engineering</option>
+                  <option value="operations">Operations & Finance</option>
+                  <option value="system">System Governance</option>
+                  <option value="hoa">Head of Agents</option>
+                </select>
+              </label>
+              <label>
+                <span>Description</span>
+                <textarea rows={3} placeholder="Describe the skill capability, prompts and instructions..." value={skillDesc} onChange={(e) => setSkillDesc(e.target.value)} />
+              </label>
+              <label>
+                <span>Provider / Author</span>
+                <input placeholder="e.g. ALDR Venture / Custom MCP" value={skillProvider} onChange={(e) => setSkillProvider(e.target.value)} />
+              </label>
+              <div className="custom-entry-actions">
+                <button type="button" className="secondary-btn" onClick={() => setShowShowAddSkillModal(false)}>Cancel</button>
+                <button type="submit" className="primary-btn">+ Register Skill</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Custom Tool */}
+      {showAddToolModal && (
+        <div className="detail-modal-backdrop" onClick={() => setShowAddToolModal(false)}>
+          <div className="custom-entry-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="custom-entry-modal-header">
+              <div className="custom-entry-modal-title">
+                <Wrench size={18} className="icon-cyan" />
+                <h3>Add Custom Platform Tool</h3>
+              </div>
+              <button aria-label="Close modal" className="modal-close-btn" onClick={() => setShowAddToolModal(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <form className="custom-entry-form" onSubmit={handleCreateTool}>
+              <label>
+                <span>Tool / Connector Name</span>
+                <input required placeholder="e.g. PitchBook API" value={toolName} onChange={(e) => setToolName(e.target.value)} />
+              </label>
+              <label>
+                <span>Kind</span>
+                <select value={toolKind} onChange={(e) => setToolKind(e.target.value as CapabilityKind)}>
+                  <option value="tool">Tool</option>
+                  <option value="connector">Connector</option>
+                  <option value="software">Software</option>
+                  <option value="knowledge">Knowledge</option>
+                  <option value="runtime">Runtime</option>
+                </select>
+              </label>
+              <label>
+                <span>Provider</span>
+                <input placeholder="e.g. PitchBook / Composio" value={toolProvider} onChange={(e) => setToolProvider(e.target.value)} />
+              </label>
+              <label>
+                <span>Description</span>
+                <textarea rows={2} placeholder="Describe what this tool enables for agents..." value={toolDesc} onChange={(e) => setToolDesc(e.target.value)} />
+              </label>
+              <label>
+                <span>Evidence & Ground Truth</span>
+                <input placeholder="e.g. Connected via Composio API key" value={toolEvidence} onChange={(e) => setToolEvidence(e.target.value)} />
+              </label>
+              <div className="custom-entry-actions">
+                <button type="button" className="secondary-btn" onClick={() => setShowAddToolModal(false)}>Cancel</button>
+                <button type="submit" className="primary-btn">+ Register Tool</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )
