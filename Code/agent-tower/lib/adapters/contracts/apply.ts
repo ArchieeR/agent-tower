@@ -1,9 +1,22 @@
+import { z } from "zod"
+
 import type { AdapterHealthStateV1, HostOperationSupportV1 } from "./index.ts"
+import { AdapterWireValidationError, hostOperationSupportSchemaV1 } from "./operation-support.ts"
 
 export type AdapterSelectedTargetV1 = { adapterId: string; hostId: string; hostRuntimeId: string }
 export type AdapterNativeGuaranteesV1 = Pick<HostOperationSupportV1, "operationId" | "support" | "invocationMode" | "stableHostIdentity" | "idempotency" | "concurrency" | "responseSafety" | "readback" | "requiresOwnerReview" | "evidenceCodes"> & {
   hostObjectRefKind?: "canonical-public-key" | "opaque-host-id"
 }
+export const adapterNativeGuaranteesSchemaV1 = hostOperationSupportSchemaV1.extend({
+  hostObjectRefKind: z.enum(["canonical-public-key", "opaque-host-id"]).optional(),
+}).strict()
+
+export function parseAdapterNativeGuaranteesV1(value: unknown): AdapterNativeGuaranteesV1 {
+  const parsed = adapterNativeGuaranteesSchemaV1.safeParse(value)
+  if (!parsed.success) throw new AdapterWireValidationError("AdapterNativeGuaranteesV1")
+  return parsed.data
+}
+
 export type AdapterEvidencePreconditionV1 = {
   adapterRevision: string
   contentHash: string

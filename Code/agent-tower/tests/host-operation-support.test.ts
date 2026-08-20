@@ -55,10 +55,10 @@ test("absent operation is unknown and ineligible rather than unsupported", () =>
 test("support validation rejects missing review state and unversioned evidence codes", () => {
   const missingReview = structuredClone(buzzCurrent) as unknown as { operations: Array<Record<string, unknown>> }
   delete missingReview.operations[0].requiresOwnerReview
-  assert.throws(() => validateHostOperationSupportSnapshotV1(missingReview as unknown as HostOperationSupportSnapshotV1), /must not default/)
-  assert.throws(() => validateHostOperationSupportSnapshotV1({ ...buzzCurrent, operations: [{ ...buzzCurrent.operations[0], evidenceCodes: ["buzz.bridge.unavailable"] }] }), /evidence codes/)
+  assert.throws(() => validateHostOperationSupportSnapshotV1(missingReview as unknown as HostOperationSupportSnapshotV1), /HostOperationSupportSnapshotV1 is invalid/)
+  assert.throws(() => validateHostOperationSupportSnapshotV1({ ...buzzCurrent, operations: [{ ...buzzCurrent.operations[0], evidenceCodes: ["buzz.bridge.unavailable"] }] }), /HostOperationSupportSnapshotV1 is invalid/)
 })
 
 test("current explicit unsupported support snapshot is bounded and valid", () => {
-  assert.equal(validateHostOperationSupportSnapshotV1(buzzCurrent), buzzCurrent)
+  assert.deepEqual(validateHostOperationSupportSnapshotV1(buzzCurrent), buzzCurrent)
 })
