@@ -1,6 +1,6 @@
 # Project 1 — Local Buzz Organization Surface
 
-> **Primary/secondary product decision (2026-08-20):** Agent Tower is the primary organization, governance and capability control surface. The Agent Tower Buzz build is the secondary communication, channel, presence and runtime surface. Buzz may present a contextual read-only Organization projection and owner-reviewed handoff actions, but it must not become a second editable copy of Agent Tower policy.
+> **Tandem-interface product decision (2026-08-20; supersedes the earlier primary/secondary wording):** standalone Agent Tower and the native Agent Tower Buzz Organization surface are both first-class interfaces over one Agent Tower control core. Standalone Agent Tower serves Hermes and other runtimes beyond Buzz; Buzz Organization serves people and agents working inside Buzz. Both may expose governed organization workflows, but all shared policy reads and writes must resolve through the same revisioned control core so the interfaces never become divergent organization databases.
 
 Date: 2026-08-09
 Status: accepted project direction; implementation begins locally

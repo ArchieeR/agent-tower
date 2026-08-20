@@ -47,11 +47,14 @@ It separates:
 - Licence: Apache-2.0.
 - Scope: a TypeScript stdio MCP for the separate CorePrt Nostr relay. It is not part of `block/buzz`, is not evidence of compatibility with the installed Buzz identity/keychain boundary, and is reference code rather than an accepted dependency.
 
-## 2.5 Primary and secondary interfaces
+## 2.5 Tandem first-class interfaces
 
-Agent Tower is the primary owner/operator surface for organization design, reporting lines, department assignments, capability policy, workspace switching, versioned context and evidence. The Agent Tower Buzz build is a secondary contextual surface for communication, agent runtime presence, teams/channels and owner-reviewed operational handoffs.
+Standalone Agent Tower and the native Agent Tower Buzz Organization route are two first-class interfaces over the same Agent Tower control core:
 
-The Buzz Organization route may show the safe Agent Tower-informed projection so users do not lose context while communicating, but it remains read-only for Agent Tower-owned policy. Configuration links should deep-link or hand off to Agent Tower rather than maintaining a second mutable policy model. Buzz-native identity, channel, message, presence and runtime controls remain native Buzz responsibilities.
+- standalone Agent Tower is runtime-neutral and supports Hermes, Buzz/ACP and other approved agent runtimes, multi-workspace organization design, capability governance, versioned context and evidence;
+- Buzz Organization provides the same governed organization workflows in the place where Buzz people and managed agents already communicate, manage identities/channels and inspect runtime presence.
+
+Both surfaces may read and prepare/apply organization changes where policy permits, but neither owns a separate department, reporting-line, skill, tool or grant database. Every shared write must pass through the same validation, revision preconditions, atomic persistence and receipt path. Buzz-native identity, community, channel, message, presence and runtime controls remain Buzz-owned; runtime-neutral organizational policy remains Agent Tower-owned through the shared core. UI capability may differ by host, but authority and resulting state may not.
 
 ## 3. Architecture
 
