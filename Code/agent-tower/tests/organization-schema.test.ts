@@ -28,6 +28,12 @@ test("Buzz organization facts schema is a strict safe-field projection", async (
   assert.equal(document.additionalProperties, false)
   assert.equal(member.additionalProperties, false)
   assert.equal(member.properties.buzzPubkey.pattern, "^[0-9a-fA-F]{64}$")
+  assert.equal(member.properties.runtime.properties?.lastErrorCode?.type, "number")
+  const channels = document.properties.channels
+  assert.ok(channels?.items?.properties)
+  assert.equal(channels.items.additionalProperties, false)
+  assert.equal(channels.items.properties.id.format, "uuid")
+  assert.equal(channels.items.properties.memberPubkeys.items?.pattern, "^[0-9a-fA-F]{64}$")
   for (const forbidden of ["privateKey", "authTag", "systemPrompt", "envVars", "logPath", "token"]) {
     assert.equal(forbidden in member.properties, false)
   }

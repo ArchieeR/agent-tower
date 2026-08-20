@@ -34,6 +34,8 @@ export type DepartmentView = {
   skillIds: string[]
   routineIds: string[]
   toolIds: string[]
+  buzzTeamIds?: string[]
+  buzzChannelIds?: string[]
   configurationRevision?: number
   configurationUpdatedAt?: string
   worldVisible: boolean
@@ -88,6 +90,20 @@ export type BuzzTeamView = {
   personaIds?: string[]
   membershipBasis?: "persona-derived" | "direct-member"
   builtIn: boolean
+  source: BuzzSourceKind
+}
+
+export type BuzzChannelView = {
+  id: string
+  name: string
+  channelType: string
+  visibility: "open" | "private" | "unknown"
+  description?: string
+  topic?: string
+  purpose?: string
+  memberIds: string[]
+  lastMessageAt?: string
+  archivedAt: string | null
   source: BuzzSourceKind
 }
 
@@ -155,6 +171,7 @@ export type OrganizationReadModel = {
   departments: DepartmentView[]
   members: OrganizationMemberView[]
   buzzTeams: BuzzTeamView[]
+  buzzChannels: BuzzChannelView[]
   roleProfiles: RoleProfile[]
   council: CouncilProfile
   adapterHealth: AdapterHealth[]
@@ -294,7 +311,7 @@ export const aldrDepartments: DepartmentView[] = [
     desiredRoles: ["Lead Financial Modeler", "Valuation Specialist", "DCF & LBO Specialist", "Financial Analyst", "Audit Associate"],
     skillIds: ["financial-modeling", "valuation-discounted-cashflow", "lbo-modeler", "gws", "finance-crm-set", "stripe-best-practices"],
     routineIds: [],
-    toolIds: ["xero", "starling-bank", "stripe", "firebase-platform", "linear", "rheos-brain"],
+    toolIds: ["starling-bank", "stripe", "firebase-platform", "linear", "rheos-brain"],
     worldVisible: true,
     world: { x: -1.8, y: 4, width: 3.5 },
   },
@@ -323,6 +340,18 @@ export const departments: DepartmentView[] = rheosDepartments
 
 export function getWorkspaceDepartments(workspaceId: "rheos" | "aldr"): DepartmentView[] {
   return workspaceId === "aldr" ? aldrDepartments : rheosDepartments
+}
+
+export function workspaceDepartmentsFromModel(
+  modelDepartments: DepartmentView[],
+  workspaceId: "rheos" | "aldr",
+): DepartmentView[] {
+  const liveDepartments = modelDepartments.filter(
+    (department) => department.workspaceId === workspaceId,
+  )
+  return liveDepartments.length > 0
+    ? liveDepartments
+    : getWorkspaceDepartments(workspaceId)
 }
 
 export const roleProfiles: RoleProfile[] = [

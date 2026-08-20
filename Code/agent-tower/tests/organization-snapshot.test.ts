@@ -12,6 +12,7 @@ function model(generatedAt: string, observedAt: string): OrganizationReadModel {
     departments: [],
     members: [],
     buzzTeams: [],
+    buzzChannels: [],
     roleProfiles: [],
     council: { id: "council", name: "External Counsel", placement: "external-top-right", advisoryOnly: true, baselineCapabilities: [], panels: [], candidates: [] },
     adapterHealth: [{ id: "buzz-local", name: "Buzz local adapter", state: "connected", detail: "0 agents", observedAt }],
@@ -38,4 +39,22 @@ test("canonical snapshot content excludes volatile timestamps", () => {
 test("core and compatibility hash paths return the same revision", () => {
   const snapshot = model("2026-08-11T10:00:00Z", "2026-08-11T10:00:00Z")
   assert.equal(hashOrganizationSnapshot(snapshot), organizationSnapshotRevision(snapshot))
+})
+
+test("snapshot revision changes when a safe Buzz channel field changes", () => {
+  const first = model("2026-08-11T10:00:00Z", "2026-08-11T10:00:00Z")
+  first.buzzChannels = [{
+    id: "buzz-channel:11111111-1111-4111-8111-111111111111",
+    name: "engineering",
+    channelType: "chat",
+    visibility: "private",
+    topic: "First topic",
+    memberIds: [],
+    archivedAt: null,
+    source: "buzz-desktop-tauri",
+  }]
+  const second = structuredClone(first)
+  second.buzzChannels[0]!.topic = "Second topic"
+
+  assert.notEqual(organizationSnapshotRevision(first), organizationSnapshotRevision(second))
 })

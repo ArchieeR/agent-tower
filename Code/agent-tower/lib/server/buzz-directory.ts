@@ -3,6 +3,7 @@ import { homedir } from "node:os"
 import * as path from "node:path"
 
 import { assembleOrganizationReadModel, type BuzzOrganizationFactsV1, type OrganizationAssemblyWarning } from "../control-core/organization-assembly.ts"
+import { assembleBuzzOrgCompatibilityPayload, parseBuzzOrgCompatibilityPayload, type BuzzOrgCompatibilityPayloadV1 } from "../control-core/buzz-org-compatibility.ts"
 import type { EnvelopeSourceState } from "../control-core/organization-envelope.ts"
 import { departments, generalCouncil, roleProfiles, type AdapterHealth, type OrganizationReadModel } from "../organization-model.ts"
 import { readOrganizationConfiguration } from "./organization-configuration-store.ts"
@@ -21,7 +22,7 @@ type RawAgent = {
   respond_to?: string
   parallelism?: number
   start_on_app_launch?: boolean
-  last_error_code?: string | number | null
+  last_error_code?: number | null
 }
 
 type RawTeam = {
@@ -80,6 +81,15 @@ async function parseOptionalJson<T>(file: string, fallback: T): Promise<T> {
   }
 }
 
+async function readBuzzOrgCompatibilityPayload(file: string): Promise<BuzzOrgCompatibilityPayloadV1 | undefined> {
+  try {
+    return parseBuzzOrgCompatibilityPayload(await parseJson<unknown>(file))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined
+    throw error
+  }
+}
+
 function linearHealth(observedAt: string): AdapterHealth {
   return {
     id: "linear",
@@ -97,6 +107,50 @@ export async function getOrganizationSnapshotAssembly(projectRoot = process.cwd(
   const globalFile = path.join(buzzRoot, "global-agent-config.json")
   const overridesFile = path.join(projectRoot, "data", "organization-overrides.json")
   const organizationConfigurationFile = path.join(projectRoot, "data", "organization-config.json")
+  const buzzOrgSnapshotFile = path.join(projectRoot, "data", "buzz-org-snapshot.json")
+
+  try {
+    const payload = await readBuzzOrgCompatibilityPayload(buzzOrgSnapshotFile)
+    if (payload) {
+      const organizationConfiguration = await readOrganizationConfiguration(organizationConfigurationFile)
+      const assembled = assembleBuzzOrgCompatibilityPayload(payload, {
+        departments,
+        roleProfiles,
+        council: generalCouncil,
+        organization: { id: "agent-tower-local", name: "Agent Tower", mode: "local" },
+        configuration: organizationConfiguration,
+      })
+      return {
+        ...assembled,
+        model: {
+          ...assembled.model,
+          adapterHealth: [...assembled.model.adapterHealth, linearHealth(payload.facts.observedAt)],
+        },
+        primarySource: {
+          state: assembled.model.adapterHealth[0]?.state ?? "degraded",
+          observedAt: payload.facts.health.observedAt,
+          staleAfterMs: payload.facts.staleAfterMs,
+        },
+      }
+    }
+  } catch {
+    return {
+      model: {
+        organization: { id: "agent-tower-local", name: "Agent Tower", mode: "local" },
+        departments,
+        members: [],
+        buzzTeams: [],
+        buzzChannels: [],
+        roleProfiles,
+        council: generalCouncil,
+        adapterHealth: [{ id: "buzz-org", name: "buzz-org compatibility adapter", state: "degraded", detail: "The product-owned buzz-org snapshot is invalid.", observedAt }],
+        generatedAt: observedAt,
+      },
+      warnings: [{ code: "INVALID_COMPATIBILITY_PAYLOAD", message: "The product-owned buzz-org snapshot is invalid.", source: "buzz-org-snapshot" }],
+      sourceRevisions: { buzz: "invalid-compatibility-payload" },
+      primarySource: { state: "degraded", observedAt, staleAfterMs: 5000 },
+    }
+  }
 
   try {
     const [rawAgents, rawTeams, globalConfig, agentsStat, teamsStat, globalStat, overrides, organizationConfiguration] = await Promise.all([
@@ -144,7 +198,7 @@ export async function getOrganizationSnapshotAssembly(projectRoot = process.cwd(
             personaOutOfDate: false,
             personaOrphaned: false,
             needsRestart: false,
-            lastErrorCode: agent.last_error_code ?? undefined,
+            lastErrorCode: typeof agent.last_error_code === "number" ? agent.last_error_code : undefined,
           },
           messaging: { senderPolicy: senderPolicy(agent.respond_to) },
         }
@@ -157,6 +211,7 @@ export async function getOrganizationSnapshotAssembly(projectRoot = process.cwd(
         isBuiltin: Boolean(team.is_builtin),
         updatedAt: team.updated_at,
       })),
+      channels: [],
       health: {
         state: "connected",
         observedAt,
@@ -187,6 +242,7 @@ export async function getOrganizationSnapshotAssembly(projectRoot = process.cwd(
         departments,
         members: [],
         buzzTeams: [],
+        buzzChannels: [],
         roleProfiles,
         council: generalCouncil,
         adapterHealth: [{ id: "buzz-local", name: "Buzz organization adapter", state: "degraded", detail: "Buzz local safe fallback is unavailable.", observedAt }],

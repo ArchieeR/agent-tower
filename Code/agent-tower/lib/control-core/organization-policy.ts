@@ -11,12 +11,16 @@ export type DepartmentConfiguration = {
   skillIds: string[]
   routineIds: string[]
   toolIds: string[]
+  buzzTeamIds?: string[]
+  buzzChannelIds?: string[]
 }
 
 export type DepartmentConfigurationContext = {
   capacity: number
   availableMemberIds: string[]
   allowedToolIds?: string[]
+  availableBuzzTeamIds?: string[]
+  availableBuzzChannelIds?: string[]
 }
 
 export type DepartmentConfigurationValidation =
@@ -38,6 +42,8 @@ export function validateDepartmentConfiguration(
     skillIds: unique(configuration.skillIds),
     routineIds: unique(configuration.routineIds),
     toolIds: unique(configuration.toolIds),
+    ...(configuration.buzzTeamIds ? { buzzTeamIds: unique(configuration.buzzTeamIds) } : {}),
+    ...(configuration.buzzChannelIds ? { buzzChannelIds: unique(configuration.buzzChannelIds) } : {}),
   }
   const errors: string[] = []
   if (value.managerMemberIds.length < value.managerPolicy.min) {
@@ -57,6 +63,12 @@ export function validateDepartmentConfiguration(
   }
   if (context.allowedToolIds && value.toolIds.some((id) => !context.allowedToolIds!.includes(id))) {
     errors.push("One or more selected capabilities are not eligible for this department.")
+  }
+  if (context.availableBuzzTeamIds && value.buzzTeamIds?.some((id) => !context.availableBuzzTeamIds!.includes(id))) {
+    errors.push("One or more selected Buzz teams are unavailable.")
+  }
+  if (context.availableBuzzChannelIds && value.buzzChannelIds?.some((id) => !context.availableBuzzChannelIds!.includes(id))) {
+    errors.push("One or more selected Buzz channels are unavailable.")
   }
   return errors.length ? { ok: false, errors } : { ok: true, errors: [], value }
 }

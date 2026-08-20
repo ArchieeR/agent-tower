@@ -22,6 +22,7 @@ export function canonicalOrganizationSnapshot(model: OrganizationReadModel): str
     departments: model.departments,
     members: model.members,
     buzzTeams: model.buzzTeams,
+    buzzChannels: model.buzzChannels,
     roleProfiles: model.roleProfiles,
     council: model.council,
     adapterHealth: model.adapterHealth.map((health) => ({

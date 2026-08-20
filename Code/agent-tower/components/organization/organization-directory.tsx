@@ -22,7 +22,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import type { CouncilProfile, DepartmentView, OrganizationMemberView, OrganizationReadModel, RoleProfile } from "@/lib/organization-model"
-import { getWorkspaceDepartments } from "@/lib/organization-model"
+import { workspaceDepartmentsFromModel } from "@/lib/organization-model"
 import { useOrganizationSelection, workspaces } from "@/lib/selection-store"
 import { DetailModal } from "@/components/organization/detail-modal"
 import { DepartmentConfigurationPanel } from "@/components/organization/department-configuration-panel"
@@ -133,10 +133,10 @@ const departmentMetadata: Record<
     subtitle: "3-Statement financial modeling, DCF, LBO, and audit verification.",
     targetChannels: "Valuation Channels",
     capabilities: [
-      { name: "Xero Accounting", slug: "xero", state: "healthy", iconSlug: "xero" },
       { name: "Starling Banking", slug: "starling-bank", state: "healthy", iconSlug: "starling" },
       { name: "Stripe Revenue", slug: "stripe", state: "healthy", iconSlug: "stripe" },
       { name: "Firebase Backend", slug: "firebase-platform", state: "healthy", iconSlug: "firebase" },
+      { name: "Linear Tracking", slug: "linear", state: "healthy", iconSlug: "linear" },
     ],
   },
   "portfolio-ops": {
@@ -209,12 +209,14 @@ function CouncilCard({ council, onOpen }: { council: CouncilProfile; onOpen: () 
 function OrgChart({ model, selectedDepartmentId, onSelect, onOpenCouncil, onOpenRole, sync }: { model: OrganizationReadModel; selectedDepartmentId?: string; onSelect: (id: string) => void; onOpenCouncil: () => void; onOpenRole: (id: string) => void; sync: { status: OrganizationSyncStatus; lastSyncedAt: string; error?: string; refresh: () => Promise<void> } }) {
   const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
   const activeWorkspace = workspaces[activeWorkspaceId]
-  const staticWorkspaceDepartments = getWorkspaceDepartments(activeWorkspaceId as "rheos" | "aldr")
   const { customDepartments, addCustomDepartment } = useCustomEntriesStore()
 
   const workspaceDepartments = useMemo(() => {
-    return [...staticWorkspaceDepartments, ...customDepartments]
-  }, [staticWorkspaceDepartments, customDepartments])
+    return [
+      ...workspaceDepartmentsFromModel(model.departments, activeWorkspaceId as "rheos" | "aldr"),
+      ...customDepartments,
+    ]
+  }, [activeWorkspaceId, customDepartments, model.departments])
 
   const departmentTeams = workspaceDepartments.filter((department) => !["leadership", "knowledge", "data-centre", "portfolio-ops"].includes(department.id))
   const systemServices = workspaceDepartments.filter((department) => ["knowledge", "data-centre", "portfolio-ops"].includes(department.id))
@@ -372,7 +374,12 @@ function DepartmentDetail({ department, model }: { department: DepartmentView; m
     .map((id) => model.members.find((member) => member.id === id))
     .filter((member): member is OrganizationMemberView => Boolean(member))
   const profiles = model.roleProfiles.filter((role) => role.departmentId === department.id)
-  const buzzTeam = model.buzzTeams.find((team) => team.name.toLowerCase() === department.name.toLowerCase())
+  const buzzTeams = (department.buzzTeamIds ?? [])
+    .map((id) => model.buzzTeams.find((team) => team.id === id))
+    .filter((team): team is OrganizationReadModel["buzzTeams"][number] => Boolean(team))
+  const buzzChannels = (department.buzzChannelIds ?? [])
+    .map((id) => model.buzzChannels.find((channel) => channel.id === id))
+    .filter((channel): channel is OrganizationReadModel["buzzChannels"][number] => Boolean(channel))
   const capabilities = assignedCapabilities(department)
   const toolCapabilities = capabilities.filter((entry) =>
     ["tool", "software", "runtime", "connector", "report"].includes(entry.kind),
@@ -506,12 +513,28 @@ function DepartmentDetail({ department, model }: { department: DepartmentView; m
           <div className="dept-meta-list">
             <div className="dept-meta-row">
               <span className="dept-meta-label">Target</span>
-              <span className="dept-meta-val">{meta?.targetChannels ?? buzzTeam?.name ?? "Department channels"}</span>
+              <span className="dept-meta-val">
+                {buzzChannels.length
+                  ? buzzChannels.map((channel) => `#${channel.name}`).join(", ")
+                  : buzzTeams.length
+                    ? buzzTeams.map((team) => team.name).join(", ")
+                    : meta?.targetChannels ?? "Department channels"}
+              </span>
             </div>
             <div className="dept-meta-row">
               <span className="dept-meta-label">Mapping</span>
-              <span className="dept-meta-val">{buzzTeam ? "Configured" : "Pending"}</span>
+              <span className="dept-meta-val">
+                {buzzChannels.length || buzzTeams.length
+                  ? `${buzzChannels.length} channel${buzzChannels.length === 1 ? "" : "s"} · ${buzzTeams.length} team${buzzTeams.length === 1 ? "" : "s"}`
+                  : "Pending"}
+              </span>
             </div>
+            {buzzChannels[0]?.topic || buzzChannels[0]?.purpose ? (
+              <div className="dept-meta-row">
+                <span className="dept-meta-label">Current</span>
+                <span className="dept-meta-val">{buzzChannels[0].topic ?? buzzChannels[0].purpose}</span>
+              </div>
+            ) : null}
             <div className="dept-meta-row">
               <span className="dept-meta-label">Writes</span>
               <span className="dept-meta-val">Owner reviewed</span>
@@ -641,7 +664,10 @@ export function OrganizationDirectory({ model }: { model: OrganizationReadModel 
   }, [clearSelection, params, selectDepartment, selectMember])
 
   const activeWorkspaceId = useOrganizationSelection((state) => state.activeWorkspaceId)
-  const workspaceDepartments = useMemo(() => getWorkspaceDepartments(activeWorkspaceId as "rheos" | "aldr"), [activeWorkspaceId])
+  const workspaceDepartments = useMemo(
+    () => workspaceDepartmentsFromModel(currentModel.departments, activeWorkspaceId as "rheos" | "aldr"),
+    [activeWorkspaceId, currentModel.departments],
+  )
 
   const activeDepartment = useMemo(() => {
     if (activeDetail?.kind !== "department") return undefined

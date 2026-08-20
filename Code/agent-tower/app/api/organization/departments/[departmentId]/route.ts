@@ -21,6 +21,8 @@ function parseConfiguration(value: unknown): DepartmentConfiguration | undefined
   if (typeof input.departmentId !== "string" || typeof policy.min !== "number") return undefined
   if (policy.max !== undefined && typeof policy.max !== "number") return undefined
   if (!stringArray(input.managerMemberIds) || !stringArray(input.memberIds) || !stringArray(input.skillIds) || !stringArray(input.routineIds) || !stringArray(input.toolIds)) return undefined
+  if (input.buzzTeamIds !== undefined && !stringArray(input.buzzTeamIds)) return undefined
+  if (input.buzzChannelIds !== undefined && !stringArray(input.buzzChannelIds)) return undefined
   return {
     departmentId: input.departmentId,
     managerMemberIds: input.managerMemberIds,
@@ -29,6 +31,8 @@ function parseConfiguration(value: unknown): DepartmentConfiguration | undefined
     skillIds: input.skillIds,
     routineIds: input.routineIds,
     toolIds: input.toolIds,
+    buzzTeamIds: input.buzzTeamIds,
+    buzzChannelIds: input.buzzChannelIds,
   }
 }
 
@@ -57,7 +61,13 @@ export async function PUT(request: Request, context: { params: Promise<{ departm
   const allowedToolIds = capabilityCatalog
     .filter((entry) => entry.organizationWide || entry.departmentIds.includes(departmentId))
     .map((entry) => entry.id)
-  const validation = validateDepartmentConfiguration(configuration, { capacity: department.capacity, availableMemberIds, allowedToolIds })
+  const validation = validateDepartmentConfiguration(configuration, {
+    capacity: department.capacity,
+    availableMemberIds,
+    allowedToolIds,
+    availableBuzzTeamIds: model.buzzTeams.map((team) => team.id),
+    availableBuzzChannelIds: model.buzzChannels.map((channel) => channel.id),
+  })
   if (!validation.ok) return NextResponse.json(validation, { status: 422 })
 
   const file = path.join(process.cwd(), "data", "organization-config.json")

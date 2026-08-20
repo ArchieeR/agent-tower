@@ -304,6 +304,10 @@ Project 1 is local-only. It requires no Supabase, Auth0, hosted deployment or pu
 - Show source and freshness.
 - Add adapter error/disconnected state.
 - Do not read system prompts, logs, auth tags, private keys or retention databases.
+- Accept the versioned `buzz-org` Agent Tower compatibility payload for source-owned stable members, teams, channels and freshness only.
+- Keep Buzz teams/channels source-owned while Agent Tower retains roles, seats, grants, calendars and policy.
+- Prefer the product-owned `data/buzz-org-snapshot.json` compatibility snapshot when present; strictly validate the whole document and fail visibly instead of falling through to raw Buzz state.
+- Continue applying owner-reviewed assignments and grants exclusively from Agent Tower's local `data/organization-config.json`.
 
 ### Slice C — Linear and calendar joins
 

@@ -184,6 +184,7 @@ const model: OrganizationReadModel = {
     },
   ],
   buzzTeams: [],
+  buzzChannels: [],
   roleProfiles: [
     {
       id: "system-manager",

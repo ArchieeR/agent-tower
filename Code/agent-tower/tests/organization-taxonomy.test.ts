@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert"
 import { test } from "node:test"
 
-import { departments, roleProfiles } from "../lib/organization-model.ts"
+import { departments, roleProfiles, workspaceDepartmentsFromModel } from "../lib/organization-model.ts"
 
 test("active organization taxonomy consolidates finance and infrastructure under four operating heads", () => {
   assert.deepEqual(
@@ -28,4 +28,18 @@ test("active organization taxonomy consolidates finance and infrastructure under
     ],
   )
   assert.ok(headProfiles.every((profile) => profile.model === "gpt-5.6-sol"))
+})
+
+test("workspace departments prefer live read-model assignments over static taxonomy", () => {
+  const memberId = `buzz-agent:${"a".repeat(64)}`
+  const liveDepartments = departments.map((department) =>
+    department.id === "engineering"
+      ? { ...department, memberIds: [memberId], buzzChannelIds: ["buzz-channel:11111111-1111-4111-8111-111111111111"] }
+      : department,
+  )
+
+  const selected = workspaceDepartmentsFromModel(liveDepartments, "rheos")
+
+  assert.deepEqual(selected.find((department) => department.id === "engineering")?.memberIds, [memberId])
+  assert.deepEqual(selected.find((department) => department.id === "engineering")?.buzzChannelIds, ["buzz-channel:11111111-1111-4111-8111-111111111111"])
 })

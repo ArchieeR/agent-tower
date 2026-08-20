@@ -43,6 +43,8 @@ function configurationFrom(department: DepartmentView): DepartmentConfiguration 
     skillIds: department.skillIds,
     routineIds: department.routineIds,
     toolIds: department.toolIds,
+    buzzTeamIds: department.buzzTeamIds,
+    buzzChannelIds: department.buzzChannelIds,
   }
 }
 
@@ -102,7 +104,12 @@ export function DepartmentConfigurationPanel({ department, model, toolCapabiliti
     event.preventDefault()
     const draft = { ...configuration, skillIds: labels(skillText), routineIds: labels(routineText) }
     const availableMemberIds = candidateMembers.map((member) => member.id)
-    const validation = validateDepartmentConfiguration(draft, { capacity: department.capacity, availableMemberIds })
+    const validation = validateDepartmentConfiguration(draft, {
+      capacity: department.capacity,
+      availableMemberIds,
+      availableBuzzTeamIds: model.buzzTeams.map((team) => team.id),
+      availableBuzzChannelIds: model.buzzChannels.map((channel) => channel.id),
+    })
     if (!validation.ok) {
       setConfigurationErrors(validation.errors)
       setConfigurationReceipt(undefined)

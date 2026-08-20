@@ -138,3 +138,28 @@ test("rejects a known capability outside the department eligibility boundary", (
   assert.equal(result.ok, false)
   assert.deepEqual(result.errors, ["One or more selected capabilities are not eligible for this department."])
 })
+
+test("normalizes and validates Buzz team and channel assignments", () => {
+  const result = validateDepartmentConfiguration(
+    {
+      departmentId: "engineering",
+      managerMemberIds: ["buzz-agent:manager"],
+      managerPolicy: { min: 1, max: 1 },
+      memberIds: ["buzz-agent:manager"],
+      skillIds: [],
+      routineIds: [],
+      toolIds: [],
+      buzzTeamIds: [" buzz-team:engineering ", "buzz-team:engineering"],
+      buzzChannelIds: ["buzz-channel:missing"],
+    },
+    {
+      capacity: 5,
+      availableMemberIds: ["buzz-agent:manager"],
+      availableBuzzTeamIds: ["buzz-team:engineering"],
+      availableBuzzChannelIds: ["buzz-channel:engineering"],
+    },
+  )
+
+  assert.equal(result.ok, false)
+  assert.deepEqual(result.errors, ["One or more selected Buzz channels are unavailable."])
+})

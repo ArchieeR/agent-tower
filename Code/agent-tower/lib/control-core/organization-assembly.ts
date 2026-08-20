@@ -1,6 +1,7 @@
 import type {
   AdapterHealth,
   AgentMemberView,
+  BuzzChannelView,
   BuzzSourceKind,
   BuzzTeamView,
   CouncilProfile,
@@ -20,7 +21,7 @@ export type BuzzRuntimeFact = {
   needsRestart: boolean
   personaOutOfDate: boolean
   personaOrphaned: boolean
-  lastErrorCode?: string | number
+  lastErrorCode?: number
 }
 
 export type BuzzSafeMemberFact = {
@@ -43,6 +44,20 @@ export type BuzzSafeTeamFact = {
   updatedAt?: string
 }
 
+export type BuzzSafeChannelFact = {
+  id: string
+  name: string
+  channelType: string
+  visibility: "open" | "private" | "unknown"
+  description?: string
+  topic?: string
+  purpose?: string
+  memberCount: number
+  memberPubkeys: string[]
+  lastMessageAt?: string
+  archivedAt: string | null
+}
+
 export type BuzzOrganizationFactsV1 = {
   schemaVersion: 1
   source: BuzzSourceKind
@@ -57,6 +72,7 @@ export type BuzzOrganizationFactsV1 = {
   }
   members: BuzzSafeMemberFact[]
   teams: BuzzSafeTeamFact[]
+  channels?: BuzzSafeChannelFact[]
   health: { state: AdapterHealth["state"]; observedAt: string; detail?: string }
 }
 
@@ -68,6 +84,8 @@ export type StoredDepartmentPolicy = {
   skillIds: string[]
   routineIds: string[]
   toolIds: string[]
+  buzzTeamIds?: string[]
+  buzzChannelIds?: string[]
   revision?: number
   updatedAt?: string
 }
@@ -78,7 +96,7 @@ export type OrganizationConfigurationSnapshot = {
 }
 
 export type OrganizationAssemblyWarning = {
-  code: "UNMAPPABLE_BUZZ_MEMBER" | "DUPLICATE_WORK_IDENTITY" | "INVALID_COMMUNITY_ORIGIN" | "MISSING_CONFIGURED_MEMBER" | "DUPLICATE_DEPARTMENT_ASSIGNMENT"
+  code: "UNMAPPABLE_BUZZ_MEMBER" | "DUPLICATE_WORK_IDENTITY" | "INVALID_BUZZ_CHANNEL" | "INVALID_COMMUNITY_ORIGIN" | "INVALID_COMPATIBILITY_PAYLOAD" | "MISSING_CONFIGURED_MEMBER" | "MISSING_CONFIGURED_TEAM" | "MISSING_CONFIGURED_CHANNEL" | "DUPLICATE_DEPARTMENT_ASSIGNMENT"
   message: string
   source?: string
 }
@@ -96,6 +114,7 @@ export type OrganizationAssemblyInput = {
 }
 
 const NOSTR_PUBLIC_KEY = /^[0-9a-f]{64}$/i
+const CHANNEL_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export function buzzMemberId(pubkey: string): `buzz-agent:${string}` | undefined {
   const normalized = pubkey.trim().toLowerCase()
@@ -207,6 +226,31 @@ export function assembleOrganizationReadModel(input: OrganizationAssemblyInput):
     source: input.buzz.source,
   }))
   const availableMemberIds = new Set(sourceMembers.map((member) => member.id))
+  const buzzChannels: BuzzChannelView[] = (input.buzz.channels ?? []).flatMap((channel) => {
+    const recordId = channel.id.trim().toLowerCase()
+    if (!CHANNEL_ID.test(recordId)) {
+      warnings.push({ code: "INVALID_BUZZ_CHANNEL", message: `Buzz channel ${channel.id} has no valid UUID.`, source: input.buzz.source })
+      return []
+    }
+    return [{
+      id: `buzz-channel:${recordId}`,
+      name: channel.name,
+      channelType: channel.channelType,
+      visibility: channel.visibility,
+      description: channel.description,
+      topic: channel.topic,
+      purpose: channel.purpose,
+      memberIds: channel.memberPubkeys.flatMap((pubkey) => {
+        const id = buzzMemberId(pubkey)
+        return id && availableMemberIds.has(id) ? [id] : []
+      }),
+      lastMessageAt: channel.lastMessageAt,
+      archivedAt: channel.archivedAt,
+      source: input.buzz.source,
+    }]
+  })
+  const availableTeamIds = new Set(buzzTeams.map((team) => team.id))
+  const availableChannelIds = new Set(buzzChannels.map((channel) => channel.id))
   const departmentByMemberId = new Map<string, string>()
   const configuredDepartments = input.departments.map((department) => {
     const configured = input.configuration.departments[department.id]
@@ -222,6 +266,16 @@ export function assembleOrganizationReadModel(input: OrganizationAssemblyInput):
         memberIds.push(id)
       }
     }
+    const buzzTeamIds = (configured.buzzTeamIds ?? []).filter((id) => {
+      if (availableTeamIds.has(id)) return true
+      warnings.push({ code: "MISSING_CONFIGURED_TEAM", message: `Configured Buzz team ${id} is unavailable.`, source: department.id })
+      return false
+    })
+    const buzzChannelIds = (configured.buzzChannelIds ?? []).filter((id) => {
+      if (availableChannelIds.has(id)) return true
+      warnings.push({ code: "MISSING_CONFIGURED_CHANNEL", message: `Configured Buzz channel ${id} is unavailable.`, source: department.id })
+      return false
+    })
     return {
       ...department,
       managerMemberIds: configured.managerMemberIds.filter((id) => memberIds.includes(id)),
@@ -230,6 +284,8 @@ export function assembleOrganizationReadModel(input: OrganizationAssemblyInput):
       skillIds: [...configured.skillIds],
       routineIds: [...configured.routineIds],
       toolIds: [...configured.toolIds],
+      buzzTeamIds,
+      buzzChannelIds,
       configurationRevision: configured.revision,
       configurationUpdatedAt: configured.updatedAt,
     }
@@ -244,7 +300,7 @@ export function assembleOrganizationReadModel(input: OrganizationAssemblyInput):
   const buzzHealth: AdapterHealth = {
     id: "buzz-local",
     name: "Buzz organization adapter",
-    state: warnings.some((warning) => warning.code === "UNMAPPABLE_BUZZ_MEMBER" || warning.code === "DUPLICATE_WORK_IDENTITY" || warning.code === "INVALID_COMMUNITY_ORIGIN") && input.buzz.health.state === "connected" ? "degraded" : input.buzz.health.state,
+    state: warnings.some((warning) => warning.code === "UNMAPPABLE_BUZZ_MEMBER" || warning.code === "DUPLICATE_WORK_IDENTITY" || warning.code === "INVALID_BUZZ_CHANNEL" || warning.code === "INVALID_COMMUNITY_ORIGIN") && input.buzz.health.state === "connected" ? "degraded" : input.buzz.health.state,
     detail: input.buzz.health.detail ?? `${members.length} safe Buzz members · ${buzzTeams.length} teams`,
     observedAt: input.buzz.health.observedAt,
   }
@@ -254,6 +310,7 @@ export function assembleOrganizationReadModel(input: OrganizationAssemblyInput):
       departments: configuredDepartments,
       members,
       buzzTeams,
+      buzzChannels,
       roleProfiles: input.roleProfiles,
       council: input.council,
       adapterHealth: [buzzHealth, ...(input.additionalHealth ?? [])],
