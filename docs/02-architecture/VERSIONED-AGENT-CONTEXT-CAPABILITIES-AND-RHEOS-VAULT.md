@@ -238,16 +238,22 @@ A grant does not prove that software is installed or a connector is healthy. Con
 
 Approved members may also receive a bounded `council.request` capability. It sends a versioned read-only question/evidence packet to selected external model panels, using the same web-search, Vault and citation baseline. Council output is advisory and cannot bypass the requesting member's restrictions or manager approval.
 
-## 9. Rheos Vault knowledge tool
+## 9. Knowledge host plane and Rheos Vault adapter
 
-Agents receive a scoped retrieval tool, not a dump of the Vault.
+Knowledge is a foundational Agent Tower plane, not an ordinary tool grant. Agent Tower owns provider-neutral knowledge policy, classification requirements, subject/task scope, allowed actions, source/policy pins, approvals and evidence. Knowledge hosts own corpus storage, indexing, native ACL/readiness, search/read and publishing lifecycle.
 
-Current knowledge layers include:
+Rheos Vault is the first deep knowledge host and intended integrated/commercial add-on. The Agent Tower core contract remains portable to other approved stores.
 
-1. local Obsidian/archie-vault — primary canonical knowledge layer;
-2. Rheos Brain — local contract-v2 notes, session summaries and code maps;
-3. Rheos in-app Vault — canonical product-facing documents after drain;
-4. Notion — shared organization documents only where intentionally retained.
+Agents receive scoped retrieval and exact citations, not a corpus dump.
+
+Current source layers are explicitly observed:
+
+1. Rheos Brain local Vault-contract-v2 workspace — local notes, inbox captures, session summaries and code maps; authoritative local working evidence before drain;
+2. Rheos Library / in-app Vault — canonical after successful drain/promotion;
+3. Notion — shared organization documents only where intentionally retained;
+4. other knowledge hosts — unavailable until a governed adapter proves identity, classification, freshness and citation semantics.
+
+Agent Tower must not silently treat a local fallback as equivalent to a healthy drained Vault source or broaden scope when a host is unavailable.
 
 The initial agent-facing interface should normalize these behind one catalogue:
 
@@ -263,6 +269,12 @@ type RheosVaultTool = {
 Existing Rheos interfaces include `rheos_search_vault` followed by `rheos_get_document`. The Agent Tower tool layer should wrap those alongside local canonical sources where authorized.
 
 Current local readiness (2026-08-09): the `rheos` MCP server is enabled in Hermes, but `hermes mcp test rheos` returns `Connection closed`. The agent-facing Vault capability must not be marked available until that connection is repaired and a scoped search/read/citation call is verified.
+
+### Marketing knowledge-pack proof
+
+Marketing is the first domain implementation because its agents require durable product/brand voice, audience, campaign history, SEO/GEO evidence, social policy, competitor context and approved examples across sessions and tool hosts. A versioned Marketing pack is a governed set of source/collection/classification policy and contribution rules—not a copied prompt or unrestricted folder.
+
+Marketing agents receive only task-authorized search/read/chunk/citation actions and pinned knowledge policy/source revisions. Knowledge & Data Centre owns taxonomy, classification and freshness governance; Marketing owns domain contribution proposals. Publishing/curation remains a separately approved adapter operation with exact readback and receipts.
 
 ### Knowledge authorization
 

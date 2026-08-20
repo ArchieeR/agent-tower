@@ -195,7 +195,26 @@ safe export/readback
 
 The approved design uses an immutable `adapterPlanId`/`adapterPlanDigest`, stable `adapterOperationId` per approved change operation, and unique `applyAttemptId` per native invocation. Approval covers change/plan digests, exact opaque target, adapter evidence freshness/health, capability mapping revision and expiry. Adapter results separate `mutationState` from `verificationState`; `outcome-unknown` and drift block blind retry pending reconciliation. Each host operation has its own adapter receipt; only Control Core aggregates multi-operation change status. Apply remains unimplemented.
 
-## 10. Composio/tool host status
+## 10. Knowledge and context plane
+
+Knowledge is a foundational plane beneath Agent Tower, not a generic tool grant:
+
+```text
+Agent Tower Core → identity, organization, policy, context, approvals and receipts
+Host adapters    → identity, messaging and execution
+Tool adapters    → callable capabilities and authenticated tool readiness
+Knowledge hosts  → governed corpus search/read/citation/curation/publishing
+```
+
+Agent Tower owns provider-neutral knowledge policy: source/collection scope, classifications, allowed actions, task binding, expiry, pinned source/policy revisions, citation requirements, approval policy and evidence. Knowledge hosts own corpus/storage/indexing/native ACL/readiness and publishing lifecycle. Search does not imply read; read does not imply publish.
+
+Rheos Vault is the first deep knowledge host and intended integrated/commercial Agent Tower add-on, while the core contract remains portable to other knowledge stores. The local Rheos Brain/vault path is an initial observed source; drained Rheos Vault remains separately health-gated. Agents receive scoped retrieval and exact citations, never unrestricted corpus dumps. Knowledge & Data Centre owns taxonomy/classification/freshness governance; domain teams own contribution proposals.
+
+Marketing is the first domain proof: a versioned knowledge pack for product/brand voice, audience, campaign history, SEO/GEO evidence, social policies, competitors and approved examples. Marketing agents receive the pinned policy/source revisions and retrieve only task-authorized chunks. Publication/curation is a future governed adapter write requiring prepare→approval→apply→observe→receipt.
+
+Linear project: [Agent Tower — Knowledge & Context](https://linear.app/rheosapp/project/agent-tower-knowledge-and-context-7497dd24604e). Issues: [ALD-184](https://linear.app/rheosapp/issue/ALD-184) provider-neutral contract; [ALD-183](https://linear.app/rheosapp/issue/ALD-183) Rheos Vault/Marketing implementation; existing ALD-124 versioned context foundation.
+
+## 11. Composio/tool host status
 
 Composio is connected as `archie@rheos.app` in local operator context, but aliases/emails/provider account IDs are not safe default adapter output.
 
@@ -212,7 +231,7 @@ The read-only adapter supports:
 
 No live `link`, remote execute, proxy, run, listen, org/project switching or auth/config mutation is authorized. Connected/healthy Composio observations never imply an effective member grant.
 
-## 11. Active workstreams and receipts
+## 12. Active workstreams and receipts
 
 ### Tower — Product & Integration (`20260819_8`)
 
@@ -260,7 +279,7 @@ Commits:
 
 Reported verification: 90 tests, typecheck, lint and production build green; worktree clean. No live Composio/Buzz actions or Control Core/UI edits.
 
-## 12. Linear workstream map
+## 13. Linear workstream map
 
 Existing Agent Tower project issues:
 
@@ -280,13 +299,14 @@ Durable Linear workstream mapping (created/reconciled 2026-08-20):
 | Agent Tower Control Core (`20260820_14`) | [Agent Tower — Control Core & Manager API](https://linear.app/rheosapp/project/agent-tower-control-core-and-manager-api-a9dc766ce60d) | [ALD-182 — Build trusted manager control service, CLI and MCP](https://linear.app/rheosapp/issue/ALD-182) | ALD-124 |
 | Buzz Host (`20260820_4`) | [Agent Tower — Buzz Host Adapter](https://linear.app/rheosapp/project/agent-tower-buzz-host-adapter-f53eaf211711) | [ALD-179 — Implement governed Buzz Host Adapter create/update/readback loop](https://linear.app/rheosapp/issue/ALD-179) | ALD-120, ALD-131 |
 | Host Adapters & Tool Registry (`20260820_18`) | [Agent Tower — Host Adapters & Tool Registry](https://linear.app/rheosapp/project/agent-tower-host-adapters-and-tool-registry-0edc0eeb667c) | [ALD-178 — Implement Composio tool host adapter and canonical tool registry](https://linear.app/rheosapp/issue/ALD-178) | ALD-125, ALD-129 |
+| Knowledge & Context (unassigned until implementation starts) | [Agent Tower — Knowledge & Context](https://linear.app/rheosapp/project/agent-tower-knowledge-and-context-7497dd24604e) | [ALD-184 — provider-neutral knowledge-host contract](https://linear.app/rheosapp/issue/ALD-184) | ALD-124, ALD-183 |
 | Setup & Operations (`20260820_8`) | [Agent Tower — Pilot & Operations](https://linear.app/rheosapp/project/agent-tower-pilot-and-operations-2b3ed861ca70) | ALD-121 | ALD-121 |
 
 Cross-cutting hosted auth is tracked as [ALD-181 — Implement Auth0 hosted auth and remote MCP authorization](https://linear.app/rheosapp/issue/ALD-181) under Control Core, but remains planned behind local containment and the Buzz P0 wedge.
 
 Berd sessions are replaceable executors, not the durable work units. Replacement sessions inherit the relevant Linear project/issues, branch/worktree and this ledger. Every implementation session posts commit/test/blocker receipts to its primary issue and keeps project state honest.
 
-## 13. Enterprise/open-source direction
+## 14. Enterprise/open-source direction
 
 Current repository is public but has no licence and therefore is not yet OSI open source. Recommended direction, subject to specialist legal review:
 
@@ -299,16 +319,17 @@ Current repository is public but has no licence and therefore is not yet OSI ope
 
 Required files before promotion: `LICENSE`, `COMMERCIAL-LICENSE.md`, `TRADEMARKS.md`, `CONTRIBUTING.md`, CLA process, `SECURITY.md`, `NOTICE`, and code of conduct.
 
-## 14. Current gates and next order
+## 15. Current gates and next order
 
 P0 order:
 
 1. Review/finish Control Core local owner-service authentication containment; integrate only after branch review and current-main reconciliation.
 2. Finish Buzz safe export source, run full CI/evidence, separately approve rebuilt Preview install.
 3. Export safe snapshot to ignored Agent Tower path; strict validation.
-4. Owner-approved member links and opaque channel/host-scoped sessions.
-5. Bounded same-thread acknowledgement probe.
-6. Design/implement Buzz catalog/probe and governed draft/create-update/readback receipt bridge.
+4. Define and integrate provider-neutral Knowledge Host contract (ALD-184) using the versioned context foundation.
+5. Owner-approved member links and opaque channel/host-scoped sessions.
+6. Bounded same-thread acknowledgement probe with scoped knowledge citation.
+7. Design/implement Buzz catalog/probe and governed draft/create-update/readback receipt bridge.
 
 P1 parallel:
 

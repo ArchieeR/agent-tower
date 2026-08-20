@@ -15,11 +15,12 @@ Linear remains canonical for live project, issue, dependency and evidence state.
 | 2 | Agent Tower — Control Core & Manager API | `c149fd52-401c-4621-9f94-ce5ecf03bb44` | Archie Roberts | In Progress | Urgent |
 | 3 | Agent Tower — Buzz Host Adapter | `16093754-b63c-4e91-b25b-8b1a70725643` | Archie Roberts | In Progress | Urgent |
 | 4 | Agent Tower — Host Adapters & Tool Registry | `cda29bfd-679e-42e3-bebb-fa6bca067e08` | Archie Roberts | In Progress | High |
-| 5 | Agent Tower — Pilot & Operations | `654db58e-9efc-4c71-9c3c-7be3d08578e4` | Archie Roberts | Planned | High |
-| 6 | Agent Tower — Spatial Skin & UX Proof | `6b627334-eab6-4a92-b329-287c062edc2f` | Archie Roberts | In Progress | High |
-| 7 | Agent Tower — Blender Asset Production | `7e720573-d794-419e-a712-08dc0d3baad5` | Archie Roberts | Planned | Medium |
-| 8 | Agent Tower — R3F World Integration | `302f53a6-6f8c-485f-a459-4f2687cb5561` | Archie Roberts | Planned | Medium |
-| 9 | Agent Tower — Infrastructure & Self-Hosting | `ce47f2a5-797f-4cfe-9215-83f8e299925e` | Archie Roberts | Planned | Low |
+| 5 | Agent Tower — Knowledge & Context | `600116c1-3e3b-4a7a-be0c-081d2fb394c1` | Archie Roberts | In Progress | High |
+| 6 | Agent Tower — Pilot & Operations | `654db58e-9efc-4c71-9c3c-7be3d08578e4` | Archie Roberts | Planned | High |
+| 7 | Agent Tower — Spatial Skin & UX Proof | `6b627334-eab6-4a92-b329-287c062edc2f` | Archie Roberts | In Progress | High |
+| 8 | Agent Tower — Blender Asset Production | `7e720573-d794-419e-a712-08dc0d3baad5` | Archie Roberts | Planned | Medium |
+| 9 | Agent Tower — R3F World Integration | `302f53a6-6f8c-485f-a459-4f2687cb5561` | Archie Roberts | Planned | Medium |
+| 10 | Agent Tower — Infrastructure & Self-Hosting | `ce47f2a5-797f-4cfe-9215-83f8e299925e` | Archie Roberts | Planned | Low |
 
 Whenever a project is created, archived, renamed, re-scoped or moved, update this file and the decision/delivery ledger after reading back the live initiative.
 
@@ -31,6 +32,7 @@ Whenever a project is created, archived, renamed, re-scoped or moved, update thi
 | `20260820_14` — Agent Tower Control Core | Control Core & Manager API | ALD-182; context ALD-124 |
 | `20260820_4` — Buzz Host | Buzz Host Adapter | ALD-179; existing ALD-120 and ALD-131 |
 | `20260820_18` — Host Adapters & Tool Registry | Host Adapters & Tool Registry | ALD-178; existing ALD-125 and ALD-129 |
+| unassigned until implementation starts | Knowledge & Context | ALD-184; context ALD-124; Rheos Vault/Marketing ALD-183 |
 | `20260820_8` — Setup & Operations | Pilot & Operations | ALD-121 |
 
 Sessions are replaceable executors. Projects/issues, branches/worktrees and the decision ledger survive session replacement.
@@ -44,9 +46,13 @@ Product/architecture decisions
 
 ALD-182 + ALD-179
   ├─→ ALD-178 host/tool adapters and Composio readiness
+  ├─→ ALD-184 provider-neutral knowledge-host contract
   └─→ ALD-121 rebuilt Preview + bounded pilot
 
-ALD-178 + trusted sessions
+ALD-184 + ALD-124 + trusted sessions
+  └─→ ALD-183 Rheos Vault adapter + Marketing knowledge pack
+
+ALD-178 + ALD-184 + trusted sessions
   └─→ ALD-129 System Manager health routines
 
 Buzz host + Control Core + pilot evidence
@@ -79,6 +85,12 @@ Cross-cutting hosted Auth0/remote MCP is ALD-181 under Control Core but remains 
 - ALD-125 — connection/tool UI.
 - ALD-178 — Composio adapter and canonical tool registry.
 - ALD-129 — System Manager health routines.
+
+### Knowledge & Context
+
+- ALD-124 — versioned context and scoped knowledge foundation.
+- ALD-184 — provider-neutral knowledge-host and policy contract.
+- ALD-183 — Rheos Vault adapter and Marketing knowledge pack.
 
 ### Pilot & Operations
 
