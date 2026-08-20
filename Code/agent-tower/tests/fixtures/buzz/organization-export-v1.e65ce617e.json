@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "facts": {
+    "schemaVersion": 1,
+    "source": "buzz-desktop-tauri",
+    "observedAt": "2026-08-20T17:00:00Z",
+    "staleAfterMs": 5000,
+    "sourceRevision": "safe-revision",
+    "members": [
+      {
+        "buzzPubkey": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "managedAgentId": "buzz-agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "personaId": "builder",
+        "displayName": "Builder",
+        "runtimeIdentities": [
+          {
+            "mode": "buzz",
+            "runtimeId": "buzz-agent:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "runtime": {
+          "status": "running",
+          "runtime": "goose",
+          "backend": "local",
+          "parallelism": 1,
+          "startOnAppLaunch": false,
+          "needsRestart": false,
+          "personaOutOfDate": false,
+          "personaOrphaned": false
+        },
+        "messaging": {
+          "senderPolicy": "owner-only"
+        }
+      }
+    ],
+    "teams": [
+      {
+        "id": "agent-tower-core",
+        "name": "Agent Tower Core",
+        "personaIds": [
+          "builder"
+        ],
+        "isBuiltin": false,
+        "updatedAt": "2026-08-20T16:59:00Z"
+      }
+    ],
+    "channels": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "agent-tower-control-plane",
+        "channelType": "stream",
+        "visibility": "private",
+        "memberCount": 1,
+        "memberPubkeys": [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "archivedAt": null
+      }
+    ],
+    "health": {
+      "state": "connected",
+      "observedAt": "2026-08-20T17:00:00Z"
+    }
+  }
+}
