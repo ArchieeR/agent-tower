@@ -215,7 +215,7 @@ No live `link`, remote execute, proxy, run, listen, org/project switching or aut
 ### Tower — Product & Integration (`20260819_8`)
 
 - Main checkout, architecture, integration review, orchestration and main merges.
-- Main integration commit before this ledger update: `0297321`; this ledger/ADR/programme reconciliation is the next main commit.
+- Initial ledger/ADR/programme consolidation was committed and pushed as `175e933`; later Linear reconciliation updates are recorded in subsequent main history.
 
 ### Agent Tower Control Core (`20260820_14`)
 
