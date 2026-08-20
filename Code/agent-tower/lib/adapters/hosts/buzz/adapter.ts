@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto"
+import { domainDigestV1 } from "../../../shared/canonical-digest.ts"
 
 import type { AdapterEnvelopeV1, AdapterHealthStateV1, AdapterWarningV1, HostAdapterV1, HostCatalogSnapshotV1, HostObservationSnapshotV1, HostProbeSnapshotV1 } from "../../contracts/index.ts"
 import { parseBuzzHostCatalog, runtimeCatalogSnapshot, runtimeObservationSnapshot, runtimeProbeSnapshot, type BuzzHostCatalogSnapshotV1, type BuzzHostCatalogTransport } from "./runtime-catalog.ts"
@@ -20,7 +20,10 @@ export type BuzzOrganizationCompatibilityPayloadV1 = {
 export type BuzzOrganizationCompatibilityTransport = { getOrganizationCompatibilityPayload(): Promise<unknown> }
 export type BuzzOrganizationCompatibilityParser = (value: unknown) => BuzzOrganizationCompatibilityPayloadV1
 
-function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex") }
+function observationHash(domain: "buzz-organization-observation" | "buzz-host-catalog-observation" | "adapter-envelope", value: unknown): string {
+  const emittedJson = JSON.parse(JSON.stringify(value)) as unknown
+  return domainDigestV1(domain, emittedJson)
+}
 function unavailableOrganization(): BuzzOrganizationCompatibilityPayloadV1 {
   return { schemaVersion: 1, facts: { schemaVersion: 1, source: "buzz-desktop-tauri", observedAt: new Date(0).toISOString(), staleAfterMs: 1, sourceRevision: "unavailable", members: [], teams: [], channels: [], health: { state: "disconnected", observedAt: new Date(0).toISOString() } } }
 }
@@ -56,7 +59,9 @@ export class BuzzHostAdapter implements HostAdapterV1 {
     const staleWarnings: AdapterWarningV1[] = organizationStale || catalogStale ? [{ code: "STALE_EXPORT", sourceCode: "buzz.snapshot.stale", message: "A Buzz adapter source exceeded its freshness window." }] : []
     const sourceObservations = [{ source: "buzz.organization", sourceRevision: facts.sourceRevision, observedAt: facts.observedAt }]
     if (catalog) sourceObservations.push({ source: "buzz.host-catalog", sourceRevision: catalog.sourceRevision, observedAt: catalog.observedAt })
-    const contentHash = hash({ data, health, sourceObservations })
+    const organizationObservationHash = observationHash("buzz-organization-observation", { sourceRevision: facts.sourceRevision, observedAt: facts.observedAt, health: facts.health })
+    const catalogObservationHash = catalog ? observationHash("buzz-host-catalog-observation", catalog) : undefined
+    const contentHash = observationHash("adapter-envelope", { adapterId: this.adapterId, data, health, sourceObservations, organizationObservationHash, catalogObservationHash })
     return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: contentHash, contentHash, sourceVersion: catalog?.sourceVersion ?? "buzz-organization-compatibility-v1", sourceObservations, observedAt: catalog?.observedAt ?? facts.observedAt, freshness: organizationStale || catalogStale ? "stale" : health === "available" ? "live" : "degraded", health, evidence: [], warnings: [...warnings, ...staleWarnings], data }
   }
 

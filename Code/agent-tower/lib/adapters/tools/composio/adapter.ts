@@ -1,5 +1,6 @@
-import { createHash, createHmac } from "node:crypto"
+import { createHmac } from "node:crypto"
 
+import { domainDigestV1 } from "../../../shared/canonical-digest.ts"
 import type {
   AdapterEnvelopeV1,
   AdapterEvidenceV1,
@@ -32,12 +33,10 @@ const SECRET_KEY = /(token|secret|password|credential|api.?key|cookie|authorizat
 const PII_ALIAS = /@|https?:|www\.|\b\d{7,}\b|[A-Za-z0-9+/=_-]{32,}/i
 const ANSI = /\u001b\[[0-?]*[ -/]*[@-~]/g
 
-function stable(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(stable)
-  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, stable(item)]))
-  return value
+function observationHash(domain: "composio-tool-inventory" | "adapter-envelope", value: unknown): string {
+  const emittedJson = JSON.parse(JSON.stringify(value)) as unknown
+  return domainDigestV1(domain, emittedJson)
 }
-function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(stable(value))).digest("hex") }
 function durationBucket(ms: number): AdapterEvidenceV1["durationBucket"] { return ms < 100 ? "lt-100ms" : ms < 1_000 ? "lt-1s" : ms < 5_000 ? "lt-5s" : "gte-5s" }
 function evidence(command: AdapterEvidenceCommandV1, result: CommandExecution, recordCount?: number): AdapterEvidenceV1 {
   return { command, exitClass: result.exitClass, startedAt: result.startedAt, finishedAt: result.finishedAt, durationBucket: durationBucket(result.durationMs), recordCount }
@@ -86,7 +85,8 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
   }
 
   private envelope<T>(data: T, health: AdapterHealthStateV1, sourceVersion: string | undefined, evidenceItems: AdapterEvidenceV1[], warnings: AdapterWarningV1[]): AdapterEnvelopeV1<T> {
-    const contentHash = hash({ data, health, sourceVersion, warnings })
+    const inventoryHash = observationHash("composio-tool-inventory", { data, health, sourceVersion, warnings })
+    const contentHash = observationHash("adapter-envelope", { adapterId: this.adapterId, inventoryHash })
     return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: contentHash, contentHash, sourceVersion, observedAt: this.now().toISOString(), freshness: health === "available" ? "live" : "degraded", health, evidence: evidenceItems, warnings, data }
   }
 
