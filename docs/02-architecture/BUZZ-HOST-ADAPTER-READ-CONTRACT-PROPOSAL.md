@@ -1,7 +1,7 @@
 # Buzz Host Adapter Read Contract Proposal
 
 Date: 2026-08-20  
-Status: proposed for Buzz Tower review; Agent Tower-side safe transport consumer implemented, no Buzz native implementation
+Status: read contract implemented Agent Tower-side; governed lifecycle interface provisionally aligned with Control Core, no Buzz native or apply implementation
 
 Priority: P0. The supported safe export, catalog/probe/observe loop and readback evidence take precedence over further Composio expansion.
 
@@ -75,6 +75,20 @@ prepare exact Buzz-native delta
 ```
 
 The receipt must identify the canonical Agent Tower change, opaque Buzz host/runtime/identity references, approved digest, preconditions, safe readback revision/hash, observed outcome and drift. It must never contain credentials, prompts or raw native records. This design does not authorize or implement apply.
+
+### Provisional Control Core alignment
+
+- Preserve `AdapterEnvelopeV1` verbatim as observation evidence. A separate decision/result binds Agent Tower policy and touched-resource revisions.
+- Candidate selection and approval bind `{adapterId, hostId, hostRuntimeId, adapterRevision, contentHash}` exactly. Runtime IDs and host capability claims remain opaque and host-owned. Capability claims require explicit mappings; unknown claims satisfy no requirement.
+- Display/match may show stale observations with warnings. Prepare requires configured freshness and health. Apply must re-probe the exact identity and reject drift, revocation, expiry, CAS failure, disappearance or readiness regression without fallback or substitution.
+- `authConfigured` is an observation only, never an effective grant or authorization decision.
+- The typed Agent Tower change owns member ID, desired policy and resource revisions, operation, selected target tuple, expected adapter revision and requested safe intent. The adapter plan owns the exact native target identity, projection/delta, readback assertions and plan digest.
+- Approval digest covers intent and immutable plan, all CAS revisions, selected target, member, expiry and readback assertions.
+- Use stable `applicationId` derived from the approved change revision and a unique `applyAttemptId` for each invocation.
+- Create correlation uses a host external/idempotency reference or apply-returned opaque ID followed by exact readback, never a display-name join.
+- Governed outcomes are `applied-and-verified`, `applied-with-drift`, `not-applied` and `outcome-unknown`. They are distinct from worker execution receipts and do not imply rollback.
+- Timeout plus indeterminate readback produces `outcome-unknown`, blocks blind retry and requires reconciliation.
+- Adapters receive only the authorized operation/plan. They never receive owner-service capabilities, Auth0 claims or credentials.
 
 ## Open interface questions for Buzz Tower
 
