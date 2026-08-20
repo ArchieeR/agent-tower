@@ -298,8 +298,8 @@ Existing Agent Tower project issues:
 - ALD-120 — Buzz safe adapter/read model and native host integration.
 - ALD-121 — Preview setup and bounded live pilot.
 - ALD-122 — organization UI/detail surfaces.
-- ALD-124 — context/control-core foundations; superseded in breadth by dedicated secure manager-control issue to be created.
-- ALD-125 — connections/tool UI; adapter/tool-host implementation issue to be created.
+- ALD-124 — versioned context and scoped knowledge foundation; owned by Knowledge & Context and consumed by Control Core/Pilot.
+- ALD-125 — connections/tool UI foundation; owned by Host Adapters & Tool Registry alongside ALD-178.
 - ALD-129 — System Manager health routines after trusted sessions and adapters.
 - ALD-131 — Linear-to-Buzz execution workflow after core/host wedge.
 
@@ -308,7 +308,7 @@ Durable Linear workstream mapping (created/reconciled 2026-08-20):
 | Berd lane | Linear project | Primary/new issue | Existing issues moved here |
 |---|---|---|---|
 | Tower — Product & Integration (`20260819_8`) | [Agent Tower — Product & Integration](https://linear.app/rheosapp/project/agent-tower-product-and-integration-d751af6d792b) | [ALD-180 — Choose Agent Tower open-core, commercial and trademark licensing](https://linear.app/rheosapp/issue/ALD-180) | ALD-122 |
-| Agent Tower Control Core (`20260820_14`) | [Agent Tower — Control Core & Manager API](https://linear.app/rheosapp/project/agent-tower-control-core-and-manager-api-a9dc766ce60d) | [ALD-182 — Build trusted manager control service, CLI and MCP](https://linear.app/rheosapp/issue/ALD-182) | ALD-124 |
+| Agent Tower Control Core (`20260820_14`) | [Agent Tower — Control Core & Manager API](https://linear.app/rheosapp/project/agent-tower-control-core-and-manager-api-a9dc766ce60d) | [ALD-182 — Build trusted manager control service, CLI and MCP](https://linear.app/rheosapp/issue/ALD-182) | ALD-181 (planned hosted auth) |
 | Buzz Host (`20260820_4`) | [Agent Tower — Buzz Host Adapter](https://linear.app/rheosapp/project/agent-tower-buzz-host-adapter-f53eaf211711) | [ALD-179 — Implement governed Buzz Host Adapter create/update/readback loop](https://linear.app/rheosapp/issue/ALD-179) | ALD-120, ALD-131 |
 | Host Adapters & Tool Registry (`20260820_18`) | [Agent Tower — Host Adapters & Tool Registry](https://linear.app/rheosapp/project/agent-tower-host-adapters-and-tool-registry-0edc0eeb667c) | [ALD-178 — Implement Composio tool host adapter and canonical tool registry](https://linear.app/rheosapp/issue/ALD-178) | ALD-125, ALD-129 |
 | Knowledge & Context (unassigned until implementation starts) | [Agent Tower — Knowledge & Context](https://linear.app/rheosapp/project/agent-tower-knowledge-and-context-7497dd24604e) | [ALD-184 — provider-neutral knowledge-host contract](https://linear.app/rheosapp/issue/ALD-184) | ALD-124, ALD-183 |
@@ -316,7 +316,7 @@ Durable Linear workstream mapping (created/reconciled 2026-08-20):
 
 Cross-cutting hosted auth is tracked as [ALD-181 — Implement Auth0 hosted auth and remote MCP authorization](https://linear.app/rheosapp/issue/ALD-181) under Control Core, but remains planned behind local containment and the Buzz P0 wedge.
 
-Berd sessions are replaceable executors, not the durable work units. Replacement sessions inherit the relevant Linear project/issues, branch/worktree and this ledger. Every implementation session posts commit/test/blocker receipts to its primary issue and keeps project state honest.
+Berd sessions are replaceable executors, not the durable work units. Replacement sessions inherit the relevant Linear project/issues, branch/worktree and this ledger. Every implementation session posts commit/test/blocker receipts to its primary issue and keeps project state honest. Cross-project dependencies do not transfer issue ownership: Control Core consumes ALD-124's context/knowledge contract, but Knowledge & Context owns ALD-124.
 
 ## 14. Enterprise/open-source direction
 

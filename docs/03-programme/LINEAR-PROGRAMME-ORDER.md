@@ -29,7 +29,7 @@ Whenever a project is created, archived, renamed, re-scoped or moved, update thi
 | Berd session | Durable project | Primary issue |
 |---|---|---|
 | `20260819_8` — Tower — Product & Integration | Product & Integration | ALD-180; UI ALD-122 |
-| `20260820_14` — Agent Tower Control Core | Control Core & Manager API | ALD-182; context ALD-124 |
+| `20260820_14` — Agent Tower Control Core | Control Core & Manager API | ALD-182; hosted auth ALD-181 |
 | `20260820_4` — Buzz Host | Buzz Host Adapter | ALD-179; existing ALD-120 and ALD-131 |
 | `20260820_18` — Host Adapters & Tool Registry | Host Adapters & Tool Registry | ALD-178; existing ALD-125 and ALD-129 |
 | unassigned until implementation starts | Knowledge & Context | ALD-184; context ALD-124; Rheos Vault/Marketing ALD-183 |
@@ -70,7 +70,6 @@ Cross-cutting hosted Auth0/remote MCP is ALD-181 under Control Core but remains 
 
 ### Control Core & Manager API
 
-- ALD-124 — versioned context and scoped knowledge foundation.
 - ALD-182 — trusted manager service, CLI and MCP.
 - ALD-181 — hosted Auth0 and remote MCP authorization (planned).
 
