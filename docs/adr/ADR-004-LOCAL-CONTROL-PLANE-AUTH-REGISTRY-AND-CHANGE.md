@@ -91,10 +91,10 @@ Not every bound agent may prepare. Live MCP `department_configure` is removed as
 v0.1 rules:
 
 - `changes.prepare` requires grant `organization.change.propose`, scoped by kind and subject. Default deny.
-- Seed grants: owner CLI, System Manager, department managers (department-scoped). No self-grant. System Manager cannot approve its own proposal.
+- Seed grants: authenticated owner principal, System Manager, and department managers (department-scoped). Before owner bootstrap/challenge exists, direct local CLI preparation is recorded as `local-operator`, never `owner`, and still requires independent owner approval. No self-grant. System Manager cannot approve its own proposal.
 - Prepare validates, computes affected members and the next `policyRevision`, and returns a non-executing change request id + digest. It does not persist desired state.
 - `changes.apply` is owner path B only; MCP never exposes it.
-- MCP mutations remain: context acknowledgement, receipt submit, and granted `change.prepare`. Owner CLI may prepare as the authenticated owner principal. Compatibility HTTP department PUT is not an agent tool.
+- MCP mutations remain: context acknowledgement, receipt submit, and granted `change.prepare`. CLI may prepare only through the control service: as `local-operator` before owner authentication is proven, or as `owner` only after successful owner bootstrap/challenge. Locality alone never upgrades the principal. Compatibility HTTP department PUT is not an agent tool.
 
 Defer: autonomous apply; unscoped org-wide propose for non-owner roles; payments, deploys, credential writes.
 

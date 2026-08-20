@@ -257,7 +257,7 @@ Commits:
 - `0f82553` opaque owner-socket authentication on every MCP operation;
 - `e1f0abc` owner authentication service entrypoint.
 
-Reported verification: 86 tests, lint and production build green; worktree clean. No apply/approval decision/runtime adapter. Owner socket currently authenticates only; issuance and approval endpoints are absent. Latest independent review requests final strict schema/hash/idempotency/read-scope checks before integration.
+Reported verification: 86 tests, lint and production build green; worktree clean. Independent strict schema/hash/idempotency/read-scope findings were addressed by `9d16d18`, `cae31fa`, and `abdc1ad`; branch-level integration review against current main remains pending. No apply/approval decision/runtime adapter. Owner socket currently authenticates only; issuance and approval endpoints are absent.
 
 ### Buzz Host (`20260820_4`)
 
