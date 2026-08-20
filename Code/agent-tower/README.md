@@ -112,12 +112,14 @@ The MCP server requires a short-lived, signed member and runtime binding. After 
 # Buzz-managed agent
 npm run agent-tower -- session mint \
   --member system-manager \
+  --channels <private-channel-id> \
   --mode buzz \
   --runtime-id <buzz-managed-agent-id>
 
 # Hermes execution session (optionally connected to Buzz messaging)
 npm run agent-tower -- session mint \
   --member system-manager \
+  --channels <private-channel-id> \
   --mode hermes \
   --runtime-id <hermes-agent-id> \
   --runtime-session <hermes-session-id>

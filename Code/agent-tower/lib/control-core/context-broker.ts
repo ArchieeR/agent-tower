@@ -39,6 +39,9 @@ export type AgentContextBundle = {
     teamIds: string[]
     managerMemberIds: string[]
   }
+  channelScope: {
+    allowedChannelIds: string[]
+  }
   runtime: {
     mode: RuntimeMode
     runtimeId: string
@@ -65,6 +68,7 @@ export type AssembleAgentContextInput = {
   capabilities: CapabilityCatalogEntry[]
   sourceRevisions: Record<string, string>
   runtimeBinding?: { mode: RuntimeMode; runtimeId: string; sessionId?: string }
+  allowedChannelIds?: string[]
   now: Date
   ttlMs: number
 }
@@ -165,6 +169,9 @@ export function assembleAgentContext(input: AssembleAgentContextInput): AgentCon
       departmentIds,
       teamIds: [...member.teamIds].sort(),
       managerMemberIds,
+    },
+    channelScope: {
+      allowedChannelIds: Array.from(new Set(input.allowedChannelIds ?? [])).sort(),
     },
     runtime: {
       mode: runtimeIdentity.mode,

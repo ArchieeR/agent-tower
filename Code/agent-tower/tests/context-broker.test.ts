@@ -106,6 +106,7 @@ test("assembles a stable System Manager context from a bound Buzz identity", () 
     },
     capabilities,
     sourceRevisions: { organization: "org-7", buzz: "buzz-2", linear: "linear-11", brain: "brain-5" },
+    allowedChannelIds: ["channel-private-1"],
     now: new Date("2026-08-11T19:20:00.000Z"),
     ttlMs: 300_000,
   }
@@ -119,6 +120,7 @@ test("assembles a stable System Manager context from a bound Buzz identity", () 
   assert.equal(first.runtime.mode, "hermes")
   assert.equal(first.runtime.runtimeId, "hermes-system-manager")
   assert.equal(first.runtime.sessionId, "hermes-session-1")
+  assert.deepEqual(first.channelScope.allowedChannelIds, ["channel-private-1"])
   assert.deepEqual(first.skillRefs.map((entry) => entry.id), ["connector-health"])
   assert.deepEqual(first.routineRefs.map((entry) => entry.id), ["daily-health-check"])
   assert.deepEqual(first.effectiveToolGrants.map((entry) => entry.id), ["linear", "rheos-brain"])

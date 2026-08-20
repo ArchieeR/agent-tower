@@ -22,6 +22,12 @@ function csvArgument(args: string[], name: string): string[] | undefined {
   return argument(args, name)?.split(",").map((value) => value.trim()).filter(Boolean)
 }
 
+function requiredChannelIds(args: string[]): string[] {
+  const channels = csvArgument(args, "--channels") ?? []
+  if (channels.length === 0) throw new Error("session mint requires --channels <channel-id[,channel-id]>.")
+  return channels
+}
+
 function writeJson(runtime: CliRuntime, value: unknown): void {
   ;(runtime.write ?? ((output) => process.stdout.write(output)))(`${JSON.stringify(value, null, 2)}\n`)
 }
@@ -32,6 +38,7 @@ async function operatorBinding(
   runtimeMode: "buzz" | "hermes" = "buzz",
   runtimeId?: string,
   runtimeSessionId?: string,
+  allowedChannelIds: string[] = [],
 ): Promise<AgentSessionBinding> {
   const links = await readMemberLinks(path.join(projectRoot, "data", "member-links.json"))
   const link = links.find((entry) => entry.memberId === memberId)
@@ -44,7 +51,7 @@ async function operatorBinding(
     runtimeMode,
     runtimeId: runtimeId ?? (runtimeMode === "buzz" ? link.buzzMemberId : memberId),
     runtimeSessionId,
-    allowedChannelIds: [],
+    allowedChannelIds: Array.from(new Set(allowedChannelIds)).sort(),
     toolGrantCeiling: ["linear", "rheos-brain", "local-rig-worker"],
     issuedAt: issuedAt.toISOString(),
     expiresAt: new Date(issuedAt.getTime() + 300_000).toISOString(),
@@ -55,7 +62,7 @@ export async function startMcp(runtime: CliRuntime): Promise<void> {
   const environment = runtime.environment ?? process.env
   const token = environment.AGENT_TOWER_SESSION_TOKEN
   const secret = environment.AGENT_TOWER_SESSION_SECRET
-  if (!token || !secret) throw new Error("MCP requires AGENT_TOWER_SESSION_TOKEN and AGENT_TOWER_SESSION_SECRET. Run `agent-tower session mint --member <id>` first.")
+  if (!token || !secret) throw new Error("MCP requires AGENT_TOWER_SESSION_TOKEN and AGENT_TOWER_SESSION_SECRET. Run `agent-tower session mint --member <id> --channels <channel-id>` first.")
   const binding = verifySessionBinding(token, secret)
   const core = await createProductionControlCore({ projectRoot: runtime.projectRoot })
   const server = createAgentTowerMcpServer(core.bind(binding), binding)
@@ -79,6 +86,7 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
       mode,
       argument(args, "--runtime-id"),
       argument(args, "--runtime-session"),
+      requiredChannelIds(args),
     )
     const secret = environment.AGENT_TOWER_SESSION_SECRET ?? randomBytes(32).toString("hex")
     writeJson(runtime, {
@@ -164,6 +172,6 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
     return 0
   }
   throw new Error(
-    "Usage: agent-tower status | organization snapshot | members get <id> | session mint --member <id> [--mode buzz|hermes] [--runtime-id <id>] [--runtime-session <id>] | context get --member <id> | department configure --department <id> [--member <id>] [--skills <s1,s2>] [--tools <t1,t2>] [--buzz-teams <id1,id2>] [--buzz-channels <id1,id2>] | knowledge search --query <text> [--member <id>] | local-worker status [--member <id>] | mcp",
+    "Usage: agent-tower status | organization snapshot | members get <id> | session mint --member <id> --channels <channel-id[,channel-id]> [--mode buzz|hermes] [--runtime-id <id>] [--runtime-session <id>] | context get --member <id> | department configure --department <id> [--member <id>] [--skills <s1,s2>] [--tools <t1,t2>] [--buzz-teams <id1,id2>] [--buzz-channels <id1,id2>] | knowledge search --query <text> [--member <id>] | local-worker status [--member <id>] | mcp",
   )
 }

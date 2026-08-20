@@ -76,6 +76,7 @@ export class AgentTowerControlCore {
       runtimeBinding: binding.runtimeMode && binding.runtimeId
         ? { mode: binding.runtimeMode, runtimeId: binding.runtimeId, sessionId: binding.runtimeSessionId }
         : undefined,
+      allowedChannelIds: binding.allowedChannelIds,
       now: this.dependencies.now?.() ?? new Date(),
       ttlMs: 300_000,
     })
