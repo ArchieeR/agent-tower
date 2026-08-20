@@ -19,6 +19,36 @@ test("canonical JSON v1 rejects values that are unsafe or lossy in JSON", () => 
   assert.throws(() => canonicalJsonV1(cyclic), /cyclic/)
 })
 
+test("canonical JSON v1 rejects ambiguous property layouts without invoking getters", () => {
+  assert.throws(() => canonicalJsonV1(Array(1)), /sparse arrays/)
+  const sparse = Array(2); sparse[1] = 1
+  assert.throws(() => canonicalJsonV1(sparse), /sparse arrays/)
+  const extra = [1]; Object.defineProperty(extra, "extra", { value: true, enumerable: true })
+  assert.throws(() => canonicalJsonV1(extra), /extra array properties/)
+  const symbolArray = [1]; Object.defineProperty(symbolArray, Symbol("extra"), { value: true })
+  assert.throws(() => canonicalJsonV1(symbolArray), /symbol-keyed array/)
+
+  let invoked = false
+  const accessor = Object.defineProperty({}, "secret", { enumerable: true, get: () => { invoked = true; return "unsafe" } })
+  assert.throws(() => canonicalJsonV1(accessor), /accessor/)
+  assert.equal(invoked, false)
+  assert.throws(() => canonicalJsonV1(Object.defineProperty({}, "hidden", { value: 1 })), /non-enumerable/)
+  assert.throws(() => canonicalJsonV1({ [Symbol("hidden")]: 1 }), /symbol-keyed/)
+  assert.equal(canonicalJsonV1(Object.freeze({ b: 2, a: 1 })), '{"a":1,"b":2}')
+  const shared = Object.freeze({ value: 1 })
+  assert.equal(canonicalJsonV1({ left: shared, right: shared }), '{"left":{"value":1},"right":{"value":1}}')
+})
+
+test("canonical JSON v1 rejects negative zero and lone surrogates without Unicode normalization", () => {
+  assert.throws(() => canonicalJsonV1(-0), /negative zero/)
+  assert.throws(() => canonicalJsonV1("\uD800"), /lone Unicode surrogates/)
+  assert.throws(() => canonicalJsonV1({ ["\uDC00"]: 1 }), /lone Unicode surrogates/)
+  assert.equal(canonicalJsonV1("é"), '"é"')
+  assert.equal(canonicalJsonV1("e\u0301"), '"é"')
+  assert.notEqual(canonicalJsonV1("é"), canonicalJsonV1("e\u0301"))
+  assert.equal(canonicalJsonV1("😀"), '"😀"')
+})
+
 test("domain digest v1 has stable golden vectors and cross-type separation", () => {
   assert.equal(domainDigestV1("test.vector", { b: 2, a: 1 }), "9a61cf80ab180256e0835db0d0de51ce5675499aa6f6ddc429d58775c02c79b1")
   assert.notEqual(domainDigestV1("change.digest", { id: "same" }), domainDigestV1("adapter.plan", { id: "same" }))
