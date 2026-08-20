@@ -9,8 +9,8 @@ const CONTROL_CHARACTER = /[\u0000-\u001f\u007f]/
 
 export class AdapterWireValidationError extends Error {
   readonly code = "ADAPTER_WIRE_INVALID" as const
-  readonly contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1"
-  constructor(contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1") {
+  readonly contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1" | "AdapterPlanV1" | "AdapterApplyReceiptV1"
+  constructor(contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1" | "AdapterPlanV1" | "AdapterApplyReceiptV1") {
     super(`${contract} is invalid.`)
     this.name = "AdapterWireValidationError"
     this.contract = contract
@@ -44,18 +44,18 @@ export const hostOperationSupportSnapshotSchemaV1 = z.strictObject({
   }),
 })
 
-function parseStrict<T>(schema: z.ZodType<T>, contract: AdapterWireValidationError["contract"], value: unknown): T {
+export function parseAdapterWireStrictV1<T>(schema: z.ZodType<T>, contract: AdapterWireValidationError["contract"], value: unknown): T {
   const parsed = schema.safeParse(value)
   if (!parsed.success) throw new AdapterWireValidationError(contract)
   return parsed.data
 }
 
 export function parseHostOperationSupportV1(value: unknown): HostOperationSupportV1 {
-  return parseStrict(hostOperationSupportSchemaV1, "HostOperationSupportV1", value)
+  return parseAdapterWireStrictV1(hostOperationSupportSchemaV1, "HostOperationSupportV1", value)
 }
 
 export function parseHostOperationSupportSnapshotV1(value: unknown): HostOperationSupportSnapshotV1 {
-  return parseStrict(hostOperationSupportSnapshotSchemaV1, "HostOperationSupportSnapshotV1", value)
+  return parseAdapterWireStrictV1(hostOperationSupportSnapshotSchemaV1, "HostOperationSupportSnapshotV1", value)
 }
 
 /** Compatibility alias. Input is unknown because this is a trust-boundary parser. */
