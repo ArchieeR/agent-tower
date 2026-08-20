@@ -89,7 +89,7 @@ type AgentContextBundle = {
 }
 ```
 
-A `VersionedRef` contains a stable ID, exact version, content hash and provenance. The bundle is immutable after publication.
+A `VersionedRef` contains a stable ID, exact version, content hash and provenance. The hash is of the published skill/routine bytes from the Agent Tower registry, not `{id, version}` (ADR-004 C). Installed Hermes/Claude/Grok skill files are adapter observations. The bundle is immutable after publication. `organizationRevision` in the bundle is `policyRevision` (desired state), not the joined observed snapshot (ADR-004 D).
 
 ## 5. Context revision and invalidation
 

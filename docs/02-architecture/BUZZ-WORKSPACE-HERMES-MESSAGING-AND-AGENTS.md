@@ -534,7 +534,7 @@ Owner message in Agent Tower Buzz
 
 For the v0.1 transport proof, the response is an ordinary **kind-9** message in the **same Buzz thread**. Use the standard channel-message command exactly as `buzz messages send --channel CHANNEL_UUID --reply-to OWNER_EVENT_ID --content CONTENT`; do not pass a custom `--kind`. The channel UUID scopes the event and the existing Buzz CLI/SDK `reply-to` path emits the standard NIP-10 root/reply `e` tags. Do not add a custom Agent Tower event kind/tag, broadcast the event, or add an `@` mention. Probe content contains opaque references only, for example `contextRevision=<revision> receiptId=<id> status=acknowledged`; no answer payload, policy, credentials, context hash, session token/secret, prompt, private key, auth tag, grants or knowledge content. The relay event ID plus NIP-10 ancestry are transport evidence. Context acknowledgement and the control-core execution receipt remain separately authoritative Agent Tower records. A custom signed evidence event is deferred until a demonstrated query/verification requirement justifies a tested protocol extension.
 
-Only after the read-only proof should the owner approve department overlay changes through `agent_tower.department_configure`. Buzz team/channel IDs are references in Agent Tower policy, not copies of the organization policy into Buzz.
+Only after the read-only proof should the owner approve department overlay changes through `changes.prepare` then owner `changes.apply` (ADR-004). MCP must not apply department configuration. Buzz team/channel IDs are references in Agent Tower policy, not copies of the organization policy into Buzz.
 
 ### Phase 5 — workflows and ACP runtime probe
 

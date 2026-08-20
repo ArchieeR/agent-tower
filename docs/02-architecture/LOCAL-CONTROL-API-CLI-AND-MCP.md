@@ -129,6 +129,7 @@ type AgentTowerEnvelope<T> = {
   schemaVersion: "1"
   requestId: string
   observedAt: string
+  policyRevision: string
   revision: string
   contentHash: string
   sourceRevisions: Record<string, string>
@@ -142,7 +143,7 @@ type AgentTowerEnvelope<T> = {
 }
 ```
 
-The content hash excludes volatile polling timestamps. Equivalent state must produce the same hash. Published context bundles and receipts are immutable.
+`policyRevision` hashes Agent Tower-owned desired state only and is the `changes.apply` precondition. `sourceRevisions` carry observed Buzz/Linear/Rig/adapter facts. `contentHash` is the ETag for the joined projection, excluding volatile polling timestamps; it is not apply CAS. `revision` may equal `contentHash` for read compatibility but must not be used as a policy write precondition (ADR-004 D). Equivalent policy must produce the same `policyRevision`. Published context bundles and receipts are immutable.
 
 Errors use stable codes rather than model-facing prose alone:
 
@@ -213,24 +214,25 @@ Receipts record member, manager, runtime/model, context revision/hash, tool gran
 
 ## 7. Governed write contract
 
-The first MCP and CLI release is read-only except for acknowledgements and receipt submission.
+The first MCP and CLI release is read-only except for acknowledgements, receipt submission and granted non-executing change preparation.
 
 Potential organization changes use a two-stage contract:
 
 ```text
 changes.prepare
+  → requires grant organization.change.propose, scoped by kind and subject
   → validates intent
-  → calculates affected members and new revisions
-  → returns a non-executing change request
+  → calculates affected members and the next policyRevision
+  → returns a non-executing change request id and digest
 
 changes.apply
-  → requires an owner-approved request ID
-  → revalidates against current revision
+  → owner principal only (Unix peer credentials + challenge over the digest)
+  → revalidates against current policyRevision
   → writes atomically
   → emits invalidation events and an audit receipt
 ```
 
-Initial MCP may expose `changes.prepare` but must not expose `changes.apply`. Application remains an owner-visible Buzz/Agent Tower UI action until explicit policy permits otherwise.
+MCP may expose `changes.prepare` only to sessions whose binding includes `organization.change.propose`. It must not expose `changes.apply` or live department configuration writes. Application remains an owner-visible Buzz/Agent Tower UI or owner CLI action (ADR-004 B, E).
 
 Buzz agent creation/update remains a separate owner-reviewed handoff:
 
@@ -273,6 +275,8 @@ Rules:
 - Destructive or privileged actions require an approved change request and explicit confirmation.
 - Every write supports idempotency keys and revision preconditions.
 
+Accepted v0.1 session, revision and MCP-write rules are in `../adr/ADR-004-LOCAL-CONTROL-PLANE-AUTH-REGISTRY-AND-CHANGE.md`. Local MCP uses an opaque owner-service capability; the legacy HMAC token+secret path is disabled. Envelope `policyRevision` is Agent Tower-owned configuration only. MCP may prepare grant-gated changes but must not apply them, and must not expose live `department_configure`.
+
 ## 9. MCP surface
 
 ### Tools
@@ -294,7 +298,7 @@ agent_tower.receipt_submit
 agent_tower.change_prepare
 ```
 
-Do not expose generic filesystem, SQL, shell, unrestricted Vault or arbitrary HTTP tools through this server.
+Do not expose generic filesystem, SQL, shell, unrestricted Vault, arbitrary HTTP, `change_apply` or live `department_configure` through this server. `change_prepare` is grant-gated.
 
 ### Resources
 
@@ -312,7 +316,7 @@ Resources are read-only projections. Tools perform authorized operations and pro
 
 ### Session binding
 
-When Buzz or Hermes launches an agent, the owner-controlled launcher mints a short-lived local session token bound to:
+When a host launches an agent, the owner-controlled Agent Tower service issues a short-lived opaque capability bound to:
 
 - stable Agent Tower member ID;
 - Buzz managed-agent/public identity references;
@@ -322,7 +326,7 @@ When Buzz or Hermes launches an agent, the owner-controlled launcher mints a sho
 - tool and knowledge grant ceiling;
 - expiry and cancellation state.
 
-The token is passed through process environment or an inherited descriptor, never copied into the Buzz prompt, Linear, Brain or logs. MCP derives member identity from this binding and rejects model attempts to switch identity.
+MCP receives only the opaque bearer token and owner-socket path—never token hashes or verifier/issuer authority. It authenticates through the owner service initially and before every operation; the service reloads current canonical policy and returns the safe binding. The token is passed through process environment or an inherited descriptor, never copied into prompts, Linear, Brain, receipts or logs. MCP derives member identity from this binding and rejects model attempts to switch identity (ADR-004 A).
 
 ## 10. Native Buzz/Tauri surface
 
@@ -386,15 +390,18 @@ Live migration evidence: the fallback found four managed-agent records; two have
 ## 12. Security boundary
 
 - Local-only by default; no public listener.
-- Unix socket permissions restricted to the user account.
-- Short-lived session binding for agent calls.
+- Two principals: owner (CLI/Tauri) and agent (stdio MCP). Agents cannot impersonate the owner.
+- Owner approval: exact-digest challenge with a Keychain-held owner key. Owner locality once the Unix socket exists: mode `0600` plus same-uid peer credentials. Peercred is not approval (ADR-004 B).
+- Agent sessions: opaque owner-service capabilities; token hash and authorization state remain service-side, and policy is rehydrated every operation (ADR-004 A).
+- Short-lived session binding for agent calls; critical revocation is expiry plus a `sessionId` denylist before the next tool call.
 - Owner-review gate for new privileges, broader knowledge, payments, deployment and external writes.
+- Skills/routines are a canonical versioned registry; context pins content hashes of published bytes (ADR-004 C).
+- `change.prepare` requires `organization.change.propose`; MCP has no apply and no live `department_configure` (ADR-004 E).
 - Allowlisted response schemas; no wholesale serialization of external records.
 - Never return Buzz private keys, auth tags, system prompts, raw retention databases, credential files or unrestricted logs.
 - Never expose bank credentials or payment actions to the CFO pilot.
 - Tool availability requires a live health probe, not configuration presence.
-- Critical revocation stops the agent before its next tool call.
-- Every accepted write records actor, approval, previous revision, new revision and affected members.
+- Every accepted write records actor, approval, previous `policyRevision`, new `policyRevision` and affected members.
 
 ## 13. Live update and invalidation
 
@@ -418,7 +425,7 @@ Existing four-second ETag polling remains an acceptable near-real-time fallback,
 1. In progress: organization facts/envelope schemas are published; context/error/change/receipt schemas remain part of the ALD-124 transport work.
 2. Implemented: organization assembly, stable work-identity mapping, community normalization, canonicalization, hashing input, freshness envelope and validation are transport-neutral core modules.
 3. Implemented: read-only CLI commands for status, snapshot, member, current context, scoped knowledge search and Local Rig status.
-4. Implemented: official TypeScript MCP SDK stdio server with HMAC-bound short-lived session identity, bounded tools and no privileged apply tool.
+4. Containment branch implemented: official TypeScript MCP SDK stdio server authenticates an opaque token through a mode-`0600` owner-service socket initially and per operation; direct session mint and live MCP `department_configure` are disabled. Independent review/integration into main remains before live use.
 5. Implemented: scoped local Brain Markdown search/read/chunk/citation over configured roots; path traversal, non-Markdown files and whole-root serialization are rejected.
 6. Implemented: exact current-context acknowledgement and immutable atomic execution receipt persistence are live.
 7. Connect the native Buzz Organization route through Tauri/sidecar handlers.
@@ -429,7 +436,7 @@ Existing four-second ETag polling remains an acceptable near-real-time fallback,
 ### Implemented ALD-124 control-core evidence (2026-08-11)
 
 - `lib/control-core/context-broker.ts` assembles immutable five-minute `AgentContextBundle` records, stable content hashes and deterministic affected-member sets.
-- `lib/control-core/session-binding.ts` signs and verifies short-lived HMAC session bindings; MCP derives `system-manager` from that binding and cannot accept a model-selected replacement identity.
+- Legacy `lib/control-core/session-binding.ts` remains migration/test compatibility only. The containment branch's `session-registry.ts` and owner socket authenticate opaque capabilities, bind the canonical member/host/scopes server-side and reject caller-supplied verifier authority. Live integration is still gated on branch review and merge.
 - `lib/control-core/local-knowledge.ts` exposes scoped local Brain search, exact document versions, bounded line chunks and citations; query/chunk limits and traversal rejection are enforced below the transport.
 - `lib/control-core/receipt-store.ts` persists allowlisted idempotent immutable receipts atomically with mode `0600`, uses a cross-process lock to prevent lost updates and rejects receipt-ID reuse with different evidence.
 - `lib/control-core/local-rig.ts` reads only the safe redacted Rig snapshot, refuses stopped/error workers, requires a live `/health` probe, enforces loopback-only OpenAI-compatible dispatch, bounds prompt/evidence/output/time and enables no direct tools.
