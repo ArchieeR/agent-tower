@@ -130,6 +130,64 @@ test("assembles a buzz-org compatibility payload into the Agent Tower read model
   assert.equal(result.model.adapterHealth[0]?.state, "connected");
 });
 
+test("accepts the exact serialized Buzz Rust exporter fixture", () => {
+  const exported = {
+    schemaVersion: 1,
+    facts: {
+      schemaVersion: 1,
+      source: "buzz-desktop-tauri",
+      observedAt: "2026-08-20T17:00:00Z",
+      staleAfterMs: 5_000,
+      sourceRevision: "safe-revision",
+      members: [{
+        buzzPubkey: pubkey,
+        managedAgentId: agentId,
+        personaId: "builder",
+        displayName: "Builder",
+        runtimeIdentities: [{ mode: "buzz", runtimeId: agentId }],
+        runtime: {
+          status: "running",
+          runtime: "goose",
+          backend: "local",
+          parallelism: 1,
+          startOnAppLaunch: false,
+          needsRestart: false,
+          personaOutOfDate: false,
+          personaOrphaned: false,
+        },
+        messaging: { senderPolicy: "owner-only" },
+      }],
+      teams: [{
+        id: "agent-tower-core",
+        name: "Agent Tower Core",
+        personaIds: ["builder"],
+        isBuiltin: false,
+        updatedAt: "2026-08-20T16:59:00Z",
+      }],
+      channels: [{
+        id: "11111111-1111-4111-8111-111111111111",
+        name: "agent-tower-control-plane",
+        channelType: "stream",
+        visibility: "private",
+        memberCount: 1,
+        memberPubkeys: [pubkey],
+        archivedAt: null,
+      }],
+      health: { state: "connected", observedAt: "2026-08-20T17:00:00Z" },
+    },
+  };
+  const result = assembleBuzzOrgCompatibilityPayload(exported, {
+    departments,
+    roleProfiles,
+    council: generalCouncil,
+    organization: { id: "agent-tower-local", name: "Agent Tower", mode: "local" },
+    configuration: { version: 1, departments: {} },
+  });
+  assert.equal(result.model.members[0]?.id, agentId);
+  assert.equal(result.model.buzzTeams[0]?.id, "buzz-team:agent-tower-core");
+  assert.equal(result.model.buzzChannels[0]?.id, channelId);
+});
+
 test("rejects executable paths from the portable runtime field", () => {
   for (const runtime of ["/opt/homebrew/bin/hermes", "../bin/agent", "C:\\tools\\agent.exe", "agent command"]) {
     const incompatible = payload();
