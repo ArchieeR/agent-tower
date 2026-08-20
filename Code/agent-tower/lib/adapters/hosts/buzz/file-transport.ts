@@ -1,12 +1,12 @@
 import { open, stat } from "node:fs/promises"
 import * as path from "node:path"
 
-import type { BuzzSafeExportTransport } from "./adapter.ts"
+import type { BuzzOrganizationCompatibilityTransport } from "./adapter.ts"
 
 const DEFAULT_LIMIT = 1024 * 1024
 
 /** Reads only the owner-selected secret-free Buzz export. It never discovers or reads Buzz stores. */
-export class BuzzSafeExportFileTransport implements BuzzSafeExportTransport {
+export class BuzzOrganizationCompatibilityFileTransport implements BuzzOrganizationCompatibilityTransport {
   private readonly exportFile: string
   private readonly expectedOwnerUid: number | undefined
   private readonly maxBytes: number
@@ -18,7 +18,7 @@ export class BuzzSafeExportFileTransport implements BuzzSafeExportTransport {
     this.maxBytes = Math.min(options.maxBytes ?? DEFAULT_LIMIT, DEFAULT_LIMIT)
   }
 
-  async getOrganizationExport(): Promise<unknown> {
+  async getOrganizationCompatibilityPayload(): Promise<unknown> {
     const linkState = await stat(this.exportFile, { bigint: false })
     if (!linkState.isFile() || linkState.size > this.maxBytes) throw new Error("Buzz safe export is not a bounded regular file.")
     if (this.expectedOwnerUid !== undefined && linkState.uid !== this.expectedOwnerUid) throw new Error("Buzz safe export owner is invalid.")

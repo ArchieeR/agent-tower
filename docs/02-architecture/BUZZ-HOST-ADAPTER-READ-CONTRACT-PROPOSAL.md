@@ -17,40 +17,11 @@ CLI and MCP remain clients/transports of one Agent Tower service/control API. Th
 
 Buzz PR #6419 head `4fe7042e0` implements the currently supported facts-out transport: owner-selected secret-free organization-sensitive JSON, produced by the existing safe producer/single exporter and written atomically as a mode `0600` Unix file. It introduces no HTTP surface and grants no permission to inspect private Buzz stores. CI/E2E evidence is green, but this source revision is not installed in Preview; Agent Tower must therefore report the transport unavailable until a separately approved build/install supplies the explicit owner-selected export path and evidence.
 
-The adapter accepts the strict existing `{ schemaVersion: 1, facts: BuzzOrganizationFactsV1 }` exporter envelope and projects runtime catalog facts only from safe bounded `member.runtime.runtime` IDs. It does not invent install state, discover likely files or infer runtime readiness beyond the safe exported facts. The file transport requires an explicitly configured absolute path, current OS-user ownership, a regular file, permissions no broader than `0600`, a 1 MiB hard bound and same-inode/size verification across open. Missing, malformed, unsafe or stale files fail closed; stale exports retain observation evidence but cannot satisfy prepare/apply freshness gates.
+The adapter accepts this only as `BuzzOrganizationCompatibilityPayloadV1`: `{ schemaVersion: 1, facts: { schemaVersion: 1, source: "buzz-desktop-tauri", observedAt, staleAfterMs, sourceRevision, members, teams, channels, health } }`, using numeric literal `1`. This organization-sensitive payload is not a host/runtime catalog and cannot prove runtime availability, authentication or capabilities. Member runtime provider/model values remain opaque observed strings; Agent Tower does not invent provider/model classes. The file transport requires an explicitly configured absolute path, current OS-user ownership, a regular file, permissions no broader than `0600`, a 1 MiB hard bound and same-inode/size verification across open. Missing, malformed, unsafe or stale files fail closed; stale exports retain observation evidence but cannot satisfy prepare/apply freshness gates.
 
 Buzz Tower contract answers (2026-08-20): the native command is `export_safe_organization_snapshot`, exposed through `Export safe organization snapshot…`. Organization export and runtime catalog/probe remain two independently revisioned observations; the adapter records both revisions/timestamps and makes no cross-source readiness inference. The runtime key is the portable validated opaque `AcpRuntimeCatalogEntry.id`. Commands, binary paths, args, environment names, install/login hints, diagnostics, source paths and definition environment are forbidden. ACP session IDs are transient evidence only, not stable bindings. Proposed source-safe error codes are `buzz.transport.unavailable`, `buzz.identity.unauthenticated`, `buzz.runtime.not_found`, `buzz.runtime.unavailable`, `buzz.runtime.auth_required`, `buzz.runtime.auth_invalid`, `buzz.snapshot.stale`, `buzz.snapshot.invalid` and `buzz.revision.mismatch`; these are not yet a native implemented taxonomy. Runtime catalog is capped at 256 entries and 128 capability claims of 128 characters per entry. Polling must be no faster than five seconds with backoff; external invalidation is deferred.
 
-A future richer host export may contain:
-
-```ts
-type BuzzHostExportV1 = {
-  schemaVersion: "1"
-  sourceVersion: string
-  sourceRevision: string
-  observedAt: string
-  staleAfterMs: number
-  host: {
-    hostId: string // opaque, host-owned
-    health: "available" | "degraded" | "unavailable" | "unconfigured" | "unauthenticated"
-  }
-  runtimeCatalog: Array<{
-    hostRuntimeId: string // opaque, host-owned; never an executable path
-    displayName?: string
-    capabilities: string[]
-    readiness: "ready" | "blocked" | "unavailable" | "unknown"
-    auth: { required: boolean; configured: boolean | "unknown" }
-    providerClass?: string
-    modelClass?: string
-  }>
-  members: SafeBuzzMemberObservationV1[]
-  teams: SafeBuzzTeamObservationV1[]
-  channels: SafeBuzzChannelObservationV1[]
-  transport: { state: "available" | "degraded" | "unavailable"; detailCode?: string }
-}
-```
-
-The existing safe Buzz organization facts are a compatible starting projection for members, teams and channels. Runtime catalog/readiness/auth and transport health must remain Buzz-owned observations rather than Agent Tower static claims.
+A separate, later `BuzzHostCatalogSnapshotV1` and transport envelope will carry the independently revisioned runtime catalog/probe. It is not implemented by the current organization file transport. It will project only portable validated opaque `AcpRuntimeCatalogEntry.id`, bounded namespaced capability claims, readiness and credential-state booleans explicitly supplied by Buzz. Unknown capability claims remain unsatisfied. It must never include command, binary path, args, environment names, underlying paths, installation/login hints or diagnostics.
 
 ## Identity and safety rules
 
@@ -58,7 +29,7 @@ The existing safe Buzz organization facts are a compatible starting projection f
 - No join uses display name, persona name or provider/model text.
 - Public work identities already accepted by the organization export may be included; private key material may not.
 - Channel observations include safe IDs, type/visibility, bounded membership IDs/counts and timestamps, but no message bodies.
-- Runtime observations may include safe status/provider/model classes and session references only when Buzz explicitly defines them as safe.
+- Organization runtime provider/model fields remain opaque observed strings. No provider/model classes are inferred. Transient session references are evidence only and never canonical host bindings.
 - Auth is represented only as requirement/configured/readiness state. No credential identifier, location, value or hint is exported.
 - Stable source revision excludes polling timestamps. Export arrays and strings are bounded.
 - Errors use stable codes. Human prose is optional detail, not the sole contract.
