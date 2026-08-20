@@ -53,8 +53,28 @@ export type AdapterEnvelopeV1<T> = {
   data: T
 }
 
+export type HostOperationSupportStateV1 = "unsupported" | "unknown" | "supported"
+export type HostInvocationModeV1 = "none" | "native-owner-review" | "external-owner-review" | "direct-api" | "unknown"
+export type HostIdempotencyModeV1 = "none" | "unknown" | "adapter-operation-id"
+export type HostConcurrencyModeV1 = "none" | "unknown" | "resource-cas" | "global-revision"
+export type HostResponseSafetyV1 = "unsafe-secret-bearing" | "safe-secret-free" | "unknown"
+export type HostReadbackModeV1 = "none" | "unknown" | "safe-observation"
+export type HostOperationSupportV1 = {
+  operationId: string
+  support: HostOperationSupportStateV1
+  invocationMode: HostInvocationModeV1
+  stableHostIdentity: "supported" | "unsupported" | "unknown"
+  idempotency: HostIdempotencyModeV1
+  concurrency: HostConcurrencyModeV1
+  responseSafety: HostResponseSafetyV1
+  readback: HostReadbackModeV1
+  requiresOwnerReview: boolean | "unknown"
+  evidenceCodes: string[]
+}
+export type HostOperationSupportSnapshotV1 = { adapterId: string; hostId: string; operations: HostOperationSupportV1[] }
+
 export type HostOpaqueIdentityV1 = { adapterId: string; hostId: string; hostRuntimeId: string }
-export type HostCatalogSnapshotV1 = { hosts: Array<HostOpaqueIdentityV1 & { capabilities: string[] }> }
+export type HostCatalogSnapshotV1 = { hosts: Array<HostOpaqueIdentityV1 & { capabilities: string[] }>; operationSupport?: HostOperationSupportSnapshotV1 }
 export type HostProbeSnapshotV1 = { identity: HostOpaqueIdentityV1; readiness: AdapterHealthStateV1; authRequired: boolean; authConfigured: boolean | "unknown" }
 export type HostObservationSnapshotV1 = { identities: Array<HostOpaqueIdentityV1 & { status: "ready" | "running" | "stopped" | "blocked" | "unavailable" | "unknown" }> }
 

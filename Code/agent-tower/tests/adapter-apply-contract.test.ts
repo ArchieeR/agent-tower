@@ -8,7 +8,7 @@ const plan: AdapterPlanV1 = {
   selectedTarget: { adapterId: "buzz", hostId: "buzz-desktop", hostRuntimeId: "goose" },
   evidencePrecondition: { adapterRevision: "adapter-rev", contentHash: "content-hash", observedAt: new Date(0).toISOString(), maxAgeMs: 5_000, acceptableHealth: ["available"] },
   capabilityMappingRevision: "mapping-rev-1",
-  nativeGuarantees: { stableHostIdentity: "unsupported", secretStrippedResponse: "unsupported", hostIdempotency: "unsupported", touchedResourceCas: "unsupported", deterministicExternalApply: "unsupported", safeReadback: "unsupported" },
+  nativeGuarantees: { operationId: "buzz:managed-agent.create:v1", support: "unsupported", invocationMode: "none", stableHostIdentity: "unsupported", idempotency: "none", concurrency: "none", responseSafety: "unsafe-secret-bearing", readback: "none", requiresOwnerReview: true, evidenceCodes: ["buzz.bridge.unavailable"] },
   nativeDelta: { role: "builder" }, preflightAssertions: [], readbackAssertions: [{ field: "hostObjectRef", operator: "present" }],
   implications: { restartRequired: false, additionalOwnerReviewRequired: false },
 }
@@ -30,12 +30,13 @@ test("uncertain verification can never derive not-applied", () => {
 })
 
 test("unsupported native guarantees remain explicit and do not imply idempotency", () => {
-  assert.equal(plan.nativeGuarantees.hostIdempotency, "unsupported")
+  assert.equal(plan.nativeGuarantees.support, "unsupported")
+  assert.equal(plan.nativeGuarantees.invocationMode, "none")
   assert.equal(plan.nativeGuarantees.stableHostIdentity, "unsupported")
-  assert.equal(plan.nativeGuarantees.secretStrippedResponse, "unsupported")
-  assert.equal(plan.nativeGuarantees.touchedResourceCas, "unsupported")
-  assert.equal(plan.nativeGuarantees.deterministicExternalApply, "unsupported")
-  assert.equal(plan.nativeGuarantees.safeReadback, "unsupported")
+  assert.equal(plan.nativeGuarantees.idempotency, "none")
+  assert.equal(plan.nativeGuarantees.concurrency, "none")
+  assert.equal(plan.nativeGuarantees.responseSafety, "unsafe-secret-bearing")
+  assert.equal(plan.nativeGuarantees.readback, "none")
 })
 
 test("adapter plan binds target, observation and capability mapping revision", () => {

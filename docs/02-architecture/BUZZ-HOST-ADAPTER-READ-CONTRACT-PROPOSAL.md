@@ -55,7 +55,7 @@ The receipt must identify the canonical Agent Tower change, opaque Buzz host/run
 
 ### Provisional Control Core alignment
 
-The design-only typed contract is published in `lib/adapters/contracts/apply.ts`. It does not expose or implement an apply method.
+The design-only typed contract is published in `lib/adapters/contracts/apply.ts`. It does not expose or implement an apply method. `HostOperationSupportSnapshotV1` records independently revisioned native support per namespaced operation; Control Core separately owns `AdapterOperationRequirementsV1`, exact mapping from typed changes, eligibility intersection and approval enforcement. Missing support/fields fail closed. Host owner-review behavior cannot weaken Agent Tower approval.
 
 - Preserve `AdapterEnvelopeV1` verbatim as observation evidence. A separate decision/result binds Agent Tower policy and touched-resource revisions.
 - Candidate selection and approval bind `{adapterId, hostId, hostRuntimeId, adapterRevision, contentHash}` exactly. Runtime IDs and host capability claims remain opaque and host-owned. Capability claims require explicit mappings; unknown claims satisfy no requirement.

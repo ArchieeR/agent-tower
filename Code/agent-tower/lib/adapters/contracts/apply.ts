@@ -1,13 +1,7 @@
-import type { AdapterHealthStateV1 } from "./index.ts"
+import type { AdapterHealthStateV1, HostOperationSupportV1 } from "./index.ts"
 
 export type AdapterSelectedTargetV1 = { adapterId: string; hostId: string; hostRuntimeId: string }
-export type AdapterNativeGuaranteesV1 = {
-  stableHostIdentity: "supported" | "unsupported" | "unknown"
-  secretStrippedResponse: "supported" | "unsupported" | "unknown"
-  hostIdempotency: "supported" | "unsupported" | "unknown"
-  touchedResourceCas: "supported" | "unsupported" | "unknown"
-  deterministicExternalApply: "supported" | "unsupported" | "unknown"
-  safeReadback: "supported" | "unsupported" | "unknown"
+export type AdapterNativeGuaranteesV1 = Pick<HostOperationSupportV1, "operationId" | "support" | "invocationMode" | "stableHostIdentity" | "idempotency" | "concurrency" | "responseSafety" | "readback" | "requiresOwnerReview" | "evidenceCodes"> & {
   hostObjectRefKind?: "canonical-public-key" | "opaque-host-id"
 }
 export type AdapterEvidencePreconditionV1 = {
