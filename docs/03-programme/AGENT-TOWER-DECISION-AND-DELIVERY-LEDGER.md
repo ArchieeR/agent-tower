@@ -287,9 +287,11 @@ Commits:
 - `613e68c`, `4a3eabe` safe Buzz facts ingestion and separate runtime-catalog evidence;
 - `607975f`, `a35c836` strict schema separation and design-only governed apply evidence;
 - `80230d9` no-substitution strict parser/target probe;
-- `07bc99b` Buzz-owned golden export fixture lock.
+- `07bc99b` Buzz-owned golden export fixture lock;
+- `f1ac536`, `103baab` operation-scoped support and fail-closed absence semantics;
+- `c0dc7d3`, `f824fab`, `baac4ae`, `95371b1`, `a5a7043` strict operation/plan/receipt parsing, padded-ID rejection and bounded JSON-native delta semantics.
 
-Reported verification: 104 tests, typecheck, lint and production build green; worktree clean. No live Composio/Buzz actions or Control Core/UI edits.
+Reported verification: 123 tests, typecheck, lint and production build green; worktree clean. Independent parser review is closed. No live Composio/Buzz actions, apply behavior or Control Core/UI edits. Next gate is rebase onto the integrated shared digest and targeted observation-hash migration.
 
 ## 13. Linear workstream map
 
