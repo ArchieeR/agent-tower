@@ -94,6 +94,17 @@ The initial manager control plane uses an owner service as the only authorizatio
 
 Symmetric service-held signing may be used internally only when verification stays inside the owner service. Asymmetric signing is deferred until a real offline/multi-process verifier needs it; public-key verification does not replace revocation or current-policy rehydration.
 
+## 3.7 Shared contract and digest ownership
+
+Type ownership is singular across workstreams:
+
+- `lib/adapters/contracts/` owns generic adapter evidence/catalog/probe/plan/attempt/readback/receipt wire shapes.
+- `lib/control-core/` owns typed changes, approvals, policy/resource CAS, authorization and whole-change aggregation/receipts.
+- Buzz owns native DTOs/serializers/fixtures and native bridge request/results; it does not copy Agent Tower policy logic.
+- The dependency-light `lib/shared/canonical-digest.ts` is owned by Control Core and consumed by both domains after integration. It provides deterministic JSON and explicit domain-separated/schema-versioned SHA-256 digests. Security-critical change, approval, plan, operation and receipt IDs must not use an undifferentiated generic hash helper.
+
+The adapter wire shape `AdapterApprovalBindingV1` may live with adapter contracts, but Control Core alone constructs and semantically validates approval bindings. Adapter code cannot grant or approve itself. Branch integration lands the shared digest/control foundation before adapters import it; duplicate definitions are prohibited.
+
 ## 4. Recommended process topology
 
 Target one local executable or sidecar named `agent-tower`:

@@ -197,6 +197,8 @@ safe export/readback
 
 The approved design uses an immutable `adapterPlanId`/`adapterPlanDigest`, stable `adapterOperationId` per approved change operation, and unique `applyAttemptId` per native invocation. Approval covers change/plan digests, exact opaque target, adapter evidence freshness/health, capability mapping revision and expiry. Adapter results separate `mutationState` from `verificationState`; `outcome-unknown` and drift block blind retry pending reconciliation. Each host operation has its own adapter receipt; only Control Core aggregates multi-operation change status. Apply remains unimplemented.
 
+Host Adapters owns the generic adapter wire types; Control Core owns change/approval/CAS/aggregation semantics and the shared canonical serialization/domain-separated digest primitive (`lib/shared/canonical-digest.ts`). Adapter wire shapes never duplicate Control Core policy types, and Buzz owns only native DTOs/fixtures. Security-critical IDs/digests include an explicit `agent-tower:v1:<domain>` prefix; bare generic hashes remain legacy compatibility only.
+
 ## 10. Knowledge and context plane
 
 Knowledge is a foundational plane beneath Agent Tower, not a generic tool grant:
