@@ -73,6 +73,9 @@ export class AgentTowerControlCore {
       memberLink: this.linkFor(binding),
       capabilities: this.dependencies.capabilities.filter((capability) => binding.toolGrantCeiling.includes(capability.id)),
       sourceRevisions,
+      runtimeBinding: binding.runtimeMode && binding.runtimeId
+        ? { mode: binding.runtimeMode, runtimeId: binding.runtimeId, sessionId: binding.runtimeSessionId }
+        : undefined,
       now: this.dependencies.now?.() ?? new Date(),
       ttlMs: 300_000,
     })

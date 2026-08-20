@@ -35,6 +35,21 @@
           "displayName": { "type": "string", "minLength": 1 },
           "npub": { "type": "string", "pattern": "^npub1" },
           "nip05Handle": { "type": "string" },
+          "runtimeIdentities": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["mode", "runtimeId"],
+              "properties": {
+                "mode": { "enum": ["buzz", "hermes"] },
+                "runtimeId": { "type": "string", "minLength": 1 },
+                "sessionId": { "type": "string", "minLength": 1 },
+                "gateway": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
           "runtime": {
             "type": "object",
             "additionalProperties": false,

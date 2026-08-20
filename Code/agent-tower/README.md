@@ -101,10 +101,26 @@ The command validates manager policy, capacity, member availability, capability 
 
 ## MCP for an agent manager
 
-The MCP server requires a short-lived, signed member binding. After configuring `data/member-links.json`, mint one:
+The same MCP server supports both runtime launch modes:
+
+- **Buzz mode**: Buzz is the managed-agent runtime/messaging identity.
+- **Hermes mode**: Hermes owns the execution session while retaining the linked safe Buzz work identity for organization/messaging joins.
+
+The MCP server requires a short-lived, signed member and runtime binding. After configuring `data/member-links.json`, mint one for the launcher you are using:
 
 ```bash
-npm run agent-tower -- session mint --member system-manager
+# Buzz-managed agent
+npm run agent-tower -- session mint \
+  --member system-manager \
+  --mode buzz \
+  --runtime-id <buzz-managed-agent-id>
+
+# Hermes execution session (optionally connected to Buzz messaging)
+npm run agent-tower -- session mint \
+  --member system-manager \
+  --mode hermes \
+  --runtime-id <hermes-agent-id> \
+  --runtime-session <hermes-session-id>
 ```
 
 The command prints a token, secret, binding, and expiry. Treat the token and secret as credentials. Do not commit them.
@@ -143,7 +159,7 @@ Core MCP tools:
 - `agent_tower.local_worker_get_status`
 - `agent_tower.local_worker_run`
 
-All MCP calls are session-bound and expire. Knowledge and worker tools additionally require matching grants.
+All MCP calls are session-bound and expire. The returned context includes `runtime.mode`, `runtime.runtimeId`, and optional `runtime.sessionId`, so receipts and downstream routing can distinguish Buzz-managed work from Hermes-managed work. Knowledge and worker tools additionally require matching grants.
 
 ## Buzz compatibility snapshot
 
@@ -162,7 +178,8 @@ Agent Tower validates that snapshot against `schemas/buzz-organization-facts.v1.
 - Composio is an external tool inventory/link in this version, not a provisioning engine.
 - Skill and tool catalogs are starter examples, not a package registry.
 - The current Buzz fallback reads a narrow local safe-field projection when no product-owned snapshot is present.
-- MCP configuration writes only Agent Tower-owned overlays; privileged Buzz changes remain outside this service.
+- MCP configuration writes only Agent Tower-owned overlays; privileged Buzz or Hermes lifecycle changes remain outside this service.
+- Buzz and Hermes launchers must each mint a fresh runtime-bound MCP token. Agent Tower does not distribute or persist launcher secrets.
 
 ## Security boundary
 

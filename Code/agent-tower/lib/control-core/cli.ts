@@ -26,7 +26,13 @@ function writeJson(runtime: CliRuntime, value: unknown): void {
   ;(runtime.write ?? ((output) => process.stdout.write(output)))(`${JSON.stringify(value, null, 2)}\n`)
 }
 
-async function operatorBinding(projectRoot: string, memberId: string): Promise<AgentSessionBinding> {
+async function operatorBinding(
+  projectRoot: string,
+  memberId: string,
+  runtimeMode: "buzz" | "hermes" = "buzz",
+  runtimeId?: string,
+  runtimeSessionId?: string,
+): Promise<AgentSessionBinding> {
   const links = await readMemberLinks(path.join(projectRoot, "data", "member-links.json"))
   const link = links.find((entry) => entry.memberId === memberId)
   if (!link) throw new Error(`Stable member link is unavailable: ${memberId}. Configure data/member-links.json first.`)
@@ -35,6 +41,9 @@ async function operatorBinding(projectRoot: string, memberId: string): Promise<A
     sessionId: `operator-${issuedAt.getTime()}-${randomUUID()}`,
     memberId,
     buzzMemberId: link.buzzMemberId,
+    runtimeMode,
+    runtimeId: runtimeId ?? (runtimeMode === "buzz" ? link.buzzMemberId : memberId),
+    runtimeSessionId,
     allowedChannelIds: [],
     toolGrantCeiling: ["linear", "rheos-brain", "local-rig-worker"],
     issuedAt: issuedAt.toISOString(),
@@ -62,7 +71,15 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
   if (args[0] === "session" && args[1] === "mint") {
     const memberId = argument(args, "--member")
     if (!memberId) throw new Error("session mint requires --member <stable-member-id>.")
-    const binding = await operatorBinding(runtime.projectRoot, memberId)
+    const mode = argument(args, "--mode") ?? "buzz"
+    if (mode !== "buzz" && mode !== "hermes") throw new Error("session mint --mode must be buzz or hermes.")
+    const binding = await operatorBinding(
+      runtime.projectRoot,
+      memberId,
+      mode,
+      argument(args, "--runtime-id"),
+      argument(args, "--runtime-session"),
+    )
     const secret = environment.AGENT_TOWER_SESSION_SECRET ?? randomBytes(32).toString("hex")
     writeJson(runtime, {
       token: mintSessionBinding(binding, secret),
@@ -147,6 +164,6 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
     return 0
   }
   throw new Error(
-    "Usage: agent-tower status | organization snapshot | members get <id> | session mint --member <id> | context get --member <id> | department configure --department <id> [--member <id>] [--skills <s1,s2>] [--tools <t1,t2>] [--buzz-teams <id1,id2>] [--buzz-channels <id1,id2>] | knowledge search --query <text> [--member <id>] | local-worker status [--member <id>] | mcp",
+    "Usage: agent-tower status | organization snapshot | members get <id> | session mint --member <id> [--mode buzz|hermes] [--runtime-id <id>] [--runtime-session <id>] | context get --member <id> | department configure --department <id> [--member <id>] [--skills <s1,s2>] [--tools <t1,t2>] [--buzz-teams <id1,id2>] [--buzz-channels <id1,id2>] | knowledge search --query <text> [--member <id>] | local-worker status [--member <id>] | mcp",
   )
 }

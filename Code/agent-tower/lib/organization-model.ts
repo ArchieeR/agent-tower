@@ -2,6 +2,14 @@ export type DepartmentKind = "system" | "custom"
 export type MemberKind = "human" | "agent"
 export type MemberStatus = "available" | "scheduled" | "working" | "meeting" | "blocked" | "offline" | "unknown"
 export type BuzzSourceKind = "buzz-desktop-tauri" | "buzz-local-file-fallback" | "buzz-relay-public" | "buzz-local-safe"
+export type RuntimeMode = "buzz" | "hermes"
+
+export type RuntimeIdentityView = {
+  mode: RuntimeMode
+  runtimeId: string
+  sessionId?: string
+  gateway?: string
+}
 
 export type BuzzWorkIdentityView = {
   buzzPubkey: string
@@ -70,6 +78,7 @@ export type AgentMemberView = OrganizationMemberBase & {
   startOnAppLaunch: boolean
   lastErrorCode?: string
   workIdentity?: BuzzWorkIdentityView
+  runtimeIdentities?: RuntimeIdentityView[]
   source: BuzzSourceKind
 }
 

@@ -25,6 +25,13 @@ const uniqueTextSchema = z
     message: "Values must be unique.",
   });
 
+const runtimeIdentitySchema = z.strictObject({
+  mode: z.enum(["buzz", "hermes"]),
+  runtimeId: z.string().trim().min(1).max(512),
+  sessionId: z.string().trim().min(1).max(512).optional(),
+  gateway: z.string().trim().min(1).max(512).optional(),
+});
+
 const memberSchema = z.strictObject({
   buzzPubkey: publicKeySchema,
   managedAgentId: z.string().trim().min(1).max(512),
@@ -32,6 +39,7 @@ const memberSchema = z.strictObject({
   displayName: z.string().trim().min(1).max(512),
   npub: z.string().startsWith("npub1").max(512).optional(),
   nip05Handle: z.string().trim().min(1).max(512).optional(),
+  runtimeIdentities: z.array(runtimeIdentitySchema).max(16).optional(),
   runtime: z.strictObject({
     status: z.enum(["running", "stopped", "deployed", "not_deployed", "unknown"]),
     runtime: z.string().trim().min(1).max(512).optional(),

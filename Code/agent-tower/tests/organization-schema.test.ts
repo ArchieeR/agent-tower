@@ -29,6 +29,8 @@ test("Buzz organization facts schema is a strict safe-field projection", async (
   assert.equal(member.additionalProperties, false)
   assert.equal(member.properties.buzzPubkey.pattern, "^[0-9a-fA-F]{64}$")
   assert.equal(member.properties.runtime.properties?.lastErrorCode?.type, "number")
+  assert.deepEqual(member.properties.runtimeIdentities?.items?.properties?.mode?.enum, ["buzz", "hermes"])
+  assert.deepEqual(member.properties.runtimeIdentities?.items?.required, ["mode", "runtimeId"])
   const channels = document.properties.channels
   assert.ok(channels?.items?.properties)
   assert.equal(channels.items.additionalProperties, false)

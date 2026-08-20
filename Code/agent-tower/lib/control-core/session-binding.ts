@@ -1,9 +1,14 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
+import type { RuntimeMode } from "../organization-model.ts"
+
 export type AgentSessionBinding = {
   sessionId: string
   memberId: string
   buzzMemberId: string
+  runtimeMode?: RuntimeMode
+  runtimeId?: string
+  runtimeSessionId?: string
   allowedChannelIds: string[]
   toolGrantCeiling: string[]
   issuedAt: string
@@ -24,6 +29,10 @@ function assertSecret(secret: string): void {
 
 function assertBinding(binding: AgentSessionBinding): void {
   if (!binding.sessionId || !binding.memberId || !binding.buzzMemberId) throw new Error("Session binding identity is incomplete.")
+  if (binding.runtimeMode !== undefined && binding.runtimeMode !== "buzz" && binding.runtimeMode !== "hermes") {
+    throw new Error("Session binding runtime mode is invalid.")
+  }
+  if (binding.runtimeMode && !binding.runtimeId) throw new Error("Session binding runtime identity is incomplete.")
   const issuedAt = Date.parse(binding.issuedAt)
   const expiresAt = Date.parse(binding.expiresAt)
   if (Number.isNaN(issuedAt) || Number.isNaN(expiresAt) || expiresAt <= issuedAt) throw new Error("Session binding lifetime is invalid.")

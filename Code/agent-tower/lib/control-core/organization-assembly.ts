@@ -1,6 +1,7 @@
 import type {
   AdapterHealth,
   AgentMemberView,
+  RuntimeIdentityView,
   BuzzChannelView,
   BuzzSourceKind,
   BuzzTeamView,
@@ -32,6 +33,7 @@ export type BuzzSafeMemberFact = {
   npub?: string
   nip05Handle?: string
   runtime: BuzzRuntimeFact
+  runtimeIdentities?: RuntimeIdentityView[]
   messaging: { senderPolicy: "owner-only" | "allowlist" | "anyone" | "unknown" }
 }
 
@@ -197,6 +199,7 @@ export function assembleOrganizationReadModel(input: OrganizationAssemblyInput):
     parallelism: fact.runtime.parallelism,
     startOnAppLaunch: fact.runtime.startOnAppLaunch,
     lastErrorCode: fact.runtime.lastErrorCode === undefined ? undefined : String(fact.runtime.lastErrorCode),
+    runtimeIdentities: fact.runtimeIdentities?.map((identity) => ({ ...identity })),
     workIdentity: {
       buzzPubkey: fact.buzzPubkey.toLowerCase(),
       managedAgentId: fact.managedAgentId,

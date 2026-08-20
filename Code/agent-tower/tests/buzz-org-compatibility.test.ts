@@ -32,6 +32,10 @@ function payload() {
           managedAgentId: "managed-engineering-head",
           personaId: "engineering-head",
           displayName: "Maya",
+          runtimeIdentities: [
+            { mode: "buzz" as const, runtimeId: "managed-engineering-head", gateway: "nostr" },
+            { mode: "hermes" as const, runtimeId: "hermes-engineering-head", sessionId: "session-engineering" },
+          ],
           runtime: {
             status: "running" as const,
             runtime: "claude-code",
@@ -116,6 +120,10 @@ test("assembles a buzz-org compatibility payload into the Agent Tower read model
   });
 
   assert.equal(result.model.members[0]?.id, agentId);
+  assert.deepEqual(result.model.members[0]?.kind === "agent" ? result.model.members[0].runtimeIdentities : [], [
+    { mode: "buzz", runtimeId: "managed-engineering-head", gateway: "nostr" },
+    { mode: "hermes", runtimeId: "hermes-engineering-head", sessionId: "session-engineering" },
+  ]);
   assert.equal(result.model.buzzTeams[0]?.id, teamId);
   assert.equal(result.model.buzzChannels[0]?.id, channelId);
   assert.deepEqual(result.model.buzzChannels[0]?.memberIds, [agentId]);

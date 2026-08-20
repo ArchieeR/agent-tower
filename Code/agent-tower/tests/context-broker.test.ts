@@ -20,6 +20,10 @@ const model: OrganizationReadModel = {
       toolGrantIds: ["linear"],
       backend: "local",
       model: "azure-foundry:gpt-5.6-sol",
+      runtimeIdentities: [
+        { mode: "buzz", runtimeId: "managed-system-manager" },
+        { mode: "hermes", runtimeId: "hermes-system-manager", sessionId: "hermes-session-1" },
+      ],
       configured: true,
       senderPolicy: "owner-only",
       startOnAppLaunch: false,
@@ -112,6 +116,9 @@ test("assembles a stable System Manager context from a bound Buzz identity", () 
   assert.equal(first.member.id, "system-manager")
   assert.equal(first.member.buzzMemberId, "buzz:system-manager-instance")
   assert.equal(first.runtime.model, "gpt-5.6-sol")
+  assert.equal(first.runtime.mode, "hermes")
+  assert.equal(first.runtime.runtimeId, "hermes-system-manager")
+  assert.equal(first.runtime.sessionId, "hermes-session-1")
   assert.deepEqual(first.skillRefs.map((entry) => entry.id), ["connector-health"])
   assert.deepEqual(first.routineRefs.map((entry) => entry.id), ["daily-health-check"])
   assert.deepEqual(first.effectiveToolGrants.map((entry) => entry.id), ["linear", "rheos-brain"])

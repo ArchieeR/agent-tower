@@ -46,9 +46,15 @@ test("CLI reports organization status without optional local integrations", asyn
 test("CLI mints a valid member-bound MCP session token", async () => {
   const projectRoot = await fixtureProjectRoot()
   try {
-    const parsed = await run(projectRoot, ["session", "mint", "--member", "system-manager"])
+    const parsed = await run(projectRoot, [
+      "session", "mint", "--member", "system-manager", "--mode", "hermes",
+      "--runtime-id", "hermes-system-manager", "--runtime-session", "hermes-session-1",
+    ])
     assert.equal(parsed.binding.memberId, "system-manager")
     assert.equal(parsed.binding.buzzMemberId, "buzz:system-manager-instance")
+    assert.equal(parsed.binding.runtimeMode, "hermes")
+    assert.equal(parsed.binding.runtimeId, "hermes-system-manager")
+    assert.equal(parsed.binding.runtimeSessionId, "hermes-session-1")
     assert.equal(typeof parsed.token, "string")
     assert.equal(typeof parsed.secret, "string")
   } finally {

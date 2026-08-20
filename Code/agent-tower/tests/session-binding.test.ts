@@ -11,6 +11,9 @@ test("mints and verifies a short-lived member-bound session token", () => {
       sessionId: "session-1",
       memberId: "system-manager",
       buzzMemberId: "buzz:system-manager-instance",
+      runtimeMode: "hermes",
+      runtimeId: "hermes-system-manager",
+      runtimeSessionId: "hermes-session-1",
       allowedChannelIds: ["pilot-channel"],
       toolGrantCeiling: ["linear", "rheos-brain"],
       issuedAt: "2026-08-11T19:00:00.000Z",
@@ -21,6 +24,9 @@ test("mints and verifies a short-lived member-bound session token", () => {
 
   const binding = verifySessionBinding(token, secret, new Date("2026-08-11T19:05:00.000Z"))
   assert.equal(binding.memberId, "system-manager")
+  assert.equal(binding.runtimeMode, "hermes")
+  assert.equal(binding.runtimeId, "hermes-system-manager")
+  assert.equal(binding.runtimeSessionId, "hermes-session-1")
   assert.deepEqual(binding.toolGrantCeiling, ["linear", "rheos-brain"])
 })
 

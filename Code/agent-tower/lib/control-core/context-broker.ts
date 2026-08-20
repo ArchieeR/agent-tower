@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 
 import type { CapabilityCatalogEntry } from "../capability-catalog.ts"
-import type { AgentMemberView, OrganizationReadModel, RoleProfile } from "../organization-model.ts"
+import type { AgentMemberView, OrganizationReadModel, RoleProfile, RuntimeMode } from "../organization-model.ts"
 
 export type MemberIdentityLink = {
   memberId: string
@@ -40,6 +40,9 @@ export type AgentContextBundle = {
     managerMemberIds: string[]
   }
   runtime: {
+    mode: RuntimeMode
+    runtimeId: string
+    sessionId?: string
     harness: string
     provider: string
     model: string
@@ -61,6 +64,7 @@ export type AssembleAgentContextInput = {
   memberLink: MemberIdentityLink
   capabilities: CapabilityCatalogEntry[]
   sourceRevisions: Record<string, string>
+  runtimeBinding?: { mode: RuntimeMode; runtimeId: string; sessionId?: string }
   now: Date
   ttlMs: number
 }
@@ -145,6 +149,11 @@ export function assembleAgentContext(input: AssembleAgentContextInput): AgentCon
   const grants = effectiveCapabilities(input.capabilities, member, role.toolIds ?? [], department?.toolIds ?? [], input.model)
   const departmentIds = departmentId ? [departmentId] : []
   const managerMemberIds = member.managerId ? [member.managerId] : []
+  const requestedMode: RuntimeMode = role.runtime.toLowerCase().includes("hermes") ? "hermes" : "buzz"
+  const runtimeIdentity: { mode: RuntimeMode; runtimeId: string; sessionId?: string } =
+    input.runtimeBinding ??
+    member.runtimeIdentities?.find((identity) => identity.mode === requestedMode) ??
+    { mode: requestedMode, runtimeId: requestedMode === "buzz" ? member.workIdentity?.managedAgentId ?? member.id : member.id }
   const stableContext = {
     schemaVersion: "1" as const,
     organizationRevision: input.sourceRevisions.organization ?? stableSha256(input.model.organization),
@@ -157,7 +166,14 @@ export function assembleAgentContext(input: AssembleAgentContextInput): AgentCon
       teamIds: [...member.teamIds].sort(),
       managerMemberIds,
     },
-    runtime: { harness: role.runtime, provider: role.provider, model: role.model },
+    runtime: {
+      mode: runtimeIdentity.mode,
+      runtimeId: runtimeIdentity.runtimeId,
+      sessionId: runtimeIdentity.sessionId,
+      harness: role.runtime,
+      provider: role.provider,
+      model: role.model,
+    },
     skillRefs: versionedRefs([...(department?.skillIds ?? []), ...member.skillIds], "agent-tower:skill"),
     routineRefs: versionedRefs([...(department?.routineIds ?? []), ...member.routineIds], "agent-tower:routine"),
     effectiveToolGrants: grants,
