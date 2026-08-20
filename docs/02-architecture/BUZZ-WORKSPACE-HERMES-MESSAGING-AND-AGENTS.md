@@ -542,6 +542,8 @@ The safe adapter envelope remains immutable observation evidence; Agent Tower po
 
 A typed Agent Tower change owns desired intent, policy/resource CAS and selected target. A secret-free immutable adapter plan owns the exact native delta, preflight/readback assertions and restart/approval implications. Approval binds the change digest and `adapterPlanDigest`, selected target, evidence precondition, capability mapping revision and expiry. Any change requires replan/reapproval. Apply re-probes the exact target and never silently falls back.
 
+Control Core computes Agent Tower policy/change/approval/plan digests. Buzz treats those as bounded opaque coordinates and must not reimplement Agent Tower hashing in Rust. A future Buzz bridge validates their syntax/expiry/correlation and enforces native operation support, idempotency, resource CAS and readback. Rust recomputation is allowed only after a versioned language-neutral canonicalization/domain spec and cross-language golden vectors exist.
+
 Use `adapterOperationId` as the stable approved operation/idempotency coordinate and `applyAttemptId` as the unique native invocation coordinate. Host-returned references remain opaque `hostOperationRef`/`hostObjectRef`; never correlate by display name.
 
 Apply evidence separates mutation from readback:
