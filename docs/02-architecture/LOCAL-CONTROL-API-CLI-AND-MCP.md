@@ -52,6 +52,33 @@ MCP gives Hermes and other approved runtimes a governed agent-facing interface. 
 
 The existing Next.js `GET /api/organization` endpoint remains useful as a local compatibility projection and browser-development surface. A packaged Buzz app should not require a Next.js server. If loopback HTTP is retained, bind only to `127.0.0.1`, use a short-lived local session token for non-public operations and never expose it on `0.0.0.0`.
 
+## 3.5 Harness-agnostic desired runtime policy
+
+Agent Tower's organization/member identity and authority are stable across execution systems. The control core exposes a versioned, provider-neutral desired policy plus member-scoped context; runtime adapters translate that into the native configuration vocabulary of Buzz/ACP, Hermes, Codex, Claude Code, Goose, Grok, Vertex/GCP and approved local workers.
+
+```text
+Agent Tower member + desired policy + current context revision
+  ├─ Buzz adapter       → managed identity / ACP harness / channel scope
+  ├─ Hermes adapter     → Hermes profile / session / MCP config
+  ├─ Codex adapter      → Codex CLI session and approved project scope
+  ├─ Claude adapter     → Claude Code session and approved project scope
+  ├─ Grok adapter       → Grok bot/session and bounded tool scope
+  ├─ Vertex adapter     → approved GCP model endpoint and quota policy
+  └─ Local adapter      → Local Rig model/profile/concurrency bounds
+```
+
+The desired policy contains allowed/preferred runtime modes, provider/model classes, capability requirements, fallback/concurrency policy and approvals—never provider keys or host credentials. Each adapter must support:
+
+1. `probe`: report installed/authenticated/ready/blocked state without mutation;
+2. `plan`: translate desired policy and show the exact native delta;
+3. `apply`: owner-approved, revision-conditional native configuration change;
+4. `observe`: return actual runtime identity/session/provider/model/health;
+5. `receipt`: attest the applied revision or explain why it could not be applied.
+
+Buzz can read Agent Tower policy through the shared control core/service, not by copying JSON policy into Buzz stores. Standalone Agent Tower and native Buzz Organization call the same handlers. Runtime-specific fields remain in adapter status/receipts and do not contaminate the organization schema.
+
+One member may run multiple adapters simultaneously where explicitly allowed. Each launch receives a separate short-lived identity/runtime/project/channel-bound session and immutable context revision. No adapter may infer that another app's keychain, provider login, runtime process or local defaults are available merely because public identity/community data are shared.
+
 ## 4. Recommended process topology
 
 Target one local executable or sidecar named `agent-tower`:

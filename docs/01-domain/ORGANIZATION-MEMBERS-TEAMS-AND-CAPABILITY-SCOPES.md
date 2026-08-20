@@ -49,11 +49,25 @@ Agent-only runtime fields are optional extensions:
 ```ts
 type AgentRuntimeProfile = {
   memberId: string
+  desiredPolicy: {
+    allowedModes: Array<"buzz" | "hermes" | "codex" | "claude-code" | "goose" | "grok" | "vertex" | "local">
+    preferredMode?: string
+    allowedProviderClasses: string[]
+    allowedModelClasses: string[]
+    requiredCapabilityIds: string[]
+    fallbackPolicy: "owner-choice" | "approved-order" | "none"
+  }
+  identities: Array<{
+    mode: string
+    runtimeId: string
+    sessionId?: string
+    hostId?: string
+    provider?: string
+    model?: string
+    status: "ready" | "running" | "stopped" | "blocked" | "unavailable" | "unknown"
+    observedAt: string
+  }>
   buzzPersonaId?: string
-  backend?: string
-  provider?: string
-  model?: string
-  runtimeStatus?: string
   senderPolicy?: string
   parallelism?: number
   costProfileId?: string
@@ -72,6 +86,14 @@ type HumanProfile = {
 ```
 
 Neither extension changes whether the member can be placed in the organization or a team.
+
+### Harness-agnostic member rule
+
+The stable Agent Tower member is not the runtime process. One member may have zero, one or several runtime identities concurrently—for example a Hermes/Azure session for long-running orchestration, a Codex or Claude Code session for implementation, a Grok lane for independent analysis, and a local Qwen worker for private bounded tasks. Changing or adding a runtime identity must not create a new organizational member, alter reporting lines or silently change capability authority.
+
+Agent Tower stores **desired runtime policy**, not provider credentials or a claim that deployment succeeded. Each host adapter reports actual readiness, provider/model, session state and evidence. Effective execution is the intersection of desired policy, the member's capability grants, host availability, credential readiness and task-specific approval. If a lane is unavailable, the adapter reports `blocked`/`unavailable`; it must not silently substitute a different harness or model.
+
+Multiple lanes may operate simultaneously only when the member's concurrency policy permits it. Every run remains separately bound to one runtime identity/session, one channel/project scope, one context revision and one receipt. Cross-runtime handoff is an explicit task/evidence transition, not shared mutable session memory.
 
 ## 3. Team contract
 
