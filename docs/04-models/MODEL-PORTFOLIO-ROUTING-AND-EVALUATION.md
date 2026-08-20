@@ -29,6 +29,21 @@ The following amounts are owner-reported and must be verified against provider b
 | Grok | CLI available; an optional subscription may be considered separately | existing counsel workflow treats Grok as opt-in | current CLI health, plan limits, model identity and owner-approved subscription value |
 | Local Mac | 48 GiB unified memory | Ollama, `llama-cli` and `llama-server` installed; `llama-server` is build 10358; Qwen and Muse Glimmer artifacts are resident on disk (see 2.1) | Gemma artifacts; context lengths, thermal behavior and sustained throughput; no local model has yet been loaded successfully |
 
+### 2.0.1 Owner-confirmed access lanes (2026-08-20)
+
+These are distinct harness/provider resources and must not be presented as interchangeable entries in one provider dropdown:
+
+| Access resource | Correct execution lane | Current use decision |
+|---|---|---|
+| Codex subscription | Codex harness/ACP, authenticated through the Codex CLI subscription path | Available when Codex CLI login is healthy; not an OpenAI API provider credential |
+| Azure Foundry keys/credits | Hermes or another approved Azure Foundry adapter using deployed Foundry model IDs such as `gpt-5.6-sol` | Current initial Builder/System Manager lane through Hermes defaults; do not label as OpenAI API |
+| Claude Code subscription | Claude Code harness/ACP using its own CLI login | Available for coding work; not an Anthropic API key |
+| Google Cloud credits | Approved Vertex AI / Google adapter after region, quota, model and billing path are verified | Candidate lane, not yet assumed configured in Buzz |
+| Goose | Goose harness where installed/configured (including Berd) | Available harness; provider credentials still depend on its configured environment |
+| Local Qwen | Local Rig/approved local inference adapter after load and benchmark proof | Future optional lane; not currently a production dependency |
+
+For the initial `Agent Tower Builder`, owner selected **Hermes Agent** with inherited defaults because Azure Foundry is already configured there. Do not choose Buzz Agent merely to reach Codex or Azure: Buzz Agent requires an independently configured LLM provider (or verified live Buzz shared compute). Harness migrations remain owner reviewed.
+
 Do not commit provider keys, deployment credentials, billing exports or screenshots containing secrets.
 
 ### 2.1 Verified inventory
