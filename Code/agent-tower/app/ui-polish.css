@@ -375,6 +375,37 @@ body {
     border-radius: var(--radius-md);
   }
 
+  .org-chart-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .org-chart-canvas {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    padding-bottom: 24px;
+    transform: none !important;
+  }
+
+  .chart-top-tier,
+  .chart-branches,
+  .chart-system-services {
+    width: 100%;
+  }
+
+  .chart-branches {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .org-team-node {
+    width: 100%;
+  }
+
   .chart-toolbar {
     min-height: 84px;
     padding-right: 48px;
