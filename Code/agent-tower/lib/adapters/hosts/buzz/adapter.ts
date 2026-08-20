@@ -9,6 +9,7 @@ import type {
   HostObservationSnapshotV1,
   HostProbeSnapshotV1,
 } from "../../contracts/index.ts"
+import { parseBuzzRuntimeCatalog, runtimeCatalogSnapshot, runtimeObservationSnapshot, runtimeProbeSnapshot, type BuzzRuntimeCatalogExportV1, type BuzzRuntimeCatalogTransport } from "./runtime-catalog.ts"
 
 export type BuzzHostExportV1 = {
   schemaVersion: "1"
@@ -98,9 +99,11 @@ export class BuzzHostAdapter implements HostAdapterV1 {
   private warning?: AdapterWarningV1
   private readonly transport: BuzzSafeExportTransport
   private readonly now: () => Date
-  constructor(transport: BuzzSafeExportTransport, now: () => Date = () => new Date()) {
+  private readonly runtimeCatalogTransport?: BuzzRuntimeCatalogTransport
+  constructor(transport: BuzzSafeExportTransport, now: () => Date = () => new Date(), runtimeCatalogTransport?: BuzzRuntimeCatalogTransport) {
     this.transport = transport
     this.now = now
+    this.runtimeCatalogTransport = runtimeCatalogTransport
   }
 
   private async read(): Promise<BuzzHostExportV1> {
@@ -113,20 +116,32 @@ export class BuzzHostAdapter implements HostAdapterV1 {
       return unavailableData()
     }
   }
-  private envelope<T>(source: BuzzHostExportV1, data: T, warnings: AdapterWarningV1[] = []): AdapterEnvelopeV1<T> {
+  private async readRuntimeCatalog(): Promise<BuzzRuntimeCatalogExportV1 | undefined> {
+    if (!this.runtimeCatalogTransport) return undefined
+    try { return parseBuzzRuntimeCatalog(await this.runtimeCatalogTransport.getRuntimeCatalog()) }
+    catch { return undefined }
+  }
+  private envelope<T>(source: BuzzHostExportV1, data: T, warnings: AdapterWarningV1[] = [], runtimeSource?: BuzzRuntimeCatalogExportV1): AdapterEnvelopeV1<T> {
     const age = this.now().getTime() - Date.parse(source.observedAt)
     const health = source.transport.state === "unavailable" ? "unavailable" : source.host.health
     const freshness = age > source.staleAfterMs ? "stale" : health === "available" ? "live" : "degraded"
     const hash = contentHash({ sourceRevision: source.sourceRevision, data, health })
     const staleWarning: AdapterWarningV1[] = freshness === "stale" ? [{ code: "STALE_EXPORT", message: "Buzz safe export exceeded its source freshness window." }] : []
-    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: hash, contentHash: hash, sourceVersion: source.sourceVersion, observedAt: source.observedAt, freshness, health, evidence: [], warnings: [...(this.warning ? [this.warning] : []), ...staleWarning, ...warnings], data }
+    const sourceObservations = [{ source: "buzz.organization", sourceRevision: source.sourceRevision, observedAt: source.observedAt }]
+    if (runtimeSource) sourceObservations.push({ source: "buzz.runtime-catalog", sourceRevision: runtimeSource.sourceRevision, observedAt: runtimeSource.observedAt })
+    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: hash, contentHash: hash, sourceVersion: source.sourceVersion, sourceObservations, observedAt: source.observedAt, freshness, health, evidence: [], warnings: [...(this.warning ? [this.warning] : []), ...staleWarning, ...warnings], data }
   }
   async catalog(): Promise<AdapterEnvelopeV1<HostCatalogSnapshotV1>> {
     const source = await this.read()
-    return this.envelope(source, { hosts: source.runtimeCatalog.map((runtime) => ({ adapterId: this.adapterId, hostId: source.host.hostId, hostRuntimeId: runtime.hostRuntimeId, capabilities: [...runtime.capabilities].sort() })) })
+    const runtimeSource = await this.readRuntimeCatalog()
+    const data = runtimeSource ? runtimeCatalogSnapshot(this.adapterId, runtimeSource) : { hosts: source.runtimeCatalog.map((runtime) => ({ adapterId: this.adapterId, hostId: source.host.hostId, hostRuntimeId: runtime.hostRuntimeId, capabilities: [...runtime.capabilities].sort() })) }
+    return this.envelope(source, data, runtimeSource ? [] : this.runtimeCatalogTransport ? [{ code: "MALFORMED_OUTPUT", sourceCode: "buzz.snapshot.invalid", message: "Buzz runtime catalog export is unavailable or invalid." }] : [], runtimeSource)
   }
   async probe(hostRuntimeId?: string): Promise<AdapterEnvelopeV1<HostProbeSnapshotV1>> {
     const source = await this.read()
+    const runtimeSource = await this.readRuntimeCatalog()
+    const nativeProbe = runtimeSource ? runtimeProbeSnapshot(this.adapterId, runtimeSource, hostRuntimeId) : undefined
+    if (nativeProbe) return this.envelope(source, nativeProbe, [], runtimeSource)
     const runtime = source.runtimeCatalog.find((candidate) => candidate.hostRuntimeId === hostRuntimeId) ?? source.runtimeCatalog[0]
     if (!runtime) return this.envelope(source, { identity: { adapterId: this.adapterId, hostId: source.host.hostId, hostRuntimeId: hostRuntimeId ?? "unavailable" }, readiness: "unavailable", authRequired: false, authConfigured: "unknown" }, [{ code: "HOST_RUNTIME_NOT_FOUND", message: "Requested Buzz runtime is not present in the safe catalog." }])
     const readiness: AdapterHealthStateV1 = runtime.readiness === "ready" ? "available" : runtime.readiness === "blocked" || runtime.readiness === "unknown" ? "degraded" : runtime.readiness
@@ -134,6 +149,7 @@ export class BuzzHostAdapter implements HostAdapterV1 {
   }
   async observe(): Promise<AdapterEnvelopeV1<HostObservationSnapshotV1>> {
     const source = await this.read()
-    return this.envelope(source, { identities: source.runtimeObservations.map((observation) => ({ adapterId: this.adapterId, hostId: source.host.hostId, ...observation })) })
+    const runtimeSource = await this.readRuntimeCatalog()
+    return this.envelope(source, runtimeSource ? runtimeObservationSnapshot(this.adapterId, runtimeSource) : { identities: source.runtimeObservations.map((observation) => ({ adapterId: this.adapterId, hostId: source.host.hostId, ...observation })) }, [], runtimeSource)
   }
 }

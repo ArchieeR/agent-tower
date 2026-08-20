@@ -16,7 +16,8 @@ export type AdapterErrorCodeV1 =
   | "STALE_EXPORT"
   | "UNSAFE_FILE"
 
-export type AdapterWarningV1 = { code: AdapterErrorCodeV1; message: string }
+export type AdapterWarningV1 = { code: AdapterErrorCodeV1; sourceCode?: string; message: string }
+export type AdapterSourceObservationV1 = { source: string; sourceRevision: string; observedAt: string }
 export type AdapterEvidenceCommandV1 =
   | "version"
   | "whoami"
@@ -43,6 +44,7 @@ export type AdapterEnvelopeV1<T> = {
   adapterRevision: string
   contentHash: string
   sourceVersion?: string
+  sourceObservations?: AdapterSourceObservationV1[]
   observedAt: string
   freshness: AdapterFreshnessV1
   health: AdapterHealthStateV1
