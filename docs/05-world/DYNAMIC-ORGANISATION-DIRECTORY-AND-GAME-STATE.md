@@ -264,7 +264,7 @@ Manual review is preserved initially.
 
 ## 8. Team and department mapping
 
-Buzz teams are reusable channel rosters. Agent Tower departments are organizational units.
+Buzz local Agent teams are reusable persona/template and spawn-instruction groupings; they are not channel rosters or channel membership. Agent Tower departments/units/teams are governed organizational policy concepts. Buzz relay-native channels are separate authoritative communications containers.
 
 ```text
 Department Engineering
@@ -281,7 +281,7 @@ Department Engineering
     - incidents
 ```
 
-Do not force one Buzz team or channel to equal one department.
+Do not force a Buzz local Agent team or relay channel to equal an Agent Tower department. Map each explicitly by stable ID only when the relationship has an accepted purpose.
 
 ## 9. First implementation slice
 

@@ -489,15 +489,22 @@ Verify inbound/outbound messages and identity isolation.
 
 Use the **Agent Tower Buzz build** in `Code/buzz` as the shared collaboration client once the owner signs that build into the intended community. The currently installed signed Buzz app and the local development build have separate bundle IDs, application support state and keychain state; their logins do not automatically transfer.
 
-Accepted first topology:
+Accepted first communications topology:
 
 - owner-reviewed Buzz community selected in the Agent Tower build;
-- Buzz team: `Agent Tower Core`;
-- private channel: `agent-tower-control-plane`;
+- relay-native private channel: `agent-tower-control-plane`;
 - distinct managed identities:
   - stable Agent Tower member `system-manager`, Hermes execution mode;
   - stable Agent Tower member `agent-tower-builder`, Buzz/ACP execution mode;
-- private channel membership restricted to the owner and those two managed identities.
+- private channel membership restricted to the owner and those two verified managed identities.
+
+Do not create a Buzz local Agent team merely because the working group was previously called `Agent Tower Core`. Three entities remain distinct:
+
+1. an Agent Tower organization unit/department/team is governed control-core policy;
+2. a Buzz local `TeamRecord` is a persona/template and spawn-instruction grouping, not channel membership;
+3. a Buzz relay-native private channel is the authoritative communications container.
+
+For v0.1, create only the relay-native private channel after approval. Keep `system-manager` in its cross-cutting System Manager role and `agent-tower-builder` in Engineering. Reserve `Agent Tower Core` as a possible future Agent Tower control-core collaboration unit, and create a separate Buzz local Agent template only if a concrete reusable deployment requirement is later approved.
 
 Identity migration boundary:
 
