@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert"
 import { test } from "node:test"
 
+import { hashComposioObservationV1 } from "../lib/adapters/tools/composio/adapter.ts"
 import { domainDigestV1 } from "../lib/shared/canonical-digest.ts"
 
 const observation = { adapterId: "buzz", hostId: "opaque-host", records: [{ id: "goose", ready: false }] }
@@ -17,6 +18,17 @@ test("adapter observation digest domains have locked golden vectors", () => {
   assert.equal(domainDigestV1("buzz-organization-observation", observation), vectors.organization)
   assert.equal(domainDigestV1("buzz-host-catalog-observation", observation), vectors.catalog)
   assert.equal(domainDigestV1("composio-tool-inventory", observation), vectors.composio)
+})
+
+test("adapter hash boundary rejects ambiguous values without invoking getters", () => {
+  assert.throws(() => hashComposioObservationV1("composio-tool-inventory", { value: undefined }))
+  assert.throws(() => hashComposioObservationV1("composio-tool-inventory", { value: -0 }))
+  const sparse = Array(2); sparse[1] = "present"
+  assert.throws(() => hashComposioObservationV1("composio-tool-inventory", { sparse }))
+  let invoked = false
+  const accessor = {}; Object.defineProperty(accessor, "value", { enumerable: true, get: () => { invoked = true; return "secret" } })
+  assert.throws(() => hashComposioObservationV1("composio-tool-inventory", accessor))
+  assert.equal(invoked, false)
 })
 
 test("identical adapter observation payloads cannot cross digest domains", () => {

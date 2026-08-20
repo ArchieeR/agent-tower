@@ -1,6 +1,6 @@
 # Buzz Host Adapter Read Contract Proposal
 
-Date: 2026-08-20  
+Date: 2026-08-20
 Status: read contract implemented Agent Tower-side; governed lifecycle interface provisionally aligned with Control Core, no Buzz native or apply implementation
 
 Priority: P0. The supported safe export, catalog/probe/observe loop and readback evidence take precedence over further Composio expansion.

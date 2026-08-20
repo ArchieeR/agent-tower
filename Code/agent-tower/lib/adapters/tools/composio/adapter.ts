@@ -33,13 +33,12 @@ const SECRET_KEY = /(token|secret|password|credential|api.?key|cookie|authorizat
 const PII_ALIAS = /@|https?:|www\.|\b\d{7,}\b|[A-Za-z0-9+/=_-]{32,}/i
 const ANSI = /\u001b\[[0-?]*[ -/]*[@-~]/g
 
-function observationHash(domain: "composio-tool-inventory" | "adapter-envelope", value: unknown): string {
-  const emittedJson = JSON.parse(JSON.stringify(value)) as unknown
-  return domainDigestV1(domain, emittedJson)
+export function hashComposioObservationV1(domain: "composio-tool-inventory" | "adapter-envelope", value: unknown): string {
+  return domainDigestV1(domain, value)
 }
 function durationBucket(ms: number): AdapterEvidenceV1["durationBucket"] { return ms < 100 ? "lt-100ms" : ms < 1_000 ? "lt-1s" : ms < 5_000 ? "lt-5s" : "gte-5s" }
 function evidence(command: AdapterEvidenceCommandV1, result: CommandExecution, recordCount?: number): AdapterEvidenceV1 {
-  return { command, exitClass: result.exitClass, startedAt: result.startedAt, finishedAt: result.finishedAt, durationBucket: durationBucket(result.durationMs), recordCount }
+  return { command, exitClass: result.exitClass, startedAt: result.startedAt, finishedAt: result.finishedAt, durationBucket: durationBucket(result.durationMs), ...(recordCount !== undefined ? { recordCount } : {}) }
 }
 function parseJson(result: CommandExecution): unknown {
   if (result.exitClass !== "success") return undefined
@@ -85,9 +84,9 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
   }
 
   private envelope<T>(data: T, health: AdapterHealthStateV1, sourceVersion: string | undefined, evidenceItems: AdapterEvidenceV1[], warnings: AdapterWarningV1[]): AdapterEnvelopeV1<T> {
-    const inventoryHash = observationHash("composio-tool-inventory", { data, health, sourceVersion, warnings })
-    const contentHash = observationHash("adapter-envelope", { adapterId: this.adapterId, inventoryHash })
-    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: contentHash, contentHash, sourceVersion, observedAt: this.now().toISOString(), freshness: health === "available" ? "live" : "degraded", health, evidence: evidenceItems, warnings, data }
+    const inventoryHash = hashComposioObservationV1("composio-tool-inventory", { data, health, ...(sourceVersion !== undefined ? { sourceVersion } : {}), warnings })
+    const contentHash = hashComposioObservationV1("adapter-envelope", { adapterId: this.adapterId, inventoryHash })
+    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: contentHash, contentHash, ...(sourceVersion !== undefined ? { sourceVersion } : {}), observedAt: this.now().toISOString(), freshness: health === "available" ? "live" : "degraded", health, evidence: evidenceItems, warnings, data }
   }
 
   async inventory(): Promise<AdapterEnvelopeV1<ToolInventorySnapshotV1>> {
@@ -113,14 +112,18 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
       for (const record of toolRecords.slice(0, 2_000)) {
         const toolSlug = text(record, ["slug", "name", "toolSlug"])
         if (!toolSlug || !SAFE_TOOL.test(toolSlug)) continue
-        tools.push({ toolkitSlug, toolSlug, name: text(record, ["displayName", "display_name", "description"])?.slice(0, 256), mapping: mapObservedComposioTool(toolkitSlug, toolSlug) })
+        const name = text(record, ["displayName", "display_name", "description"])?.slice(0, 256)
+        tools.push({ toolkitSlug, toolSlug, ...(name !== undefined ? { name } : {}), mapping: mapObservedComposioTool(toolkitSlug, toolSlug) })
       }
       const triggerResult = await this.runner({ command: "triggers-list", args: ["triggers", "list", toolkitSlug] })
       const triggerRecords = records(parseJson(triggerResult), ["triggers", "items", "data"])
       evidenceItems.push(evidence("triggers-list", triggerResult, triggerRecords.length))
       for (const record of triggerRecords.slice(0, 2_000)) {
         const triggerSlug = text(record, ["slug", "name", "triggerSlug"])
-        if (triggerSlug && SAFE_TOOL.test(triggerSlug)) triggers.push({ toolkitSlug, triggerSlug, name: text(record, ["displayName", "display_name", "description"])?.slice(0, 256) })
+        if (triggerSlug && SAFE_TOOL.test(triggerSlug)) {
+          const name = text(record, ["displayName", "display_name", "description"])?.slice(0, 256)
+          triggers.push({ toolkitSlug, triggerSlug, ...(name !== undefined ? { name } : {}) })
+        }
       }
     }
     const connections: ObservedConnectionV1[] = []
@@ -136,14 +139,14 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
         const rawAlias = record.alias
         const displayAlias = safeAlias(rawAlias)
         if (rawAlias && !displayAlias) warnings.push({ code: "REDACTED_METADATA", message: "A connection alias was omitted by safe-label policy." })
-        connections.push({ toolkitSlug, connectionRef: connectionRef(this.config.connectionRefKey!, toolkitSlug, opaque), displayAlias, state: "connected" })
+        connections.push({ toolkitSlug, connectionRef: connectionRef(this.config.connectionRefKey!, toolkitSlug, opaque), ...(displayAlias !== undefined ? { displayAlias } : {}), state: "connected" })
       }
     }
     const uniqueTools = Array.from(new Map(tools.map((tool) => [`${tool.toolkitSlug}:${tool.toolSlug}`, tool])).values()).sort((a, b) => a.toolSlug.localeCompare(b.toolSlug))
     const uniqueTriggers = Array.from(new Map(triggers.map((trigger) => [`${trigger.toolkitSlug}:${trigger.triggerSlug}`, trigger])).values()).sort((a, b) => a.triggerSlug.localeCompare(b.triggerSlug))
     for (const tool of uniqueTools) if (tool.mapping.mappingState === "unmapped") warnings.push({ code: "UNMAPPED_TOOL", message: `Observed tool ${tool.toolSlug} has no explicit capability mapping.` })
     const health: AdapterHealthStateV1 = authenticated ? "available" : "unauthenticated"
-    return this.envelope({ toolHostId: "composio-cli", authenticated, accountType, tools: uniqueTools, triggers: uniqueTriggers, connections }, health, sourceVersion, evidenceItems, warnings)
+    return this.envelope({ toolHostId: "composio-cli", authenticated, ...(accountType !== undefined ? { accountType } : {}), tools: uniqueTools, triggers: uniqueTriggers, connections }, health, sourceVersion, evidenceItems, warnings)
   }
 
   async probe(toolSlug: string): Promise<AdapterEnvelopeV1<ToolProbeSnapshotV1>> {
@@ -158,7 +161,8 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
     if (mapping.mappingState === "unmapped") warnings.push({ code: "UNMAPPED_TOOL", message: `Observed tool ${toolSlug} has no explicit capability mapping.` })
     const info = parseJson(infoResult)
     const record = info && typeof info === "object" ? info as Record<string, unknown> : {}
-    const tool: ObservedToolV1 = { toolkitSlug, toolSlug, name: text(record, ["displayName", "display_name", "description"])?.slice(0, 256), schema: schemaSummary(parseJson(schemaResult)), mapping }
+    const name = text(record, ["displayName", "display_name", "description"])?.slice(0, 256)
+    const tool: ObservedToolV1 = { toolkitSlug, toolSlug, ...(name !== undefined ? { name } : {}), schema: schemaSummary(parseJson(schemaResult)), mapping }
     return this.envelope({ toolHostId: "composio-cli", tool, connectionState: "unknown" }, warnings.some((warning) => warning.code === "COMMAND_FAILED") ? "degraded" : "available", undefined, evidenceItems, warnings)
   }
 }
