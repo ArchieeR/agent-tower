@@ -177,9 +177,11 @@ Implemented in committed PR head:
 - raw team/channel IDs and bounded runtime IDs;
 - no keys, prompts, env, paths, private messages or raw logs.
 
-Active source work (uncommitted in Buzz worktree): owner-selected `Export safe organization snapshot…` UI and restrictive/atomic JSON writer. This is P0. It must use the existing safe producer/exporter, OS save dialog, disclosure/exclusions, cancel no-op, tests/E2E/screenshots and full `just ci`. Preview rebuild/install remains a separate owner gate.
+Supported source transport is committed on the Buzz branch at `4fe7042e0`: owner-selected `Export safe organization snapshot…`, existing safe producer/exporter, OS save dialog, organization-sensitive disclosure, cancel no-op, restrictive atomic JSON write, Rust/UI/E2E evidence and full canonical `just ci` (desktop Rust 2,403 passed; mobile 1,261 passed). The authoritative native golden fixture is committed at `e65ce617e` (`desktop/src-tauri/tests/fixtures/organization-export-v1.json`) and serializer-tested byte-for-byte.
 
-Current live blocker: installed Preview registers the serializer but has no supported external invocation transport. Raw-store reads, inspector injection and unauthenticated HTTP are prohibited. Member links and sessions remain fail-closed.
+The Agent Tower adapter copied/locked that fixture at `07bc99b`; its strict canonical parser accepts the nested numeric-v1 envelope while keeping organization observations separate from the independently revisioned future runtime catalog. Reported adapter verification is 104 tests, typecheck, lint and production build green.
+
+Current live blocker: the installed Preview does not contain these commits. Source/CI is complete, but rebuild/install and owner-produced export require separate approval. Raw-store reads, inspector injection and unauthenticated HTTP remain prohibited. Member links and sessions remain fail-closed until the rebuilt Preview export is strictly validated.
 
 Future Buzz Host Bridge P0 sequence:
 
@@ -259,7 +261,7 @@ Reported verification: 86 tests, lint and production build green; worktree clean
 
 ### Buzz Host (`20260820_4`)
 
-Owns `Code/buzz`, draft PR #6419 and native safe export source work. Current source worktree has uncommitted export dialog/writer/test changes. No build/install/merge authorized without review.
+Owns `Code/buzz` and draft PR #6419. Safe export source is committed at `4fe7042e0`; golden fixture at `e65ce617e`; full CI/E2E and DCO green; worktree clean. PR remains draft. No rebuilt Preview install, live export, ready transition or merge is authorized without separate review/approval.
 
 ### Setup & Operations (`20260820_8`)
 
@@ -275,9 +277,13 @@ Commits:
 - `2f6bb8c` safe Composio read adapter;
 - `bb192e5` read CLI and Buzz proposal;
 - `62f7feb` fail-closed Agent Tower-side Buzz host reader;
-- `5c29595` governed Buzz lifecycle alignment.
+- `5c29595` governed Buzz lifecycle alignment;
+- `613e68c`, `4a3eabe` safe Buzz facts ingestion and separate runtime-catalog evidence;
+- `607975f`, `a35c836` strict schema separation and design-only governed apply evidence;
+- `80230d9` no-substitution strict parser/target probe;
+- `07bc99b` Buzz-owned golden export fixture lock.
 
-Reported verification: 90 tests, typecheck, lint and production build green; worktree clean. No live Composio/Buzz actions or Control Core/UI edits.
+Reported verification: 104 tests, typecheck, lint and production build green; worktree clean. No live Composio/Buzz actions or Control Core/UI edits.
 
 ## 13. Linear workstream map
 
@@ -324,11 +330,11 @@ Required files before promotion: `LICENSE`, `COMMERCIAL-LICENSE.md`, `TRADEMARKS
 P0 order:
 
 1. Review/finish Control Core local owner-service authentication containment; integrate only after branch review and current-main reconciliation.
-2. Finish Buzz safe export source, run full CI/evidence, separately approve rebuilt Preview install.
-3. Export safe snapshot to ignored Agent Tower path; strict validation.
+2. Independently review the committed Buzz export/fixture and Adapter golden-fixture alignment; separately approve rebuilt Preview install.
+3. Export safe snapshot from rebuilt Preview to the ignored Agent Tower path; strict validation.
 4. Define and integrate provider-neutral Knowledge Host contract (ALD-184) using the versioned context foundation.
 5. Owner-approved member links and opaque channel/host-scoped sessions.
-6. Bounded same-thread acknowledgement probe with scoped knowledge citation.
+6. Prove scoped knowledge retrieval/citation in Agent Tower evidence, then send the bounded same-thread Buzz acknowledgement containing opaque context/receipt/status references only; no citation or knowledge content in Buzz.
 7. Design/implement Buzz catalog/probe and governed draft/create-update/readback receipt bridge.
 
 P1 parallel:
