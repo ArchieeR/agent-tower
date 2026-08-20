@@ -79,6 +79,18 @@ Buzz can read Agent Tower policy through the shared control core/service, not by
 
 One member may run multiple adapters simultaneously where explicitly allowed. Each launch receives a separate short-lived identity/runtime/project/channel-bound session and immutable context revision. No adapter may infer that another app's keychain, provider login, runtime process or local defaults are available merely because public identity/community data are shared.
 
+## 3.6 Local trust, registry and revision decisions
+
+The initial manager control plane uses an owner service as the only authorization decision point:
+
+- Agent/MCP clients receive an opaque random 256-bit capability token. The service stores only its hash, session ID, canonical member/runtime/resource/action scope, issue/expiry and revocation state. No signing or verification secret enters an agent environment or CLI output.
+- A permission-restricted Unix-domain socket and OS peer credentials identify the local process/user boundary. Peer UID proves locality, not owner approval. Owner approval requires an explicit native/interactive decision over the exact change digest, backed by a service/keychain-held owner key. Approval challenges are one-time, digest-bound and short-lived.
+- `change.prepare` requires an explicit `organization.change.propose` grant plus change-kind and subject/resource scope. Owner/operator CLI may prepare through its authenticated local principal. Proposal authority never implies approval/apply authority, and the requester cannot satisfy an independent approval requirement.
+- Agent Tower owns canonical versioned skill/routine definitions as portable manifests/content. An assignment pins `{id, version, contentHash}` calculated from actual content. UI catalogs, HTML inventories, Hermes skill directories, Buzz personas and external repos are import/provisioning sources, not silent canonical registries. Unknown or versionless assignments fail closed.
+- One deterministic global **policy revision** hashes Agent Tower-owned organization/configuration/resources only. Volatile timestamps, Buzz/runtime observations, adapter health/freshness and external source revisions remain in a separate observed/source revision vector. Per-resource revisions support targeted compare-and-swap; prepare/apply bind both global and touched-resource revisions.
+
+Symmetric service-held signing may be used internally only when verification stays inside the owner service. Asymmetric signing is deferred until a real offline/multi-process verifier needs it; public-key verification does not replace revocation or current-policy rehydration.
+
 ## 4. Recommended process topology
 
 Target one local executable or sidecar named `agent-tower`:
