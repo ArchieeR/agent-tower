@@ -1,5 +1,7 @@
 # Project 1 — Local Buzz Organization Surface
 
+> **Primary/secondary product decision (2026-08-20):** Agent Tower is the primary organization, governance and capability control surface. The Agent Tower Buzz build is the secondary communication, channel, presence and runtime surface. Buzz may present a contextual read-only Organization projection and owner-reviewed handoff actions, but it must not become a second editable copy of Agent Tower policy.
+
 Date: 2026-08-09
 Status: accepted project direction; implementation begins locally
 

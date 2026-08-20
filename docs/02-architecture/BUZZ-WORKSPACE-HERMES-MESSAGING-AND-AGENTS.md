@@ -47,6 +47,12 @@ It separates:
 - Licence: Apache-2.0.
 - Scope: a TypeScript stdio MCP for the separate CorePrt Nostr relay. It is not part of `block/buzz`, is not evidence of compatibility with the installed Buzz identity/keychain boundary, and is reference code rather than an accepted dependency.
 
+## 2.5 Primary and secondary interfaces
+
+Agent Tower is the primary owner/operator surface for organization design, reporting lines, department assignments, capability policy, workspace switching, versioned context and evidence. The Agent Tower Buzz build is a secondary contextual surface for communication, agent runtime presence, teams/channels and owner-reviewed operational handoffs.
+
+The Buzz Organization route may show the safe Agent Tower-informed projection so users do not lose context while communicating, but it remains read-only for Agent Tower-owned policy. Configuration links should deep-link or hand off to Agent Tower rather than maintaining a second mutable policy model. Buzz-native identity, channel, message, presence and runtime controls remain native Buzz responsibilities.
+
 ## 3. Architecture
 
 ```text
