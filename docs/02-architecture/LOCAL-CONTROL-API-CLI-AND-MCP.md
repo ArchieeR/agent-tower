@@ -105,6 +105,8 @@ Type ownership is singular across workstreams:
 
 The adapter wire shape `AdapterApprovalBindingV1` may live with adapter contracts, but Control Core alone constructs and semantically validates approval bindings. Adapter code cannot grant or approve itself. Branch integration lands the shared digest/control foundation before adapters import it; duplicate definitions are prohibited.
 
+Current adapter-local bare SHA-256 values are legacy observational compatibility only. Once observation hashes become approval evidence preconditions, Host Adapters must migrate to the shared domain-separated primitive during rebase. Initial domains are `adapter-envelope`, `buzz-organization-observation`, `buzz-host-catalog-observation` and `composio-tool-inventory`; additional domains require an explicit contract change. Source-native revisions and byte-locked fixture equality remain host/source evidence and are not silently replaced by an Agent Tower digest. Migration adds golden cross-domain vectors and preserves explicitly versioned legacy fields at translation boundaries.
+
 ## 3.8 Host operation support is explicit and operation-scoped
 
 Generic host/runtime capability strings cannot establish that a native write is invocable, idempotent, CAS-safe, secret-free or verifiable. Host adapters publish an independently revisioned operation-support snapshot. Each adapter-owned, namespaced operation ID reports support state, invocation mode, stable-host identity support, idempotency mode, concurrency/CAS mode, response safety, readback mode, native owner-review behavior and safe evidence codes.
