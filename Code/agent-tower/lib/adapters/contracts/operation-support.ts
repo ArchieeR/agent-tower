@@ -37,7 +37,7 @@ export const hostOperationSupportSchemaV1 = z.strictObject({
 
 export const hostOperationSupportSnapshotSchemaV1 = z.strictObject({
   adapterId: z.string().min(1).max(128).regex(ADAPTER_ID),
-  hostId: z.string().min(1).max(512).refine((value) => value.trim().length > 0 && !CONTROL_CHARACTER.test(value), "invalid opaque host ID"),
+  hostId: z.string().min(1).max(512).refine((value) => value === value.trim() && value.length > 0 && !CONTROL_CHARACTER.test(value), "invalid opaque host ID"),
   operations: z.array(hostOperationSupportSchemaV1).max(256).superRefine((operations, context) => {
     const ids = operations.map((operation) => operation.operationId)
     if (new Set(ids).size !== ids.length) context.addIssue({ code: "custom", message: "duplicate operation ID" })

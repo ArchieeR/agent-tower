@@ -40,6 +40,9 @@ test("strict operation-support parser rejects duplicate IDs and evidence codes",
 test("strict operation-support parser bounds and validates adapter, host, operation and evidence IDs", () => {
   rejectsStablely({ ...snapshot, adapterId: " Buzz " })
   rejectsStablely({ ...snapshot, hostId: " \n " })
+  rejectsStablely({ ...snapshot, hostId: " host" })
+  rejectsStablely({ ...snapshot, hostId: "host " })
+  assert.equal(parseHostOperationSupportSnapshotV1({ ...snapshot, hostId: "opaque host id" }).hostId, "opaque host id")
   rejectsStablely({ ...snapshot, hostId: "h".repeat(513) })
   rejectsStablely({ ...operation, operationId: `buzz:${"x".repeat(250)}:v1` }, parseHostOperationSupportV1)
   rejectsStablely({ ...operation, evidenceCodes: [`buzz.${"x".repeat(125)}:v1`] }, parseHostOperationSupportV1)
