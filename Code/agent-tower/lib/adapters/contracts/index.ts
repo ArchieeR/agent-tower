@@ -11,6 +11,8 @@ export type AdapterErrorCodeV1 =
   | "REDACTED_METADATA"
   | "UNMAPPED_TOOL"
   | "UNSUPPORTED_CAPABILITY"
+  | "TRANSPORT_UNAVAILABLE"
+  | "HOST_RUNTIME_NOT_FOUND"
 
 export type AdapterWarningV1 = { code: AdapterErrorCodeV1; message: string }
 export type AdapterEvidenceCommandV1 =

@@ -1,0 +1,105 @@
+import { createHash } from "node:crypto"
+
+import type {
+  AdapterEnvelopeV1,
+  AdapterHealthStateV1,
+  AdapterWarningV1,
+  HostAdapterV1,
+  HostCatalogSnapshotV1,
+  HostObservationSnapshotV1,
+  HostProbeSnapshotV1,
+} from "../../contracts/index.ts"
+
+export type BuzzHostExportV1 = {
+  schemaVersion: "1"
+  sourceVersion: string
+  sourceRevision: string
+  observedAt: string
+  staleAfterMs: number
+  host: { hostId: string; health: AdapterHealthStateV1 }
+  runtimeCatalog: Array<{
+    hostRuntimeId: string
+    displayName?: string
+    capabilities: string[]
+    readiness: "ready" | "blocked" | "unavailable" | "unknown"
+    auth: { required: boolean; configured: boolean | "unknown" }
+    providerClass?: string
+    modelClass?: string
+  }>
+  runtimeObservations: Array<{
+    hostRuntimeId: string
+    status: "ready" | "running" | "stopped" | "blocked" | "unavailable" | "unknown"
+  }>
+  transport: { state: "available" | "degraded" | "unavailable"; detailCode?: string }
+}
+
+export type BuzzSafeExportTransport = {
+  getOrganizationExport(): Promise<unknown>
+}
+
+const OPAQUE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,511}$/
+const CAPABILITY = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
+
+function contentHash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex") }
+function unavailableData(): BuzzHostExportV1 {
+  return { schemaVersion: "1", sourceVersion: "unknown", sourceRevision: "unavailable", observedAt: new Date(0).toISOString(), staleAfterMs: 1, host: { hostId: "buzz", health: "unavailable" }, runtimeCatalog: [], runtimeObservations: [], transport: { state: "unavailable", detailCode: "TRANSPORT_UNAVAILABLE" } }
+}
+function parseExport(value: unknown): BuzzHostExportV1 {
+  if (!value || typeof value !== "object") throw new Error("Buzz safe export must be an object.")
+  const item = value as BuzzHostExportV1
+  if (item.schemaVersion !== "1" || !OPAQUE_ID.test(item.host?.hostId ?? "") || !Array.isArray(item.runtimeCatalog) || item.runtimeCatalog.length > 1_000 || !Array.isArray(item.runtimeObservations) || item.runtimeObservations.length > 10_000) throw new Error("Buzz safe export has an invalid shape.")
+  if (!Number.isInteger(item.staleAfterMs) || item.staleAfterMs < 1 || item.staleAfterMs > 3_600_000 || !Number.isFinite(Date.parse(item.observedAt))) throw new Error("Buzz safe export freshness metadata is invalid.")
+  if (typeof item.sourceVersion !== "string" || item.sourceVersion.length > 128 || typeof item.sourceRevision !== "string" || item.sourceRevision.length > 512) throw new Error("Buzz safe export source metadata is invalid.")
+  const runtimeIds = new Set<string>()
+  for (const runtime of item.runtimeCatalog) {
+    if (!OPAQUE_ID.test(runtime.hostRuntimeId) || runtimeIds.has(runtime.hostRuntimeId) || !Array.isArray(runtime.capabilities) || runtime.capabilities.length > 256 || runtime.capabilities.some((capability) => !CAPABILITY.test(capability))) throw new Error("Buzz runtime catalog is invalid.")
+    if (!runtime.auth || typeof runtime.auth.required !== "boolean" || ![true, false, "unknown"].includes(runtime.auth.configured)) throw new Error("Buzz runtime auth observation is invalid.")
+    runtimeIds.add(runtime.hostRuntimeId)
+  }
+  for (const observation of item.runtimeObservations) if (!runtimeIds.has(observation.hostRuntimeId)) throw new Error("Buzz runtime observation does not resolve to the exported catalog.")
+  return item
+}
+
+export class BuzzHostAdapter implements HostAdapterV1 {
+  readonly adapterId = "buzz"
+  private cached?: BuzzHostExportV1
+  private warning?: AdapterWarningV1
+  private readonly transport: BuzzSafeExportTransport
+  private readonly now: () => Date
+  constructor(transport: BuzzSafeExportTransport, now: () => Date = () => new Date()) {
+    this.transport = transport
+    this.now = now
+  }
+
+  private async read(): Promise<BuzzHostExportV1> {
+    if (this.cached) return this.cached
+    try { this.cached = parseExport(await this.transport.getOrganizationExport()) }
+    catch (error) {
+      this.cached = unavailableData()
+      this.warning = { code: error instanceof Error && error.message.includes("shape") ? "MALFORMED_OUTPUT" : "TRANSPORT_UNAVAILABLE", message: "Supported Buzz safe-export transport is unavailable or invalid." }
+    }
+    return this.cached
+  }
+  private envelope<T>(source: BuzzHostExportV1, data: T, warnings: AdapterWarningV1[] = []): AdapterEnvelopeV1<T> {
+    const age = this.now().getTime() - Date.parse(source.observedAt)
+    const health = source.transport.state === "unavailable" ? "unavailable" : source.host.health
+    const freshness = age > source.staleAfterMs ? "stale" : health === "available" ? "live" : "degraded"
+    const hash = contentHash({ sourceRevision: source.sourceRevision, data, health })
+    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: hash, contentHash: hash, sourceVersion: source.sourceVersion, observedAt: source.observedAt, freshness, health, evidence: [], warnings: [...(this.warning ? [this.warning] : []), ...warnings], data }
+  }
+  async catalog(): Promise<AdapterEnvelopeV1<HostCatalogSnapshotV1>> {
+    const source = await this.read()
+    return this.envelope(source, { hosts: source.runtimeCatalog.map((runtime) => ({ adapterId: this.adapterId, hostId: source.host.hostId, hostRuntimeId: runtime.hostRuntimeId, capabilities: [...runtime.capabilities].sort() })) })
+  }
+  async probe(hostRuntimeId?: string): Promise<AdapterEnvelopeV1<HostProbeSnapshotV1>> {
+    const source = await this.read()
+    const runtime = source.runtimeCatalog.find((candidate) => candidate.hostRuntimeId === hostRuntimeId) ?? source.runtimeCatalog[0]
+    if (!runtime) return this.envelope(source, { identity: { adapterId: this.adapterId, hostId: source.host.hostId, hostRuntimeId: hostRuntimeId ?? "unavailable" }, readiness: "unavailable", authRequired: false, authConfigured: "unknown" }, [{ code: "HOST_RUNTIME_NOT_FOUND", message: "Requested Buzz runtime is not present in the safe catalog." }])
+    const readiness: AdapterHealthStateV1 = runtime.readiness === "ready" ? "available" : runtime.readiness === "blocked" || runtime.readiness === "unknown" ? "degraded" : runtime.readiness
+    return this.envelope(source, { identity: { adapterId: this.adapterId, hostId: source.host.hostId, hostRuntimeId: runtime.hostRuntimeId }, readiness, authRequired: runtime.auth.required, authConfigured: runtime.auth.configured })
+  }
+  async observe(): Promise<AdapterEnvelopeV1<HostObservationSnapshotV1>> {
+    const source = await this.read()
+    return this.envelope(source, { identities: source.runtimeObservations.map((observation) => ({ adapterId: this.adapterId, hostId: source.host.hostId, ...observation })) })
+  }
+}
