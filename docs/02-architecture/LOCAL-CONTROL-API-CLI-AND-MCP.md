@@ -328,7 +328,7 @@ Implemented organization-core extraction (2026-08-11):
 
 - `lib/control-core/organization-assembly.ts` owns the pure Agent Tower + safe Buzz fact join, department overlays, manager/member assignment, persona-derived team membership and assembly warnings;
 - stable Buzz member IDs are `buzz-agent:<lowercase Nostr public key>`; display name and claimed NIP-05 are mutable `publicHandle` metadata and never linkage keys;
-- `managedAgentId` is the managed work-instance reference and `personaId` is a non-unique linkage field; multiple managed instances sharing one persona remain distinct members;
+- for Buzz v0.5.17's current storage contract, `managedAgentId` is the canonical `buzz-agent:<lowercase Nostr public key>` work identity because `ManagedAgentRecord` has no separate persistent non-secret record ID and `backend_agent_id` is optional/provider-specific; this intentionally aliases public work identity rather than inventing a false instance key; `personaId` remains a non-unique linkage field;
 - Buzz team IDs are `buzz-team:<team record id>` and persona membership resolves every matching managed work identity while remaining labelled `persona-derived`;
 - duplicate or missing public work identities are omitted, warned and reflected as degraded adapter state rather than replaced with persona/display-name IDs;
 - Buzz community scope is a normalized `ws(s)://host[:port]` tenant origin; URL paths, queries and tokens are excluded, while the Nostr public key remains the portable identity;

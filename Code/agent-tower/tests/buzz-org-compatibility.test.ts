@@ -29,12 +29,11 @@ function payload() {
       members: [
         {
           buzzPubkey: pubkey,
-          managedAgentId: "managed-engineering-head",
+          managedAgentId: agentId,
           personaId: "engineering-head",
           displayName: "Maya",
           runtimeIdentities: [
-            { mode: "buzz" as const, runtimeId: "managed-engineering-head", gateway: "nostr" },
-            { mode: "hermes" as const, runtimeId: "hermes-engineering-head", sessionId: "session-engineering" },
+            { mode: "buzz" as const, runtimeId: agentId, gateway: "nostr" },
           ],
           runtime: {
             status: "running" as const,
@@ -121,8 +120,7 @@ test("assembles a buzz-org compatibility payload into the Agent Tower read model
 
   assert.equal(result.model.members[0]?.id, agentId);
   assert.deepEqual(result.model.members[0]?.kind === "agent" ? result.model.members[0].runtimeIdentities : [], [
-    { mode: "buzz", runtimeId: "managed-engineering-head", gateway: "nostr" },
-    { mode: "hermes", runtimeId: "hermes-engineering-head", sessionId: "session-engineering" },
+    { mode: "buzz", runtimeId: agentId, gateway: "nostr" },
   ]);
   assert.equal(result.model.buzzTeams[0]?.id, teamId);
   assert.equal(result.model.buzzChannels[0]?.id, channelId);
@@ -130,6 +128,32 @@ test("assembles a buzz-org compatibility payload into the Agent Tower read model
   assert.deepEqual(result.model.departments[0]?.buzzTeamIds, [teamId]);
   assert.deepEqual(result.model.departments[0]?.buzzChannelIds, [channelId]);
   assert.equal(result.model.adapterHealth[0]?.state, "connected");
+});
+
+test("rejects noncanonical instance IDs and Hermes identities from Buzz", () => {
+  const wrongInstance = payload();
+  wrongInstance.facts.members[0].managedAgentId = `buzz-agent:${"b".repeat(64)}`;
+  assert.throws(() => assembleBuzzOrgCompatibilityPayload(wrongInstance, {
+    departments,
+    roleProfiles,
+    council: generalCouncil,
+    organization: { id: "agent-tower-local", name: "Agent Tower", mode: "local" },
+    configuration: localConfiguration(),
+  }), /canonical public work identity/);
+
+  const hermesInjected = structuredClone(payload()) as unknown as {
+    facts: { members: Array<{ runtimeIdentities: Array<{ mode: "buzz" | "hermes"; runtimeId: string; sessionId?: string }> }> };
+  };
+  hermesInjected.facts.members[0].runtimeIdentities = [
+    { mode: "hermes", runtimeId: "hermes-engineering-head", sessionId: "session-engineering" },
+  ];
+  assert.throws(() => assembleBuzzOrgCompatibilityPayload(hermesInjected, {
+    departments,
+    roleProfiles,
+    council: generalCouncil,
+    organization: { id: "agent-tower-local", name: "Agent Tower", mode: "local" },
+    configuration: localConfiguration(),
+  }), /must not emit Hermes/);
 });
 
 test("rejects snapshot attempts to inject Agent Tower configuration", () => {

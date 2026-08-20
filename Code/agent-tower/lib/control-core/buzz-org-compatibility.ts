@@ -34,7 +34,7 @@ const runtimeIdentitySchema = z.strictObject({
 
 const memberSchema = z.strictObject({
   buzzPubkey: publicKeySchema,
-  managedAgentId: z.string().trim().min(1).max(512),
+  managedAgentId: z.string().regex(/^buzz-agent:[0-9a-f]{64}$/),
   personaId: z.string().trim().min(1).max(512).optional(),
   displayName: z.string().trim().min(1).max(512),
   npub: z.string().startsWith("npub1").max(512).optional(),
@@ -115,7 +115,20 @@ export type BuzzOrgCompatibilityContext = {
 export function parseBuzzOrgCompatibilityPayload(
   value: unknown,
 ): BuzzOrgCompatibilityPayloadV1 {
-  return buzzOrgCompatibilityPayloadSchema.parse(value);
+  const payload = buzzOrgCompatibilityPayloadSchema.parse(value);
+  for (const member of payload.facts.members) {
+    if (member.managedAgentId !== `buzz-agent:${member.buzzPubkey}`) {
+      throw new Error("Buzz managedAgentId must match the canonical public work identity.");
+    }
+    const buzzRuntime = member.runtimeIdentities?.find((identity) => identity.mode === "buzz");
+    if (buzzRuntime && buzzRuntime.runtimeId !== member.managedAgentId) {
+      throw new Error("Buzz runtime identity must match managedAgentId.");
+    }
+    if (member.runtimeIdentities?.some((identity) => identity.mode === "hermes")) {
+      throw new Error("Buzz compatibility snapshots must not emit Hermes runtime identities.");
+    }
+  }
+  return payload;
 }
 
 /**

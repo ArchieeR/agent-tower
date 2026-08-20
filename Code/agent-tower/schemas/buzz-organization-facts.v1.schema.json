@@ -30,7 +30,7 @@
         "required": ["buzzPubkey", "managedAgentId", "displayName", "runtime", "messaging"],
         "properties": {
           "buzzPubkey": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" },
-          "managedAgentId": { "type": "string", "minLength": 1 },
+          "managedAgentId": { "type": "string", "pattern": "^buzz-agent:[0-9a-f]{64}$" },
           "personaId": { "type": "string" },
           "displayName": { "type": "string", "minLength": 1 },
           "npub": { "type": "string", "pattern": "^npub1" },
