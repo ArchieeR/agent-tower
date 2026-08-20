@@ -8,7 +8,7 @@ const plan: AdapterPlanV1 = {
   selectedTarget: { adapterId: "buzz", hostId: "buzz-desktop", hostRuntimeId: "goose" },
   evidencePrecondition: { adapterRevision: "adapter-rev", contentHash: "content-hash", observedAt: new Date(0).toISOString(), maxAgeMs: 5_000, acceptableHealth: ["available"] },
   capabilityMappingRevision: "mapping-rev-1",
-  nativeGuarantees: { operationId: "buzz:managed-agent.create:v1", support: "unsupported", invocationMode: "none", stableHostIdentity: "unsupported", idempotency: "none", concurrency: "none", responseSafety: "unsafe-secret-bearing", readback: "none", requiresOwnerReview: true, evidenceCodes: ["buzz.bridge.unavailable"] },
+  nativeGuarantees: { operationId: "buzz:managed-agent.create:v1", support: "unsupported", invocationMode: "none", stableHostIdentity: "unsupported", idempotency: "none", concurrency: "none", responseSafety: "unsafe-secret-bearing", readback: "none", requiresOwnerReview: true, evidenceCodes: ["buzz.bridge.unavailable:v1"] },
   nativeDelta: { role: "builder" }, preflightAssertions: [], readbackAssertions: [{ field: "hostObjectRef", operator: "present" }],
   implications: { restartRequired: false, additionalOwnerReviewRequired: false },
 }

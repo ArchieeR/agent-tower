@@ -69,7 +69,7 @@ export type HostOperationSupportV1 = {
   responseSafety: HostResponseSafetyV1
   readback: HostReadbackModeV1
   requiresOwnerReview: boolean | "unknown"
-  evidenceCodes: string[]
+  evidenceCodes: string[] // max 32 versioned, namespaced safe codes; validated at transport boundary
 }
 export type HostOperationSupportSnapshotV1 = { adapterId: string; hostId: string; operations: HostOperationSupportV1[] }
 
