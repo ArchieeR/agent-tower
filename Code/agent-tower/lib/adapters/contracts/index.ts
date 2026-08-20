@@ -13,6 +13,8 @@ export type AdapterErrorCodeV1 =
   | "UNSUPPORTED_CAPABILITY"
   | "TRANSPORT_UNAVAILABLE"
   | "HOST_RUNTIME_NOT_FOUND"
+  | "STALE_EXPORT"
+  | "UNSAFE_FILE"
 
 export type AdapterWarningV1 = { code: AdapterErrorCodeV1; message: string }
 export type AdapterEvidenceCommandV1 =

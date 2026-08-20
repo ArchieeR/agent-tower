@@ -30,6 +30,29 @@ test("Buzz host adapter fails closed when supported transport is absent", async 
   assert.equal(catalog.warnings[0].code, "TRANSPORT_UNAVAILABLE")
 })
 
+test("Buzz host adapter ingests the supported organization-facts exporter schema", async () => {
+  const pubkey = "a".repeat(64)
+  const exported = {
+    schemaVersion: 1,
+    facts: {
+      schemaVersion: 1, source: "buzz-desktop-tauri", observedAt: "2026-08-20T00:00:00.000Z", staleAfterMs: 5_000, sourceRevision: "facts-rev-1",
+      members: [{ buzzPubkey: pubkey, managedAgentId: `buzz-agent:${pubkey}`, displayName: "Builder", runtime: { status: "running", runtime: "goose", backend: "local", parallelism: 1, startOnAppLaunch: false, needsRestart: false, personaOutOfDate: false, personaOrphaned: false }, messaging: { senderPolicy: "owner-only" } }],
+      teams: [], channels: [], health: { state: "connected", observedAt: "2026-08-20T00:00:00.000Z" },
+    },
+  }
+  const adapter = new BuzzHostAdapter({ getOrganizationExport: async () => exported }, () => new Date("2026-08-20T00:00:01.000Z"))
+  const catalog = await adapter.catalog()
+  assert.deepEqual(catalog.data.hosts[0], { adapterId: "buzz", hostId: "buzz-desktop", hostRuntimeId: "goose", capabilities: ["buzz:managed-agent-runtime"] })
+  assert.equal(catalog.sourceVersion, "buzz-organization-facts-v1")
+})
+
+test("Buzz host adapter marks expired exports stale and warns", async () => {
+  const adapter = new BuzzHostAdapter({ getOrganizationExport: async () => fixture }, () => new Date("2026-08-20T00:02:00.000Z"))
+  const catalog = await adapter.catalog()
+  assert.equal(catalog.freshness, "stale")
+  assert.equal(catalog.warnings[0].code, "STALE_EXPORT")
+})
+
 test("Buzz host adapter rejects observations outside the safe runtime catalog", async () => {
   const adapter = new BuzzHostAdapter({ getOrganizationExport: async () => ({ ...fixture, runtimeObservations: [{ hostRuntimeId: "injected-runtime", status: "running" }] }) })
   const observation = await adapter.observe()

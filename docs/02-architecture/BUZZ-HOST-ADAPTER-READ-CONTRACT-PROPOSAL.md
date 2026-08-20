@@ -15,7 +15,11 @@ CLI and MCP remain clients/transports of one Agent Tower service/control API. Th
 
 ## Supported export
 
-Buzz should expose a versioned read operation equivalent to `get_organization_export` through its owner-selected native transport. The response should contain:
+Buzz PR #6419 head `4fe7042e0` implements the currently supported facts-out transport: owner-selected secret-free organization-sensitive JSON, produced by the existing safe producer/single exporter and written atomically as a mode `0600` Unix file. It introduces no HTTP surface and grants no permission to inspect private Buzz stores. CI/E2E evidence is green, but this source revision is not installed in Preview; Agent Tower must therefore report the transport unavailable until a separately approved build/install supplies the explicit owner-selected export path and evidence.
+
+The adapter accepts the strict existing `{ schemaVersion: 1, facts: BuzzOrganizationFactsV1 }` exporter envelope and projects runtime catalog facts only from safe bounded `member.runtime.runtime` IDs. It does not invent install state, discover likely files or infer runtime readiness beyond the safe exported facts. The file transport requires an explicitly configured absolute path, current OS-user ownership, a regular file, permissions no broader than `0600`, a 1 MiB hard bound and same-inode/size verification across open. Missing, malformed, unsafe or stale files fail closed; stale exports retain observation evidence but cannot satisfy prepare/apply freshness gates.
+
+A future richer host export may contain:
 
 ```ts
 type BuzzHostExportV1 = {
@@ -92,8 +96,8 @@ The receipt must identify the canonical Agent Tower change, opaque Buzz host/run
 
 ## Open interface questions for Buzz Tower
 
-1. Exact supported Tauri/sidecar operation name and invocation boundary for the safe export.
-2. Whether runtime catalog and organization observations are one atomic snapshot or two independently revisioned reads.
+1. Which owner-selected absolute export path configuration belongs to the future Agent Tower service, and what separately approved Preview build/install evidence activates it.
+2. Whether a future richer runtime catalog remains in the same atomic file or becomes an independently revisioned safe read.
 3. Which existing runtime/session IDs are stable and explicitly safe as opaque references.
 4. Stable error codes for absent auth, missing runtime, transport unavailable and stale native state.
 5. Maximum payload, polling/freshness bounds and whether native invalidation events are available.

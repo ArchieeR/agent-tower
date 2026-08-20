@@ -44,9 +44,42 @@ function contentHash(value: unknown): string { return createHash("sha256").updat
 function unavailableData(): BuzzHostExportV1 {
   return { schemaVersion: "1", sourceVersion: "unknown", sourceRevision: "unavailable", observedAt: new Date(0).toISOString(), staleAfterMs: 1, host: { hostId: "buzz", health: "unavailable" }, runtimeCatalog: [], runtimeObservations: [], transport: { state: "unavailable", detailCode: "TRANSPORT_UNAVAILABLE" } }
 }
+function normalizeOrganizationFactsExport(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value
+  const wrapper = value as Record<string, unknown>
+  if (wrapper.schemaVersion !== 1 || !wrapper.facts || typeof wrapper.facts !== "object") return value
+  const facts = wrapper.facts as Record<string, unknown>
+  const members = Array.isArray(facts.members) ? facts.members as Array<Record<string, unknown>> : []
+  const runtimeById = new Map<string, { hostRuntimeId: string; capabilities: string[]; readiness: "ready" | "blocked" | "unavailable" | "unknown"; auth: { required: boolean; configured: "unknown" } }>()
+  const observations: BuzzHostExportV1["runtimeObservations"] = []
+  for (const member of members) {
+    const runtime = member.runtime && typeof member.runtime === "object" ? member.runtime as Record<string, unknown> : {}
+    const hostRuntimeId = typeof runtime.runtime === "string" ? runtime.runtime : undefined
+    if (!hostRuntimeId || !OPAQUE_ID.test(hostRuntimeId)) continue
+    const status = runtime.status
+    const readiness = status === "running" || status === "deployed" ? "ready" : status === "stopped" || status === "not_deployed" ? "blocked" : "unknown"
+    runtimeById.set(hostRuntimeId, { hostRuntimeId, capabilities: ["buzz:managed-agent-runtime"], readiness, auth: { required: false, configured: "unknown" } })
+    observations.push({ hostRuntimeId, status: status === "running" ? "running" : status === "stopped" || status === "not_deployed" ? "stopped" : status === "deployed" ? "ready" : "unknown" })
+  }
+  const health = facts.health && typeof facts.health === "object" ? facts.health as Record<string, unknown> : {}
+  const state = health.state === "connected" ? "available" : health.state === "degraded" ? "degraded" : "unavailable"
+  return {
+    schemaVersion: "1",
+    sourceVersion: "buzz-organization-facts-v1",
+    sourceRevision: facts.sourceRevision,
+    observedAt: facts.observedAt,
+    staleAfterMs: facts.staleAfterMs,
+    host: { hostId: "buzz-desktop", health: state },
+    runtimeCatalog: Array.from(runtimeById.values()),
+    runtimeObservations: observations,
+    transport: { state: state === "unavailable" ? "unavailable" : state },
+  }
+}
+
 function parseExport(value: unknown): BuzzHostExportV1 {
-  if (!value || typeof value !== "object") throw new Error("Buzz safe export must be an object.")
-  const item = value as BuzzHostExportV1
+  const normalized = normalizeOrganizationFactsExport(value)
+  if (!normalized || typeof normalized !== "object") throw new Error("Buzz safe export must be an object.")
+  const item = normalized as BuzzHostExportV1
   if (item.schemaVersion !== "1" || !OPAQUE_ID.test(item.host?.hostId ?? "") || !Array.isArray(item.runtimeCatalog) || item.runtimeCatalog.length > 1_000 || !Array.isArray(item.runtimeObservations) || item.runtimeObservations.length > 10_000) throw new Error("Buzz safe export has an invalid shape.")
   if (!Number.isInteger(item.staleAfterMs) || item.staleAfterMs < 1 || item.staleAfterMs > 3_600_000 || !Number.isFinite(Date.parse(item.observedAt))) throw new Error("Buzz safe export freshness metadata is invalid.")
   if (typeof item.sourceVersion !== "string" || item.sourceVersion.length > 128 || typeof item.sourceRevision !== "string" || item.sourceRevision.length > 512) throw new Error("Buzz safe export source metadata is invalid.")
@@ -62,7 +95,6 @@ function parseExport(value: unknown): BuzzHostExportV1 {
 
 export class BuzzHostAdapter implements HostAdapterV1 {
   readonly adapterId = "buzz"
-  private cached?: BuzzHostExportV1
   private warning?: AdapterWarningV1
   private readonly transport: BuzzSafeExportTransport
   private readonly now: () => Date
@@ -72,20 +104,22 @@ export class BuzzHostAdapter implements HostAdapterV1 {
   }
 
   private async read(): Promise<BuzzHostExportV1> {
-    if (this.cached) return this.cached
-    try { this.cached = parseExport(await this.transport.getOrganizationExport()) }
+    this.warning = undefined
+    try { return parseExport(await this.transport.getOrganizationExport()) }
     catch (error) {
-      this.cached = unavailableData()
-      this.warning = { code: error instanceof Error && error.message.includes("shape") ? "MALFORMED_OUTPUT" : "TRANSPORT_UNAVAILABLE", message: "Supported Buzz safe-export transport is unavailable or invalid." }
+      const message = error instanceof Error ? error.message : ""
+      const malformed = message.includes("shape") || message.includes("invalid") || message.includes("JSON")
+      this.warning = { code: malformed ? "MALFORMED_OUTPUT" : "TRANSPORT_UNAVAILABLE", message: "Supported Buzz safe-export transport is unavailable or invalid." }
+      return unavailableData()
     }
-    return this.cached
   }
   private envelope<T>(source: BuzzHostExportV1, data: T, warnings: AdapterWarningV1[] = []): AdapterEnvelopeV1<T> {
     const age = this.now().getTime() - Date.parse(source.observedAt)
     const health = source.transport.state === "unavailable" ? "unavailable" : source.host.health
     const freshness = age > source.staleAfterMs ? "stale" : health === "available" ? "live" : "degraded"
     const hash = contentHash({ sourceRevision: source.sourceRevision, data, health })
-    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: hash, contentHash: hash, sourceVersion: source.sourceVersion, observedAt: source.observedAt, freshness, health, evidence: [], warnings: [...(this.warning ? [this.warning] : []), ...warnings], data }
+    const staleWarning: AdapterWarningV1[] = freshness === "stale" ? [{ code: "STALE_EXPORT", message: "Buzz safe export exceeded its source freshness window." }] : []
+    return { schemaVersion: "1", adapterId: this.adapterId, adapterRevision: hash, contentHash: hash, sourceVersion: source.sourceVersion, observedAt: source.observedAt, freshness, health, evidence: [], warnings: [...(this.warning ? [this.warning] : []), ...staleWarning, ...warnings], data }
   }
   async catalog(): Promise<AdapterEnvelopeV1<HostCatalogSnapshotV1>> {
     const source = await this.read()
