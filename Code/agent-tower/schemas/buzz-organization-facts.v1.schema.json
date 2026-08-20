@@ -56,7 +56,7 @@
             "required": ["status", "backend", "parallelism", "startOnAppLaunch", "needsRestart", "personaOutOfDate", "personaOrphaned"],
             "properties": {
               "status": { "enum": ["running", "stopped", "deployed", "not_deployed", "unknown"] },
-              "runtime": { "type": "string" },
+              "runtime": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" },
               "backend": { "enum": ["local", "provider", "unknown"] },
               "provider": { "type": "string" },
               "model": { "type": "string" },

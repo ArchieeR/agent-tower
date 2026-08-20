@@ -130,6 +130,20 @@ test("assembles a buzz-org compatibility payload into the Agent Tower read model
   assert.equal(result.model.adapterHealth[0]?.state, "connected");
 });
 
+test("rejects executable paths from the portable runtime field", () => {
+  for (const runtime of ["/opt/homebrew/bin/hermes", "../bin/agent", "C:\\tools\\agent.exe", "agent command"]) {
+    const incompatible = payload();
+    incompatible.facts.members[0].runtime.runtime = runtime;
+    assert.throws(() => assembleBuzzOrgCompatibilityPayload(incompatible, {
+      departments,
+      roleProfiles,
+      council: generalCouncil,
+      organization: { id: "agent-tower-local", name: "Agent Tower", mode: "local" },
+      configuration: localConfiguration(),
+    }));
+  }
+});
+
 test("rejects noncanonical instance IDs and Hermes identities from Buzz", () => {
   const wrongInstance = payload();
   wrongInstance.facts.members[0].managedAgentId = `buzz-agent:${"b".repeat(64)}`;

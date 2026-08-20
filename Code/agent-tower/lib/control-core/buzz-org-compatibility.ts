@@ -42,7 +42,7 @@ const memberSchema = z.strictObject({
   runtimeIdentities: z.array(runtimeIdentitySchema).max(16).optional(),
   runtime: z.strictObject({
     status: z.enum(["running", "stopped", "deployed", "not_deployed", "unknown"]),
-    runtime: z.string().trim().min(1).max(512).optional(),
+    runtime: z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/).optional(),
     backend: z.enum(["local", "provider", "unknown"]),
     provider: z.string().trim().min(1).max(512).optional(),
     model: z.string().trim().min(1).max(512).optional(),
