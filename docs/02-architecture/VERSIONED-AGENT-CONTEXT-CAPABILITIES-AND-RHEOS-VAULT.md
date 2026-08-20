@@ -80,7 +80,9 @@ type AgentContextBundle = {
   skillRefs: VersionedRef[]
   routineRefs: VersionedRef[]
   toolGrants: EffectiveToolGrant[]
+  knowledgePolicyRevision: string
   knowledgePolicy: KnowledgeAccessPolicy
+  knowledgeSourceRevisions: Record<string, string>
   taskContext?: TaskContext
   linearContext?: LinearContext
 
@@ -278,20 +280,33 @@ Marketing agents receive only task-authorized search/read/chunk/citation actions
 
 ### Knowledge authorization
 
-A retrieval is allowed only when all relevant conditions permit it:
+Knowledge actions are distinct and independently authorized:
 
 ```text
-member identity
-∩ organization role
-∩ department/team membership
-∩ task/meeting context
-∩ resource classification
-∩ connector grant
-∩ knowledge policy
+catalog | search | read-metadata | read-chunks | cite | propose-publish | publish
+```
+
+Search never grants document/chunk read. Read never grants citation or publication. Publish remains a governed adapter write.
+
+Every action requires the intersection of:
+
+```text
+bound member/session identity
+∩ organization role and department/team scope
+∩ current task/meeting scope
+∩ exact opaque knowledge host/source/collection/document resource scope
+∩ resource classification and permitted clearance
+∩ action grant and expiry
+∩ current knowledgePolicyRevision
+∩ current host-native ACL/readiness
 ∩ any required approval
 ```
 
-Agents must not read or absorb the entire Vault. Search results are bounded, documents are versioned and outputs cite exact sources.
+`knowledgePolicyRevision` is Agent Tower desired policy. `knowledgeSourceRevisions` are host/source observations. They are never interchangeable. Opaque source/document IDs are host-owned; path-derived local Brain IDs and the broad `rheos-brain` compatibility grant are migration evidence, not the portable contract.
+
+Agents must not read or absorb the entire Vault. Search results are bounded; chunks/documents are exact-versioned; citations pin the host/source, opaque document ID, document version, exact chunks, knowledge policy revision, source revision and context revision. An unavailable drained Rheos Vault cannot silently broaden or fall back to local Brain. Local fallback must be a separately authorized/observed source with its own classification and revision.
+
+ALD-184 owns the provider-neutral contract. Control Core consumes it through coordinated envelopes and adversarial tests; it does not redefine it. Publishing/curation remains deferred to the governed change/approval/adapter lifecycle.
 
 ## 10. Context Broker API
 
