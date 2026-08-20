@@ -55,15 +55,17 @@ The receipt must identify the canonical Agent Tower change, opaque Buzz host/run
 
 ### Provisional Control Core alignment
 
+The design-only typed contract is published in `lib/adapters/contracts/apply.ts`. It does not expose or implement an apply method.
+
 - Preserve `AdapterEnvelopeV1` verbatim as observation evidence. A separate decision/result binds Agent Tower policy and touched-resource revisions.
 - Candidate selection and approval bind `{adapterId, hostId, hostRuntimeId, adapterRevision, contentHash}` exactly. Runtime IDs and host capability claims remain opaque and host-owned. Capability claims require explicit mappings; unknown claims satisfy no requirement.
 - Display/match may show stale observations with warnings. Prepare requires configured freshness and health. Apply must re-probe the exact identity and reject drift, revocation, expiry, CAS failure, disappearance or readiness regression without fallback or substitution.
 - `authConfigured` is an observation only, never an effective grant or authorization decision.
 - The typed Agent Tower change owns member ID, desired policy and resource revisions, operation, selected target tuple, expected adapter revision and requested safe intent. The adapter plan owns the exact native target identity, projection/delta, readback assertions and plan digest.
 - Approval digest covers intent and immutable plan, all CAS revisions, selected target, member, expiry and readback assertions.
-- Use stable `applicationId` derived from the approved change revision and a unique `applyAttemptId` for each invocation.
+- Use stable `adapterOperationId` derived from approved change revision, operation index, adapter ID and `adapterPlanDigest`; use a unique `applyAttemptId` for every invocation. `adapterOperationId` is not an OAuth application, host object or invocation ID.
 - Create correlation uses a host external/idempotency reference or apply-returned opaque ID followed by exact readback, never a display-name join.
-- Governed outcomes are `applied-and-verified`, `applied-with-drift`, `not-applied` and `outcome-unknown`. They are distinct from worker execution receipts and do not imply rollback.
+- Receipts record independent `mutationState: not-attempted | not-applied | applied | unknown` and `verificationState: not-run | matched | drifted | unknown`. Governed summaries `applied-and-verified`, `applied-with-drift`, `not-applied` and `outcome-unknown` are derived only. They are distinct from worker execution receipts and do not imply rollback. Drifted and unknown outcomes block automatic retry/follow-on pending reconciliation.
 - Timeout plus indeterminate readback produces `outcome-unknown`, blocks blind retry and requires reconciliation.
 - Adapters receive only the authorized operation/plan. They never receive owner-service capabilities, Auth0 claims or credentials.
 
