@@ -18,16 +18,9 @@ export type BuzzOrganizationCompatibilityPayloadV1 = {
   }
 }
 export type BuzzOrganizationCompatibilityTransport = { getOrganizationCompatibilityPayload(): Promise<unknown> }
+export type BuzzOrganizationCompatibilityParser = (value: unknown) => BuzzOrganizationCompatibilityPayloadV1
 
-const MAX_ITEMS = 10_000
 function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex") }
-function parseOrganizationPayload(value: unknown): BuzzOrganizationCompatibilityPayloadV1 {
-  if (!value || typeof value !== "object") throw new Error("Buzz organization compatibility payload must be an object.")
-  const payload = value as BuzzOrganizationCompatibilityPayloadV1
-  const facts = payload.facts
-  if (payload.schemaVersion !== 1 || !facts || facts.schemaVersion !== 1 || facts.source !== "buzz-desktop-tauri" || !Number.isFinite(Date.parse(facts.observedAt)) || !Number.isInteger(facts.staleAfterMs) || facts.staleAfterMs < 1 || facts.staleAfterMs > 3_600_000 || typeof facts.sourceRevision !== "string" || !facts.sourceRevision || facts.sourceRevision.length > 512 || !Array.isArray(facts.members) || facts.members.length > MAX_ITEMS || !Array.isArray(facts.teams) || facts.teams.length > MAX_ITEMS || !Array.isArray(facts.channels) || facts.channels.length > MAX_ITEMS || !facts.health || !["connected", "degraded", "disconnected"].includes(facts.health.state)) throw new Error("Buzz organization compatibility payload is invalid.")
-  return payload
-}
 function unavailableOrganization(): BuzzOrganizationCompatibilityPayloadV1 {
   return { schemaVersion: 1, facts: { schemaVersion: 1, source: "buzz-desktop-tauri", observedAt: new Date(0).toISOString(), staleAfterMs: 1, sourceRevision: "unavailable", members: [], teams: [], channels: [], health: { state: "disconnected", observedAt: new Date(0).toISOString() } } }
 }
@@ -37,15 +30,18 @@ export class BuzzHostAdapter implements HostAdapterV1 {
   private readonly organizationTransport: BuzzOrganizationCompatibilityTransport
   private readonly catalogTransport?: BuzzHostCatalogTransport
   private readonly now: () => Date
+  private readonly parseOrganizationPayload: BuzzOrganizationCompatibilityParser
 
-  constructor(organizationTransport: BuzzOrganizationCompatibilityTransport, now: () => Date = () => new Date(), catalogTransport?: BuzzHostCatalogTransport) {
+  constructor(organizationTransport: BuzzOrganizationCompatibilityTransport, now: () => Date = () => new Date(), catalogTransport?: BuzzHostCatalogTransport, parseOrganizationPayload?: BuzzOrganizationCompatibilityParser) {
     this.organizationTransport = organizationTransport
     this.catalogTransport = catalogTransport
     this.now = now
+    if (!parseOrganizationPayload) throw new Error("BuzzHostAdapter requires the canonical strict organization compatibility parser.")
+    this.parseOrganizationPayload = parseOrganizationPayload
   }
 
   private async readOrganization(): Promise<{ payload: BuzzOrganizationCompatibilityPayloadV1; warnings: AdapterWarningV1[] }> {
-    try { return { payload: parseOrganizationPayload(await this.organizationTransport.getOrganizationCompatibilityPayload()), warnings: [] } }
+    try { return { payload: this.parseOrganizationPayload(await this.organizationTransport.getOrganizationCompatibilityPayload()), warnings: [] } }
     catch { return { payload: unavailableOrganization(), warnings: [{ code: "TRANSPORT_UNAVAILABLE", sourceCode: "buzz.transport.unavailable", message: "Supported Buzz organization compatibility export is unavailable or invalid." }] } }
   }
   private async readCatalog(): Promise<{ snapshot?: BuzzHostCatalogSnapshotV1; warnings: AdapterWarningV1[] }> {

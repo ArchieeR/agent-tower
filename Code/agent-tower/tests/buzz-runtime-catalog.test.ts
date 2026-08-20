@@ -1,7 +1,10 @@
 import { strict as assert } from "node:assert"
 import { test } from "node:test"
 
-import { BuzzHostAdapter } from "../lib/adapters/hosts/buzz/adapter.ts"
+import { BuzzHostAdapter, type BuzzOrganizationCompatibilityPayloadV1 } from "../lib/adapters/hosts/buzz/adapter.ts"
+import { parseBuzzOrgCompatibilityPayload } from "../lib/control-core/buzz-org-compatibility.ts"
+
+const strictParser = (value: unknown) => parseBuzzOrgCompatibilityPayload(value) as BuzzOrganizationCompatibilityPayloadV1
 import { parseBuzzHostCatalog } from "../lib/adapters/hosts/buzz/runtime-catalog.ts"
 
 const organization = {
@@ -15,7 +18,7 @@ const runtime = {
 }
 
 test("Buzz adapter keeps organization and runtime catalog revisions independent", async () => {
-  const adapter = new BuzzHostAdapter({ getOrganizationCompatibilityPayload: async () => organization }, () => new Date("2026-08-20T00:00:02.000Z"), { getHostCatalog: async () => runtime })
+  const adapter = new BuzzHostAdapter({ getOrganizationCompatibilityPayload: async () => organization }, () => new Date("2026-08-20T00:00:02.000Z"), { getHostCatalog: async () => runtime }, strictParser)
   const catalog = await adapter.catalog()
   const observed = await adapter.observe()
   assert.deepEqual(catalog.sourceObservations, [
