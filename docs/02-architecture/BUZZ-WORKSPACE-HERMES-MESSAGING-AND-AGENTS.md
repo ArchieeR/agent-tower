@@ -476,6 +476,40 @@ Verify inbound/outbound messages and identity isolation.
 - Create templates only after naming, visibility and membership policy are accepted.
 - Preserve Buzz teams as messaging group templates, not the entire organizational model.
 
+### Phase 4.5 — shared Agent Tower Buzz control channel
+
+Use the **Agent Tower Buzz build** in `Code/buzz` as the shared collaboration client once the owner signs that build into the intended community. The currently installed signed Buzz app and the local development build have separate bundle IDs, application support state and keychain state; their logins do not automatically transfer.
+
+Accepted first topology:
+
+- owner-reviewed Buzz community selected in the Agent Tower build;
+- Buzz team: `Agent Tower Core`;
+- private channel: `agent-tower-control-plane`;
+- distinct managed identities:
+  - stable Agent Tower member `system-manager`, Hermes execution mode;
+  - stable Agent Tower member `agent-tower-builder`, Buzz/ACP execution mode;
+- private channel membership restricted to the owner and those two managed identities.
+
+Runtime/authority split:
+
+- Buzz owns login, portable Nostr identity, community membership, teams, channels, messages and presence;
+- Hermes owns the System Manager execution session and tools;
+- Agent Tower owns departments, reporting lines, capability policy, versioned context and receipts;
+- neither agent may reuse the other's runtime identity or session credentials.
+
+Login migration must remain owner reviewed. Do not copy private keys from the installed Buzz state or extract them from Keychain. Use a supported sign-in, recovery/pairing or community-join path in the Agent Tower build. The first proof is one read-only round trip in `agent-tower-control-plane`:
+
+```text
+Owner message in Agent Tower Buzz
+  → exact private channel + mentioned managed identity
+  → runtime-bound Agent Tower MCP session (Hermes or Buzz mode)
+  → context fetch + acknowledgement
+  → bounded reply with context revision / receipt reference
+  → same Buzz thread
+```
+
+Only after the read-only proof should the owner approve department overlay changes through `agent_tower.department_configure`. Buzz team/channel IDs are references in Agent Tower policy, not copies of the organization policy into Buzz.
+
 ### Phase 5 — workflows and ACP runtime probe
 
 - Test one bounded workflow.
