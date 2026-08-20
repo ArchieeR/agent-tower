@@ -1,0 +1,675 @@
+/* Final responsive UI pass: shared layout rhythm, mobile navigation, and bounded surfaces. */
+
+:root {
+  --page-max: 1480px;
+  --header-height: 64px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.app-shell {
+  min-height: 100dvh;
+}
+
+.top-app-header {
+  min-height: var(--header-height);
+  height: auto;
+  padding: 10px max(18px, calc((100vw - var(--page-max)) / 2 + 18px));
+  gap: 18px;
+}
+
+.header-left,
+.header-right {
+  min-width: 0;
+}
+
+.header-left {
+  flex: 1 1 auto;
+}
+
+.header-right {
+  flex: 0 0 auto;
+}
+
+.workspace-dropdown-wrap {
+  min-width: 184px;
+  max-width: min(280px, 28vw);
+}
+
+.workspace-select {
+  min-width: 0;
+  width: 100%;
+  text-overflow: ellipsis;
+}
+
+.nav-item,
+.nav-profile-btn,
+.theme-toggle {
+  min-height: 40px;
+}
+
+.organization-shell {
+  height: calc(100dvh - var(--header-height));
+}
+
+.organization-page {
+  height: 100%;
+  padding: 12px 20px;
+}
+
+.org-chart-section {
+  min-height: 0;
+  border-radius: var(--radius-lg);
+}
+
+.chart-toolbar {
+  padding-right: 250px;
+}
+
+.chart-title-wrap {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.chart-title {
+  flex: 0 1 auto;
+}
+
+.connections-page {
+  width: min(100%, var(--page-max));
+  padding: 30px 28px 72px;
+}
+
+.connections-hero {
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.connections-hero > div:first-child {
+  min-width: 0;
+}
+
+.connections-live-panel {
+  flex: 0 0 auto;
+}
+
+.capability-view-controls {
+  align-items: stretch;
+  padding-bottom: 18px;
+}
+
+.capability-tabs,
+.capability-filters {
+  min-width: 0;
+}
+
+.capability-filters {
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.dept-select-wrap {
+  min-width: 210px;
+}
+
+.dept-select-wrap select {
+  width: 100%;
+}
+
+.search-box {
+  width: clamp(220px, 26vw, 340px);
+}
+
+.skills-card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  align-items: stretch;
+}
+
+.skill-card {
+  min-height: 174px;
+}
+
+.composio-cards-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 12px;
+}
+
+.composio-horizontal-card {
+  min-width: 0;
+  min-height: 76px;
+}
+
+.composio-card-title-row,
+.composio-card-body {
+  min-width: 0;
+}
+
+.composio-card-title {
+  max-width: 100%;
+}
+
+.composio-card-policy {
+  max-width: 116px;
+  overflow: hidden;
+  color: var(--muted);
+  font: 500 10px/1.2 var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.settings-page {
+  min-height: calc(100dvh - var(--header-height));
+  padding: 24px;
+}
+
+.settings-shell {
+  width: min(1180px, 100%);
+  min-height: calc(100dvh - var(--header-height) - 48px);
+}
+
+.settings-content {
+  min-width: 0;
+}
+
+.settings-row > div:nth-child(2),
+.settings-value {
+  min-width: 0;
+}
+
+.settings-value code {
+  max-width: min(42vw, 360px);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.detail-modal {
+  width: min(1240px, calc(100vw - 40px));
+  height: min(820px, calc(100dvh - 40px));
+}
+
+.department-vibe-view {
+  gap: 20px;
+}
+
+.dept-seat-card,
+.dept-subcard,
+.skill-card,
+.composio-horizontal-card {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dept-bottom-grid {
+  align-items: stretch;
+}
+
+.dept-subcard {
+  height: 100%;
+}
+
+.dept-cap-state {
+  white-space: nowrap;
+}
+
+:root[data-theme="light"] .custom-entry-modal {
+  border-color: var(--line);
+  background: #fff;
+}
+
+:root[data-theme="light"] .custom-entry-modal-title h3,
+:root[data-theme="light"] .custom-entry-form input,
+:root[data-theme="light"] .custom-entry-form select,
+:root[data-theme="light"] .custom-entry-form textarea {
+  color: var(--text);
+}
+
+:root[data-theme="light"] .custom-entry-form input,
+:root[data-theme="light"] .custom-entry-form select,
+:root[data-theme="light"] .custom-entry-form textarea {
+  border-color: var(--line);
+  background: var(--surface-soft);
+}
+
+@media (max-width: 1100px) {
+  .top-app-header {
+    align-items: center;
+  }
+
+  .brand-title,
+  .nav-profile-btn span,
+  .theme-toggle span {
+    display: none;
+  }
+
+  .header-brand {
+    gap: 0;
+  }
+
+  .header-divider {
+    display: none;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  .nav-item {
+    padding-inline: 10px;
+  }
+
+  .chart-toolbar {
+    padding-right: 54px;
+  }
+
+  .connections-hero {
+    align-items: flex-start;
+  }
+
+  .capability-view-controls {
+    flex-direction: column;
+  }
+
+  .capability-tabs {
+    align-self: flex-start;
+  }
+
+  .capability-filters {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .composio-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dept-bottom-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dept-buzz-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --header-height: 108px;
+  }
+
+  .top-app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 44px 44px;
+    padding: 8px 12px;
+    gap: 4px 8px;
+  }
+
+  .header-left {
+    grid-column: 1 / -1;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .header-brand {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel-fill);
+  }
+
+  .workspace-dropdown-wrap {
+    flex: 1;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .header-right {
+    grid-column: 1 / -1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) 40px 40px;
+    gap: 4px;
+  }
+
+  .nav-item {
+    min-width: 0;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+
+  .nav-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .theme-toggle,
+  .nav-profile-btn {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .organization-page {
+    padding: 8px;
+  }
+
+  .org-chart-section {
+    padding: 10px;
+    border-radius: var(--radius-md);
+  }
+
+  .chart-toolbar {
+    min-height: 84px;
+    padding-right: 48px;
+  }
+
+  .chart-title-wrap {
+    align-items: flex-start;
+  }
+
+  .chart-title-wrap .add-entry-trigger-btn {
+    width: 100%;
+    height: 34px;
+  }
+
+  .chart-workspace-badge {
+    display: none;
+  }
+
+  .chart-sync-status {
+    top: 42px;
+  }
+
+  .connections-page {
+    padding: 22px 14px 56px;
+  }
+
+  .connections-hero {
+    gap: 18px;
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+  }
+
+  .connections-hero h1 {
+    font-size: 30px;
+  }
+
+  .connections-hero p {
+    font-size: 13px;
+  }
+
+  .connections-live-panel,
+  .connection-stats {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .connection-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .connection-stats em,
+  .connection-stats span {
+    min-width: 0;
+  }
+
+  .capability-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .cap-tab {
+    min-width: 0;
+    min-height: 48px;
+    justify-content: center;
+    padding: 7px;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .cap-tab span:not(.live-pill) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cap-tab .live-pill {
+    display: none;
+  }
+
+  .capability-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .dept-select-wrap,
+  .search-box {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .add-entry-trigger-btn {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .skills-card-grid,
+  .composio-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-card {
+    min-height: 0;
+  }
+
+  .composio-horizontal-card {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .composio-card-right {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    margin-left: 6px;
+  }
+
+  .composio-header-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .composio-badge-row {
+    flex-wrap: wrap;
+  }
+
+  .settings-page {
+    min-height: calc(100dvh - var(--header-height));
+    padding: 10px;
+  }
+
+  .settings-shell {
+    min-height: 0;
+    border-radius: var(--radius-md);
+  }
+
+  .settings-sidebar {
+    padding: 12px;
+  }
+
+  .settings-sidebar h1 {
+    width: auto;
+    margin: 0 0 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 24px;
+  }
+
+  .settings-sidebar nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .settings-sidebar nav button,
+  .settings-sidebar nav a {
+    min-width: max-content;
+  }
+
+  .settings-content {
+    padding: 18px 14px;
+  }
+
+  .settings-content-header {
+    align-items: flex-start;
+  }
+
+  .settings-content-header h2 {
+    font-size: 25px;
+  }
+
+  .settings-row {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px 0;
+  }
+
+  .settings-value {
+    grid-column: 2;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    text-align: left;
+  }
+
+  .settings-value code {
+    max-width: 100%;
+  }
+
+  .detail-modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .detail-modal {
+    width: 100vw;
+    height: calc(100dvh - 8px);
+    max-height: none;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .detail-modal-header {
+    min-height: 76px;
+    padding: 14px 16px;
+  }
+
+  .detail-modal-body {
+    padding: 16px 14px 28px;
+  }
+
+  .detail-modal-header h2 {
+    font-size: 25px;
+  }
+
+  .dept-section-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dept-counter-pill {
+    flex: 0 0 auto;
+  }
+
+  .dept-seats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .dept-seat-card {
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .dept-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dept-buzz-card {
+    grid-column: auto;
+  }
+
+  .dept-caps-grid,
+  .config-tool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dept-subcard {
+    padding: 16px;
+  }
+
+  .dept-config-drawer summary {
+    padding: 14px 16px;
+  }
+
+  .dept-drawer-content {
+    padding: 12px;
+  }
+
+  .custom-entry-modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    overflow: auto;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 430px) {
+  .nav-item span {
+    display: none;
+  }
+
+  .header-right {
+    grid-template-columns: repeat(5, 40px);
+    justify-content: space-between;
+  }
+
+  .dept-seat-info strong,
+  .dept-seat-info span {
+    white-space: normal;
+  }
+
+  .dept-cap-item {
+    align-items: flex-start;
+  }
+}

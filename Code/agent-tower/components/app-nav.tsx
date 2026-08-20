@@ -118,9 +118,9 @@ export function AppNav() {
 
           <ThemeToggle />
 
-          <button aria-label={`Account — Archie (${activeWorkspace.name})`} className="nav-profile-btn" title={`Archie (${activeWorkspace.name})`}>
+          <button aria-label={`Local account (${activeWorkspace.name})`} className="nav-profile-btn" title={`Local account · ${activeWorkspace.name}`}>
             <CircleUserRound size={18} />
-            <span>Archie</span>
+            <span>Local</span>
           </button>
         </nav>
       </header>

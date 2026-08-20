@@ -169,10 +169,10 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
       {/* Top Header */}
       <section className="connections-hero">
         <div>
-          <span className="eyebrow"><Cable size={12} />Rheos Agent Capability Matrix</span>
+          <span className="eyebrow"><Cable size={12} />{activeWorkspace.name} capability matrix</span>
           <h1>Skills & Tools</h1>
           <p>
-            Three layer capability architecture: <strong>Composio</strong> (26 toolkits / external APIs), <strong>TinyFish</strong> (web automation & search), and <strong>rheos-agent-config</strong> (internal skills, prompts & MCP plugins).
+            Review department skills, platform capabilities, and external Composio actions. Assignment describes intended access; health and evidence prove what is actually available.
           </p>
         </div>
         <div className="connections-live-panel">
@@ -306,9 +306,7 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
                   <span className={`composio-status-tag state-${tool.state}`}>
                     {tool.state === "healthy" ? "1 Active" : tool.state === "configured" ? "Configured" : "Planned"}
                   </span>
-                  <button className="composio-card-action">
-                    {tool.state === "healthy" ? "+ New" : "Connect"}
-                  </button>
+                  <span className="composio-card-policy">{tool.permissionPolicy}</span>
                 </div>
               </article>
             ))}
@@ -323,13 +321,11 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
             <div className="composio-header-copy">
               <div className="composio-badge-row">
                 <span className="composio-brand-badge">⚡ Composio Workspace</span>
-                <code>Project ID: pr_vHsGfSDyt7p6</code>
-                <code>Org: ok_AWwdqdSVuPgq</code>
-                <span className="live-status-pill">Connected (archie@rheos.app)</span>
+                <span className="live-status-pill">External dashboard</span>
               </div>
               <h2>Composio Actions & Toolkits</h2>
               <p>
-                Authenticated tool hub managing API connections for Rheos Buzz agents. Agents call these actions via native JSON-RPC MCP calls.
+                External API actions available to approved Buzz- or Hermes-managed agent sessions through the Composio CLI and MCP boundaries.
               </p>
             </div>
             <div className="composio-header-actions">
@@ -363,7 +359,7 @@ export function ConnectionsDirectory({ model, catalog }: { model: OrganizationRe
                 </div>
                 <div className="composio-card-right">
                   <span className="composio-status-tag state-healthy">1 Active</span>
-                  <button className="composio-card-action">+ New</button>
+                  <span className="composio-card-policy">{tool.toolkit}</span>
                 </div>
               </article>
             ))}
