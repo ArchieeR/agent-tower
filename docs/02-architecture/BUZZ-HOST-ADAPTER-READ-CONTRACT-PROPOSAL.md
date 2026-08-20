@@ -63,11 +63,12 @@ The design-only typed contract is published in `lib/adapters/contracts/apply.ts`
 - `authConfigured` is an observation only, never an effective grant or authorization decision.
 - The typed Agent Tower change owns member ID, desired policy and resource revisions, operation, selected target tuple, expected adapter revision and requested safe intent. The adapter plan owns the exact native target identity, projection/delta, readback assertions and plan digest.
 - Approval digest covers intent and immutable plan, all CAS revisions, selected target, member, expiry and readback assertions.
-- Use stable `adapterOperationId` derived from approved change revision, operation index, adapter ID and `adapterPlanDigest`; use a unique `applyAttemptId` for every invocation. `adapterOperationId` is not an OAuth application, host object or invocation ID.
-- Create correlation uses a host external/idempotency reference or apply-returned opaque ID followed by exact readback, never a display-name join.
+- Use stable `adapterOperationId` derived from approved change revision, operation index, adapter ID and `adapterPlanDigest`; use a unique `applyAttemptId` for every invocation. `adapterOperationId` is Agent Tower correlation only—not an OAuth application, host object, invocation ID or host idempotency key unless the plan explicitly records `nativeGuarantees.hostIdempotency: supported`.
+- Create correlation uses a supported host external/idempotency reference or secret-stripped apply-returned opaque ID followed by exact readback, never a display-name join. For Buzz the safe future `hostObjectRef` is the canonical managed public key returned by a dedicated bridge/readback; current create responses include private key material and cannot cross the bridge.
 - Receipts record independent `mutationState: not-attempted | not-applied | applied | unknown` and `verificationState: not-run | matched | drifted | unknown`. Governed summaries `applied-and-verified`, `applied-with-drift`, `not-applied` and `outcome-unknown` are derived only. They are distinct from worker execution receipts and do not imply rollback. Drifted and unknown outcomes block automatic retry/follow-on pending reconciliation.
 - Timeout plus indeterminate readback produces `outcome-unknown`, blocks blind retry and requires reconciliation.
 - Adapters receive only the authorized operation/plan. They never receive owner-service capabilities, Auth0 claims or credentials.
+- Every plan/receipt declares native guarantees explicitly. Current Buzz guarantees are all `unsupported`: unique stable installation `hostId`, secret-stripped create response, native idempotency, touched-resource CAS, deterministic external Preview apply and safe apply readback. The bundle ID is not a unique host ID; organization `sourceRevision` is an observation hash, not mutable-record CAS. Catalog/probe remains independently transported.
 
 ## Open interface questions for Buzz Tower
 

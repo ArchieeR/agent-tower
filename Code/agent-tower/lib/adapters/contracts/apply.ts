@@ -1,6 +1,15 @@
 import type { AdapterHealthStateV1 } from "./index.ts"
 
 export type AdapterSelectedTargetV1 = { adapterId: string; hostId: string; hostRuntimeId: string }
+export type AdapterNativeGuaranteesV1 = {
+  stableHostIdentity: "supported" | "unsupported" | "unknown"
+  secretStrippedResponse: "supported" | "unsupported" | "unknown"
+  hostIdempotency: "supported" | "unsupported" | "unknown"
+  touchedResourceCas: "supported" | "unsupported" | "unknown"
+  deterministicExternalApply: "supported" | "unsupported" | "unknown"
+  safeReadback: "supported" | "unsupported" | "unknown"
+  hostObjectRefKind?: "canonical-public-key" | "opaque-host-id"
+}
 export type AdapterEvidencePreconditionV1 = {
   adapterRevision: string
   contentHash: string
@@ -23,6 +32,7 @@ export type AdapterPlanV1 = {
   selectedTarget: AdapterSelectedTargetV1
   evidencePrecondition: AdapterEvidencePreconditionV1
   capabilityMappingRevision: string
+  nativeGuarantees: AdapterNativeGuaranteesV1
   nativeTargetRef?: string
   nativeDelta: Record<string, unknown>
   preflightAssertions: AdapterReadbackAssertionV1[]
@@ -54,6 +64,7 @@ export type AdapterApplyReceiptV1 = {
   selectedTarget: AdapterSelectedTargetV1
   evidencePrecondition: AdapterEvidencePreconditionV1
   capabilityMappingRevision: string
+  nativeGuarantees: AdapterNativeGuaranteesV1
   mutationState: AdapterMutationStateV1
   verificationState: AdapterVerificationStateV1
   hostOperationRef?: string
