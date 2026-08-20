@@ -103,24 +103,37 @@ const readbackEvidenceSchema = z.strictObject({ adapterRevision: boundedDigest, 
 const errorCodesSchema = z.array(z.string().min(1).max(128).regex(/^[a-z0-9][a-z0-9._-]*(?:\.[a-z0-9][a-z0-9._-]*)+:v[1-9][0-9]*$/)).max(32).refine((values) => new Set(values).size === values.length, "duplicate error code")
 const nativeDeltaSchema = z.record(z.string().min(1).max(128), z.unknown()).refine((value) => Object.keys(value).length <= 128, "too many native delta keys")
 
+const LONE_SURROGATE = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/
+function assertJsonString(value: string, maxLength: number): void {
+  if (value.length > maxLength || LONE_SURROGATE.test(value)) throw new Error("JSON string is invalid.")
+}
 function assertBoundedJsonValue(value: unknown, depth = 0, active = new Set<object>()): void {
   if (depth > 8) throw new Error("JSON value exceeds maximum depth.")
   if (value === null || typeof value === "boolean") return
-  if (typeof value === "string") { if (value.length > 65_536) throw new Error("JSON string is too long."); return }
-  if (typeof value === "number") { if (!Number.isFinite(value)) throw new Error("JSON number is invalid."); return }
+  if (typeof value === "string") { assertJsonString(value, 65_536); return }
+  if (typeof value === "number") { if (!Number.isFinite(value) || Object.is(value, -0)) throw new Error("JSON number is invalid."); return }
   if (typeof value !== "object") throw new Error("Value is not JSON-safe.")
   if (active.has(value)) throw new Error("JSON value contains a cycle.")
   const prototype = Object.getPrototypeOf(value)
   if (prototype !== Object.prototype && prototype !== Array.prototype && prototype !== null) throw new Error("JSON object prototype is unsupported.")
   const descriptors = Object.getOwnPropertyDescriptors(value)
-  if (Reflect.ownKeys(value).some((key) => typeof key === "symbol") || Object.values(descriptors).some((descriptor) => descriptor.get || descriptor.set || !descriptor.enumerable)) throw new Error("JSON object properties are unsupported.")
+  if (Reflect.ownKeys(value).some((key) => typeof key === "symbol")) throw new Error("JSON symbols are unsupported.")
   active.add(value)
   if (Array.isArray(value)) {
-    if (value.length > 256 || Object.keys(value).length !== value.length) throw new Error("JSON array is sparse or too large.")
-    for (const item of value) assertBoundedJsonValue(item, depth + 1, active)
+    if (value.length > 256) throw new Error("JSON array is too large.")
+    const ownKeys = Reflect.ownKeys(value)
+    if (ownKeys.length !== value.length + 1 || ownKeys[value.length] !== "length") throw new Error("JSON array has unsupported keys.")
+    const lengthDescriptor = descriptors.length
+    if (!lengthDescriptor || lengthDescriptor.enumerable || lengthDescriptor.get || lengthDescriptor.set || lengthDescriptor.value !== value.length) throw new Error("JSON array length is invalid.")
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = descriptors[String(index)]
+      if (!descriptor || !descriptor.enumerable || descriptor.get || descriptor.set) throw new Error("JSON array is sparse or accessor-backed.")
+      assertBoundedJsonValue(descriptor.value, depth + 1, active)
+    }
   } else {
+    if (Object.values(descriptors).some((descriptor) => descriptor.get || descriptor.set || !descriptor.enumerable)) throw new Error("JSON object properties are unsupported.")
     const entries = Object.entries(value)
-    if (entries.length > 128 || entries.some(([key]) => key.length < 1 || key.length > 128)) throw new Error("JSON object keys are invalid.")
+    if (entries.length > 128 || entries.some(([key]) => { assertJsonString(key, 128); return key.length < 1 })) throw new Error("JSON object keys are invalid.")
     for (const [, item] of entries) assertBoundedJsonValue(item, depth + 1, active)
   }
   active.delete(value)

@@ -35,9 +35,17 @@ test("strict plan parser rejects padded target coordinates while preserving opaq
   assert.equal(parseAdapterPlanV1({ ...plan, selectedTarget: { ...target, hostId: "opaque host id" } }).selectedTarget.hostId, "opaque host id")
 })
 
+test("strict plan parser accepts bounded dense nested arrays and valid Unicode", () => {
+  const parsed = parseAdapterPlanV1({ ...plan, nativeDelta: { nested: [1, ["héllo", "😀"], { valid: true }] } })
+  assert.deepEqual(parsed.nativeDelta, { nested: [1, ["héllo", "😀"], { valid: true }] })
+})
+
 test("strict plan parser rejects unsafe, cyclic, deep and oversized native deltas", () => {
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: undefined } }, "AdapterPlanV1")
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: Number.POSITIVE_INFINITY } }, "AdapterPlanV1")
+  rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: -0 } }, "AdapterPlanV1")
+  rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: "\ud800" } }, "AdapterPlanV1")
+  rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { ["bad\udc00"]: true } }, "AdapterPlanV1")
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: BigInt(1) } }, "AdapterPlanV1")
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: () => true } }, "AdapterPlanV1")
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { value: Symbol("unsafe") } }, "AdapterPlanV1")
@@ -46,6 +54,10 @@ test("strict plan parser rejects unsafe, cyclic, deep and oversized native delta
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: deep }, "AdapterPlanV1")
   const cyclic: Record<string, unknown> = {}; cyclic.self = cyclic
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: cyclic }, "AdapterPlanV1")
+  const sparse = Array(2); sparse[1] = "present"
+  rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { sparse } }, "AdapterPlanV1")
+  const extraArray = ["valid"]; Object.defineProperty(extraArray, "extra", { enumerable: true, value: "no" })
+  rejects(parseAdapterPlanV1, { ...plan, nativeDelta: { extraArray } }, "AdapterPlanV1")
   const accessor = {}; Object.defineProperty(accessor, "secret", { enumerable: true, get: () => "no" })
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: accessor }, "AdapterPlanV1")
   rejects(parseAdapterPlanV1, { ...plan, nativeDelta: new Date() }, "AdapterPlanV1")
