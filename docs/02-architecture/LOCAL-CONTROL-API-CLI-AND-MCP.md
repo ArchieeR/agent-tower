@@ -105,6 +105,16 @@ Type ownership is singular across workstreams:
 
 The adapter wire shape `AdapterApprovalBindingV1` may live with adapter contracts, but Control Core alone constructs and semantically validates approval bindings. Adapter code cannot grant or approve itself. Branch integration lands the shared digest/control foundation before adapters import it; duplicate definitions are prohibited.
 
+## 3.8 Host operation support is explicit and operation-scoped
+
+Generic host/runtime capability strings cannot establish that a native write is invocable, idempotent, CAS-safe, secret-free or verifiable. Host adapters publish an independently revisioned operation-support snapshot. Each adapter-owned, namespaced operation ID reports support state, invocation mode, stable-host identity support, idempotency mode, concurrency/CAS mode, response safety, readback mode, native owner-review behavior and safe evidence codes.
+
+Support is operation-specific. Missing/unknown operation evidence fails closed. `support: supported` proves only that a native invocation surface exists; it does not prove principal authorization, host authentication, runtime readiness or Agent Tower approval. Control Core owns typed operation requirements and admits a plan only when the exact observed operation guarantees satisfy them. Agent Tower may always require stronger owner review than the host.
+
+Host observation/source revisions are never write CAS. The existing adapter `nativeGuarantees` in an immutable plan/receipt are the selected operation's snapshotted guarantees, not a host-wide assertion. Apply re-probes the exact operation support and target evidence; no fallback is allowed.
+
+Current Buzz managed-agent create/update is not eligible for an executable adapter plan: no unique installation identity, deterministic external apply transport, safe secret-free create response, native idempotency or touched-resource CAS is supported. Organization export supplies safe manual readback source only after separately approved Preview installation/export; runtime catalog/probe is a separate unavailable transport. A dedicated Buzz bridge must add and attest the required guarantees first.
+
 ## 4. Recommended process topology
 
 Target one local executable or sidecar named `agent-tower`:
