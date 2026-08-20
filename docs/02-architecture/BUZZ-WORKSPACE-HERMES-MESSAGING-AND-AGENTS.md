@@ -499,6 +499,14 @@ Accepted first topology:
   - stable Agent Tower member `agent-tower-builder`, Buzz/ACP execution mode;
 - private channel membership restricted to the owner and those two managed identities.
 
+Identity migration boundary:
+
+- A legacy/keyless or malformed local managed-agent record with an empty public key cannot be upgraded in place to a canonical `buzz-agent:<pubkey>` identity.
+- Never manually fill its public key, edit the raw managed-agent store, copy/import private keys, or substitute provider-specific `backend_agent_id` as identity.
+- Leave the legacy record untouched until the owner decides whether to archive it after replacement verification.
+- The supported owner-reviewed replacement path is native **new managed-agent creation** (optionally linked to a valid active definition/persona). Buzz mints a fresh keypair/public identity, NIP-OA authority, keyring-aware persistence and profile synchronization. Snapshot import also mints a new identity and must not consume source identity material.
+- Before provisioning, classify the old record as a keyless definition or malformed legacy instance for evidence, but neither classification makes it canonical in place.
+
 Runtime/authority split:
 
 - Buzz owns login, portable Nostr identity, community membership, teams, channels, messages and presence;
