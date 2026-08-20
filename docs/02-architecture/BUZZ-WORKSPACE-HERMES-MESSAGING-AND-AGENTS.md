@@ -536,6 +536,25 @@ For the v0.1 transport proof, the response is an ordinary **kind-9** message in 
 
 Only after the read-only proof should the owner approve department overlay changes through `changes.prepare` then owner `changes.apply` (ADR-004). MCP must not apply department configuration. Buzz team/channel IDs are references in Agent Tower policy, not copies of the organization policy into Buzz.
 
+### Phase 4.6 — governed Buzz adapter operation contract (design only)
+
+The safe adapter envelope remains immutable observation evidence; Agent Tower policy/resource revisions remain separate write preconditions. Candidate selection binds the exact opaque `{adapterId, hostId, hostRuntimeId}` plus `{adapterRevision, contentHash, observedAt, maxAgeMs, acceptableHealth}` and a versioned `capabilityMappingRevision`. Unknown host capability claims satisfy no requirement.
+
+A typed Agent Tower change owns desired intent, policy/resource CAS and selected target. A secret-free immutable adapter plan owns the exact native delta, preflight/readback assertions and restart/approval implications. Approval binds the change digest and `adapterPlanDigest`, selected target, evidence precondition, capability mapping revision and expiry. Any change requires replan/reapproval. Apply re-probes the exact target and never silently falls back.
+
+Use `adapterOperationId` as the stable approved operation/idempotency coordinate and `applyAttemptId` as the unique native invocation coordinate. Host-returned references remain opaque `hostOperationRef`/`hostObjectRef`; never correlate by display name.
+
+Apply evidence separates mutation from readback:
+
+```text
+mutationState: not-attempted | not-applied | applied | unknown
+verificationState: not-run | matched | drifted | unknown
+```
+
+`applied-and-verified`, `applied-with-drift`, `not-applied` and `outcome-unknown` are derived summaries only. Unknown mutation/readback blocks blind retry pending reconciliation. Every host operation produces its own `AdapterApplyReceipt`; Control Core alone aggregates multi-operation change state. Worker execution receipts, manager review decisions, adapter receipts and core change-apply receipts remain distinct. Rollback/reconciliation is a separate typed operation, never an implied claim.
+
+This phase is contract design only. Control Core apply and native Buzz apply remain unimplemented.
+
 ### Phase 5 — workflows and ACP runtime probe
 
 - Test one bounded workflow.

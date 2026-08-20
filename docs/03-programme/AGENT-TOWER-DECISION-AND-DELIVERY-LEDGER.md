@@ -193,6 +193,8 @@ safe export/readback
 → immutable adapter receipt or explicit drift/failure
 ```
 
+The approved design uses an immutable `adapterPlanId`/`adapterPlanDigest`, stable `adapterOperationId` per approved change operation, and unique `applyAttemptId` per native invocation. Approval covers change/plan digests, exact opaque target, adapter evidence freshness/health, capability mapping revision and expiry. Adapter results separate `mutationState` from `verificationState`; `outcome-unknown` and drift block blind retry pending reconciliation. Each host operation has its own adapter receipt; only Control Core aggregates multi-operation change status. Apply remains unimplemented.
+
 ## 10. Composio/tool host status
 
 Composio is connected as `archie@rheos.app` in local operator context, but aliases/emails/provider account IDs are not safe default adapter output.
