@@ -54,7 +54,7 @@ The existing Next.js `GET /api/organization` endpoint remains useful as a local 
 
 ## 3.5 Harness-agnostic desired runtime policy
 
-Agent Tower's organization/member identity and authority are stable across execution systems. The control core exposes a versioned, provider-neutral desired policy plus member-scoped context; runtime adapters translate that into the native configuration vocabulary of Buzz/ACP, Hermes, Codex, Claude Code, Goose, Grok, Vertex/GCP and approved local workers.
+Agent Tower's organization/member identity and authority are stable across execution systems. The control core exposes versioned execution requirements, optional owner-approved host preferences and member-scoped context. Host systems—not Agent Tower—own their executable runtime catalogs, readiness/auth rules and process lifecycle. Buzz discovers and launches its ACP-compatible runtimes; an independent host owns its own profiles/sessions. Agent Tower adapters negotiate against those host-reported catalogs rather than inventing a universal harness list.
 
 ```text
 Agent Tower member + desired policy + current context revision
@@ -67,17 +67,20 @@ Agent Tower member + desired policy + current context revision
   └─ Local adapter      → Local Rig model/profile/concurrency bounds
 ```
 
-The desired policy contains allowed/preferred runtime modes, provider/model classes, capability requirements, fallback/concurrency policy and approvals—never provider keys or host credentials. Each adapter must support:
+The desired policy contains workload/capability/privacy/locality/budget requirements, optional allowed/preferred host bindings, provider/model classes, fallback/concurrency policy and approvals—never provider keys, host credentials or invented availability. Host runtime IDs are opaque host-owned values. Each adapter must support:
 
-1. `probe`: report installed/authenticated/ready/blocked state without mutation;
-2. `plan`: translate desired policy and show the exact native delta;
-3. `apply`: owner-approved, revision-conditional native configuration change;
-4. `observe`: return actual runtime identity/session/provider/model/health;
-5. `receipt`: attest the applied revision or explain why it could not be applied.
+1. `catalog`/`probe`: report supported runtime IDs, capabilities, installed/authenticated/ready/blocked state without mutation;
+2. `match`: evaluate requirements against catalog facts and return compatible candidates without silent substitution;
+3. `plan`: translate the owner-selected candidate and desired policy into the exact native delta;
+4. `apply`: owner-approved, revision-conditional native configuration change through a supported host surface;
+5. `observe`: return actual runtime identity/session/provider/model/health;
+6. `receipt`: attest the applied revision/readback or explain why it could not be applied.
 
 Buzz can read Agent Tower policy through the shared control core/service, not by copying JSON policy into Buzz stores. Standalone Agent Tower and native Buzz Organization call the same handlers. Runtime-specific fields remain in adapter status/receipts and do not contaminate the organization schema.
 
-One member may run multiple adapters simultaneously where explicitly allowed. Each launch receives a separate short-lived identity/runtime/project/channel-bound session and immutable context revision. No adapter may infer that another app's keychain, provider login, runtime process or local defaults are available merely because public identity/community data are shared.
+One member may bind to multiple host/runtime identities simultaneously where explicitly allowed. Each launch receives a separate short-lived identity/runtime/project/channel-bound session and immutable context revision. No adapter may infer that another app's keychain, provider login, runtime process or local defaults are available merely because public identity/community data are shared.
+
+For the first deep integration, Buzz is both a messaging/identity host and an execution host capable of launching multiple ACP-compatible runtimes. Agent Tower remains outside Buzz so the canonical organization and manager API can later bind the same members to other hosts. This portability does not diminish Buzz authority over its native runtime selection and launch lifecycle.
 
 ## 3.6 Local trust, registry and revision decisions
 
