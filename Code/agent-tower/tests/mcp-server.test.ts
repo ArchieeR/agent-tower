@@ -51,6 +51,9 @@ const service: AgentTowerToolService = {
   async runLocalWorker(job) {
     return { taskId: job.taskId, content: "bounded" }
   },
+  async configureDepartment(departmentId, configuration) {
+    return { ok: true, departmentId, configuration, revision: 2 }
+  },
 }
 
 test("MCP exposes only bounded session-aware Agent Tower tools", async () => {
@@ -69,7 +72,23 @@ test("MCP exposes only bounded session-aware Agent Tower tools", async () => {
     assert.ok(names.includes("agent_tower.receipt_submit"))
     assert.ok(names.includes("agent_tower.local_worker_get_status"))
     assert.ok(names.includes("agent_tower.local_worker_run"))
+    assert.ok(names.includes("agent_tower.department_configure"))
     assert.equal(names.includes("agent_tower.change_apply"), false)
+
+    const configured = await client.callTool({
+      name: "agent_tower.department_configure",
+      arguments: { departmentId: "engineering", skillIds: ["qa-e2e"] },
+    })
+    assert.equal(configured.isError, undefined)
+    assert.ok(Array.isArray(configured.content))
+    const configuredContent = configured.content as Array<{ type?: unknown; text?: unknown }>
+    const configuredText = configuredContent[0]
+    assert.equal(typeof configuredText?.text, "string")
+    if (typeof configuredText?.text === "string") {
+      const configuredValue = JSON.parse(configuredText.text)
+      assert.equal(configuredValue.revision, 2)
+      assert.deepEqual(configuredValue.configuration.skillIds, ["qa-e2e"])
+    }
 
     const result = await client.callTool({ name: "agent_tower.context_get_current", arguments: {} })
     assert.equal(result.isError, undefined)

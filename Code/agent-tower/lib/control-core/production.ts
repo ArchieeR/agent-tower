@@ -1,4 +1,3 @@
-import { homedir } from "node:os"
 import * as path from "node:path"
 
 import { capabilityCatalog } from "../capability-catalog.ts"
@@ -52,10 +51,14 @@ export async function createProductionControlCore(options: ProductionControlCore
     latestSourceRevisions = payload.sourceRevisions ?? {}
     return model
   }
-  const brainRoot = options.brainRoot ?? path.join(homedir(), "Documents", "ALDR Ltd", "Rheos", "Brain", "vault")
+  const brainRoot =
+    options.brainRoot ??
+    process.env.AGENT_TOWER_BRAIN_ROOT ??
+    path.join(options.projectRoot, "knowledge")
   const rigSnapshotFile =
     options.rigSnapshotFile ??
-    path.join(homedir(), "Documents", "ALDR Ltd", "Rheos", "Code", "rheos-repos", ".rig-dashboard", "current.json")
+    process.env.AGENT_TOWER_RIG_SNAPSHOT_FILE ??
+    path.join(options.projectRoot, "data", "local-rig.json")
 
   return new AgentTowerControlCore({
     loadOrganization,
@@ -65,6 +68,7 @@ export async function createProductionControlCore(options: ProductionControlCore
     knowledge: new LocalKnowledgeConnector([{ id: "brain-vault", root: brainRoot }]),
     receipts: new ReceiptStore(path.join(options.projectRoot, "data", "execution-receipts.json")),
     rigSnapshotFile,
+    projectRoot: options.projectRoot,
     fetcher,
     sourceRevisions: async () => ({ ...latestSourceRevisions, brain: "local-vault-contract-v2", linear: "live-mcp" }),
   })

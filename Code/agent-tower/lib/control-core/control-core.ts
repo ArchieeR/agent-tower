@@ -10,6 +10,7 @@ import { hashOrganizationSnapshot } from "./organization-hash.ts"
 import { dispatchLocalWorkerJob, readLocalRigSnapshot, type LocalWorkerJob } from "./local-rig.ts"
 import type { LocalKnowledgeConnector } from "./local-knowledge.ts"
 import type { AgentTowerToolService } from "./mcp-server.ts"
+import { configureDepartment, type DepartmentConfigurationPatch } from "./department-configuration-service.ts"
 import { type ExecutionReceipt, ReceiptStore } from "./receipt-store.ts"
 import { assertSessionBindingActive, type AgentSessionBinding } from "./session-binding.ts"
 
@@ -21,6 +22,7 @@ export type AgentTowerControlCoreDependencies = {
   knowledge: LocalKnowledgeConnector
   receipts: ReceiptStore
   rigSnapshotFile: string
+  projectRoot?: string
   now?: () => Date
   fetcher?: typeof fetch
   sourceRevisions?: () => Promise<Record<string, string>>
@@ -209,24 +211,18 @@ export class AgentTowerControlCore {
       },
       configureDepartment: async (departmentId, config) => {
         assertActive()
-        const model = await this.dependencies.loadOrganization()
-        const department = model.departments.find((d) => d.id === departmentId)
-        if (!department) throw new Error(`Department not found: ${departmentId}`)
-        return {
-          ok: true,
-          departmentId,
-          revision: (department.configurationRevision ?? 0) + 1,
-          configuration: {
-            departmentId,
-            memberIds: config.memberIds ?? department.memberIds,
-            managerMemberIds: config.managerMemberIds ?? department.managerMemberIds,
-            skillIds: config.skillIds ?? department.skillIds,
-            routineIds: config.routineIds ?? department.routineIds,
-            toolIds: config.toolIds ?? department.toolIds,
-          },
-          status: "configured",
-          updatedAt: (this.dependencies.now?.() ?? new Date()).toISOString(),
+        if (!this.dependencies.projectRoot) {
+          throw new Error("Department writes are unavailable without an Agent Tower project root.")
         }
+        return configureDepartment(
+          {
+            projectRoot: this.dependencies.projectRoot,
+            loadOrganization: this.dependencies.loadOrganization,
+            now: this.dependencies.now,
+          },
+          departmentId,
+          config as DepartmentConfigurationPatch,
+        )
       },
       prepareChange: async (change) => {
         assertActive()

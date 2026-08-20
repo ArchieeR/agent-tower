@@ -1,12 +1,10 @@
-import * as path from "node:path"
 import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
 
-import { validateDepartmentConfiguration, type DepartmentConfiguration } from "@/lib/organization-configuration"
-import { capabilityCatalog } from "@/lib/capability-catalog"
+import type { DepartmentConfiguration } from "@/lib/organization-configuration"
+import { configureDepartment } from "@/lib/control-core/department-configuration-service"
 import { getOrganizationReadModel } from "@/lib/server/buzz-directory"
 import { isTrustedLocalMutation } from "@/lib/server/local-mutation-authorization"
-import { saveDepartmentConfiguration } from "@/lib/server/organization-configuration-store"
 
 function stringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((entry) => typeof entry === "string")
@@ -52,36 +50,19 @@ export async function PUT(request: Request, context: { params: Promise<{ departm
     return NextResponse.json({ ok: false, errors: ["Department configuration has an invalid shape."] }, { status: 400 })
   }
 
-  const model = await getOrganizationReadModel()
-  const department = model.departments.find((entry) => entry.id === departmentId)
-  if (!department) return NextResponse.json({ ok: false, errors: ["Department not found."] }, { status: 404 })
-  const availableMemberIds = model.members
-    .filter((member) => !member.departmentId || member.departmentId === departmentId)
-    .map((member) => member.id)
-  const allowedToolIds = capabilityCatalog
-    .filter((entry) => entry.organizationWide || entry.departmentIds.includes(departmentId))
-    .map((entry) => entry.id)
-  const validation = validateDepartmentConfiguration(configuration, {
-    capacity: department.capacity,
-    availableMemberIds,
-    allowedToolIds,
-    availableBuzzTeamIds: model.buzzTeams.map((team) => team.id),
-    availableBuzzChannelIds: model.buzzChannels.map((channel) => channel.id),
-  })
-  if (!validation.ok) return NextResponse.json(validation, { status: 422 })
-
-  const file = path.join(process.cwd(), "data", "organization-config.json")
-  const stored = await saveDepartmentConfiguration(file, validation.value)
-  revalidatePath("/organization")
-  return NextResponse.json({
-    ok: true,
-    receipt: {
+  try {
+    const receipt = await configureDepartment(
+      { projectRoot: process.cwd(), loadOrganization: () => getOrganizationReadModel() },
       departmentId,
-      revision: stored.revision,
-      updatedAt: stored.updatedAt,
-      memberCount: stored.memberIds.length,
-      managerCount: stored.managerMemberIds.length,
-      source: "agent-tower-local",
-    },
-  })
+      configuration,
+    )
+    revalidatePath("/organization")
+    return NextResponse.json({ ok: true, receipt })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Department configuration is invalid."
+    if (message.startsWith("Department not found:")) {
+      return NextResponse.json({ ok: false, errors: [message] }, { status: 404 })
+    }
+    return NextResponse.json({ ok: false, errors: [message] }, { status: 422 })
+  }
 }

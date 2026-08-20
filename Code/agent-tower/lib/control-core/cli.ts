@@ -1,10 +1,11 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
+import { randomBytes, randomUUID } from "node:crypto"
 import * as path from "node:path"
 
 import { createAgentTowerMcpServer } from "./mcp-server.ts"
 import { readMemberLinks } from "./member-links.ts"
 import { createProductionControlCore } from "./production.ts"
-import { verifySessionBinding, type AgentSessionBinding } from "./session-binding.ts"
+import { mintSessionBinding, verifySessionBinding, type AgentSessionBinding } from "./session-binding.ts"
 
 export type CliRuntime = {
   projectRoot: string
@@ -17,6 +18,10 @@ function argument(args: string[], name: string): string | undefined {
   return index >= 0 ? args[index + 1] : undefined
 }
 
+function csvArgument(args: string[], name: string): string[] | undefined {
+  return argument(args, name)?.split(",").map((value) => value.trim()).filter(Boolean)
+}
+
 function writeJson(runtime: CliRuntime, value: unknown): void {
   ;(runtime.write ?? ((output) => process.stdout.write(output)))(`${JSON.stringify(value, null, 2)}\n`)
 }
@@ -24,10 +29,10 @@ function writeJson(runtime: CliRuntime, value: unknown): void {
 async function operatorBinding(projectRoot: string, memberId: string): Promise<AgentSessionBinding> {
   const links = await readMemberLinks(path.join(projectRoot, "data", "member-links.json"))
   const link = links.find((entry) => entry.memberId === memberId)
-  if (!link) throw new Error(`Stable member link is unavailable: ${memberId}`)
+  if (!link) throw new Error(`Stable member link is unavailable: ${memberId}. Configure data/member-links.json first.`)
   const issuedAt = new Date()
   return {
-    sessionId: `operator-inspection-${issuedAt.getTime()}`,
+    sessionId: `operator-${issuedAt.getTime()}-${randomUUID()}`,
     memberId,
     buzzMemberId: link.buzzMemberId,
     allowedChannelIds: [],
@@ -41,7 +46,7 @@ export async function startMcp(runtime: CliRuntime): Promise<void> {
   const environment = runtime.environment ?? process.env
   const token = environment.AGENT_TOWER_SESSION_TOKEN
   const secret = environment.AGENT_TOWER_SESSION_SECRET
-  if (!token || !secret) throw new Error("MCP requires AGENT_TOWER_SESSION_TOKEN and AGENT_TOWER_SESSION_SECRET.")
+  if (!token || !secret) throw new Error("MCP requires AGENT_TOWER_SESSION_TOKEN and AGENT_TOWER_SESSION_SECRET. Run `agent-tower session mint --member <id>` first.")
   const binding = verifySessionBinding(token, secret)
   const core = await createProductionControlCore({ projectRoot: runtime.projectRoot })
   const server = createAgentTowerMcpServer(core.bind(binding), binding)
@@ -49,10 +54,27 @@ export async function startMcp(runtime: CliRuntime): Promise<void> {
 }
 
 export async function runCli(args: string[], runtime: CliRuntime): Promise<number> {
+  const environment = runtime.environment ?? process.env
   if (args[0] === "mcp") {
     await startMcp(runtime)
     return 0
   }
+  if (args[0] === "session" && args[1] === "mint") {
+    const memberId = argument(args, "--member")
+    if (!memberId) throw new Error("session mint requires --member <stable-member-id>.")
+    const binding = await operatorBinding(runtime.projectRoot, memberId)
+    const secret = environment.AGENT_TOWER_SESSION_SECRET ?? randomBytes(32).toString("hex")
+    writeJson(runtime, {
+      token: mintSessionBinding(binding, secret),
+      secret,
+      binding,
+      warning: environment.AGENT_TOWER_SESSION_SECRET
+        ? undefined
+        : "Generated a new secret. Store it securely and do not commit it.",
+    })
+    return 0
+  }
+
   const core = await createProductionControlCore({ projectRoot: runtime.projectRoot })
   if (args[0] === "organization" && args[1] === "snapshot") {
     writeJson(runtime, await core.getOrganizationSnapshot())
@@ -78,45 +100,53 @@ export async function runCli(args: string[], runtime: CliRuntime): Promise<numbe
     return 0
   }
   if (args[0] === "local-worker" && args[1] === "status") {
-    const binding = await operatorBinding(runtime.projectRoot, "system-manager")
+    const binding = await operatorBinding(runtime.projectRoot, argument(args, "--member") ?? "system-manager")
     writeJson(runtime, await core.bind(binding).getLocalWorkerStatus())
     return 0
   }
   if (args[0] === "department" && args[1] === "configure") {
     const deptId = argument(args, "--department")
     if (!deptId) throw new Error("department configure requires --department <department-id>.")
-    const skills = argument(args, "--skills")?.split(",").map((s) => s.trim()).filter(Boolean)
-    const tools = argument(args, "--tools")?.split(",").map((t) => t.trim()).filter(Boolean)
-    const members = argument(args, "--members")?.split(",").map((m) => m.trim()).filter(Boolean)
-    const managers = argument(args, "--managers")?.split(",").map((m) => m.trim()).filter(Boolean)
-    const binding = await operatorBinding(runtime.projectRoot, "system-manager")
+    const binding = await operatorBinding(runtime.projectRoot, argument(args, "--member") ?? "system-manager")
+    const service = core.bind(binding)
+    if (!service.configureDepartment) throw new Error("Department configuration is unavailable.")
     writeJson(
       runtime,
-      await core.bind(binding).configureDepartment?.(deptId, {
-        memberIds: members,
-        managerMemberIds: managers,
-        skillIds: skills,
-        toolIds: tools,
+      await service.configureDepartment(deptId, {
+        memberIds: csvArgument(args, "--members"),
+        managerMemberIds: csvArgument(args, "--managers"),
+        skillIds: csvArgument(args, "--skills"),
+        routineIds: csvArgument(args, "--routines"),
+        toolIds: csvArgument(args, "--tools"),
+        buzzTeamIds: csvArgument(args, "--buzz-teams"),
+        buzzChannelIds: csvArgument(args, "--buzz-channels"),
       }),
     )
     return 0
   }
   if (args[0] === "change" && args[1] === "prepare") {
     const changeJson = argument(args, "--change") ?? "{}"
-    const binding = await operatorBinding(runtime.projectRoot, "system-manager")
+    const binding = await operatorBinding(runtime.projectRoot, argument(args, "--member") ?? "system-manager")
     writeJson(runtime, await core.bind(binding).prepareChange?.(JSON.parse(changeJson)))
     return 0
   }
   if (args[0] === "status") {
-    const binding = await operatorBinding(runtime.projectRoot, "system-manager")
-    const [organization, localWorker] = await Promise.all([
-      core.getOrganizationSnapshot(),
-      core.bind(binding).getLocalWorkerStatus(),
-    ])
+    const organization = await core.getOrganizationSnapshot()
+    let localWorker: unknown = { status: "unconfigured", availableForJobs: false }
+    try {
+      const binding = await operatorBinding(runtime.projectRoot, argument(args, "--member") ?? "system-manager")
+      localWorker = await core.bind(binding).getLocalWorkerStatus()
+    } catch (error) {
+      localWorker = {
+        status: "unconfigured",
+        availableForJobs: false,
+        detail: error instanceof Error ? error.message : "Local worker status is unavailable.",
+      }
+    }
     writeJson(runtime, { organization: { revision: organization.revision }, localWorker })
     return 0
   }
   throw new Error(
-    "Usage: agent-tower status | organization snapshot | members get <id> | context get --member <id> | department configure --department <id> [--skills <s1,s2>] [--tools <t1,t2>] | knowledge search --query <text> [--member <id>] | local-worker status | mcp",
+    "Usage: agent-tower status | organization snapshot | members get <id> | session mint --member <id> | context get --member <id> | department configure --department <id> [--member <id>] [--skills <s1,s2>] [--tools <t1,t2>] [--buzz-teams <id1,id2>] [--buzz-channels <id1,id2>] | knowledge search --query <text> [--member <id>] | local-worker status [--member <id>] | mcp",
   )
 }

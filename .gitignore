@@ -34,8 +34,17 @@
 
 # Local Agent Tower runtime state
 Code/agent-tower/data/organization-config.json
+Code/agent-tower/data/member-links.json
+Code/agent-tower/data/organization-overrides.json
+Code/agent-tower/data/buzz-org-snapshot.json
+Code/agent-tower/data/local-rig.json
+Code/agent-tower/data/execution-receipts.json
+Code/agent-tower/data/context-acknowledgements.json
 Code/agent-tower/data/execution-receipts.json.lock
 Code/agent-tower/data/context-acknowledgements.json.lock
+
+# Local Buzz mutation history and rollback captures
+data/buzz-history/teams/*/
 
 # Packaged build artifacts
 artifacts/

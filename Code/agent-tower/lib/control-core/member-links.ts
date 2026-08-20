@@ -8,7 +8,13 @@ type MemberLinkFile = {
 }
 
 export async function readMemberLinks(file: string): Promise<MemberIdentityLink[]> {
-  const parsed = JSON.parse(await readFile(file, "utf8")) as MemberLinkFile
+  let parsed: MemberLinkFile
+  try {
+    parsed = JSON.parse(await readFile(file, "utf8")) as MemberLinkFile
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return []
+    throw error
+  }
   if (parsed.version !== 1 || !parsed.members || typeof parsed.members !== "object") {
     throw new Error("Member link file has an unsupported shape.")
   }

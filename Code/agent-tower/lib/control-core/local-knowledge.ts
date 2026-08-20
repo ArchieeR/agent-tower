@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { readFile, readdir, realpath } from "node:fs/promises"
+import { access, readFile, readdir, realpath } from "node:fs/promises"
 import * as path from "node:path"
 
 export type KnowledgeSource = {
@@ -79,6 +79,22 @@ export class LocalKnowledgeConnector {
     this.sources = new Map(sources.map((source) => [source.id, { ...source, root: path.resolve(source.root) }]))
   }
 
+  private async availableSources(sourceIds?: string[]): Promise<KnowledgeSource[]> {
+    const requested = sourceIds?.length
+      ? sourceIds.map((id) => this.sources.get(id)).filter((source): source is KnowledgeSource => Boolean(source))
+      : Array.from(this.sources.values())
+    const available: KnowledgeSource[] = []
+    for (const source of requested) {
+      try {
+        await access(source.root)
+        available.push(source)
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
+      }
+    }
+    return available
+  }
+
   private async resolveDocument(
     documentId: string,
   ): Promise<{ source: KnowledgeSource; relativePath: string; absolutePath: string }> {
@@ -104,9 +120,7 @@ export class LocalKnowledgeConnector {
       .map((term) => term.trim())
       .filter(Boolean)
     if (!terms.length) throw new Error("Knowledge search query is required.")
-    const allowedSources = options.sourceIds?.length
-      ? options.sourceIds.map((id) => this.sources.get(id)).filter((source): source is KnowledgeSource => Boolean(source))
-      : Array.from(this.sources.values())
+    const allowedSources = await this.availableSources(options.sourceIds)
     const results: Array<KnowledgeSearchResult & { score: number }> = []
 
     for (const source of allowedSources) {

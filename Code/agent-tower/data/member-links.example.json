@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "members": {
+    "system-manager": {
+      "buzzMemberId": "buzz-agent:REPLACE_WITH_LOWERCASE_64_HEX_PUBLIC_KEY",
+      "roleProfileId": "system-manager"
+    }
+  }
+}

@@ -52,6 +52,12 @@ test("shared control core joins organization, context, knowledge, receipts and L
   })
   const service = core.bind(binding)
 
+  assert.ok(service.configureDepartment)
+  await assert.rejects(
+    () => service.configureDepartment!("missing-department", { skillIds: ["qa-e2e"] }),
+    /writes are unavailable/,
+  )
+
   const context = (await service.getCurrentContext(binding)) as {
     member: { id: string }
     runtime: { harness: string; provider: string; model: string }

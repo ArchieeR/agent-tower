@@ -70,7 +70,23 @@ function requireLoopbackEndpoint(endpoint: string): URL {
 }
 
 export async function readLocalRigSnapshot(file: string): Promise<LocalRigSafeSnapshot> {
-  const parsed = JSON.parse(await readFile(file, "utf8")) as RawRigSnapshot
+  let parsed: RawRigSnapshot
+  try {
+    parsed = JSON.parse(await readFile(file, "utf8")) as RawRigSnapshot
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
+    return {
+      capturedAt: new Date(0).toISOString(),
+      endpoint: "http://127.0.0.1:11435/v1",
+      model: "not-configured",
+      profile: "unavailable",
+      featureProfile: "unknown",
+      status: "unknown",
+      requestsProcessing: 0,
+      residentBytes: 0,
+      availableForJobs: false,
+    }
+  }
   const localModel = parsed.localModel
   if (!localModel?.endpoint || !localModel.model) throw new Error("Local Rig model snapshot is unavailable.")
   requireLoopbackEndpoint(localModel.endpoint)

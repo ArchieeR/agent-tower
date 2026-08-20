@@ -28,6 +28,8 @@ export type AgentTowerToolService = {
     skillIds?: string[]
     routineIds?: string[]
     toolIds?: string[]
+    buzzTeamIds?: string[]
+    buzzChannelIds?: string[]
   }): Promise<unknown>
   prepareChange?(change: Record<string, unknown>): Promise<unknown>
 }
@@ -189,18 +191,24 @@ export function createAgentTowerMcpServer(
         skillIds: z.array(z.string()).optional(),
         routineIds: z.array(z.string()).optional(),
         toolIds: z.array(z.string()).optional(),
+        buzzTeamIds: z.array(z.string()).optional(),
+        buzzChannelIds: z.array(z.string()).optional(),
       }),
     },
-    async ({ departmentId, memberIds, managerMemberIds, skillIds, routineIds, toolIds }) =>
-      invoke(() =>
-        service.configureDepartment?.(departmentId, {
+    async ({ departmentId, memberIds, managerMemberIds, skillIds, routineIds, toolIds, buzzTeamIds, buzzChannelIds }) => {
+      if (!service.configureDepartment) throw new Error("Department configuration is unavailable.")
+      return invoke(() =>
+        service.configureDepartment!(departmentId, {
           memberIds,
           managerMemberIds,
           skillIds,
           routineIds,
           toolIds,
-        }) ?? Promise.resolve({ ok: true, departmentId, status: "change-prepared" })
-      ),
+          buzzTeamIds,
+          buzzChannelIds,
+        }),
+      )
+    },
   )
   if (service.prepareChange) {
     server.registerTool(
