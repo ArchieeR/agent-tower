@@ -517,6 +517,8 @@ Owner message in Agent Tower Buzz
   → same Buzz thread
 ```
 
+For the v0.1 proof, the response is a normal same-thread Buzz channel message: the channel UUID scopes the event, and standard Buzz/NIP-10 reply tags point to the triggering event. Do not add a custom Agent Tower event kind/tag yet. The agent fetches and acknowledges current context through MCP; acknowledgement and any execution receipt remain canonical Agent Tower records. The Buzz reply may include only concise references (`member`, `runtime`, `contextRevision`, optional `receiptId`, and completion/block/review status), never the context hash, session token/secret, prompts, private keys, auth tags, full grants or raw knowledge content. A custom signed evidence event is deferred until a demonstrated query/verification requirement justifies a tested protocol extension.
+
 Only after the read-only proof should the owner approve department overlay changes through `agent_tower.department_configure`. Buzz team/channel IDs are references in Agent Tower policy, not copies of the organization policy into Buzz.
 
 ### Phase 5 — workflows and ACP runtime probe
