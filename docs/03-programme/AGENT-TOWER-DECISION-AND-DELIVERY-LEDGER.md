@@ -275,7 +275,7 @@ Owns exact Preview operation and evidence. Currently blocked; no code, raw store
 
 ### Host Adapters & Tool Registry (`20260820_18`)
 
-Worktree `host-adapters`, branch `feat/host-adapters`.
+The complete read-only Host Adapters branch was independently reviewed, fast-forwarded and pushed into `main` at `67cd1b1`. The worktree/branch remains as historical execution context; `main` is authoritative.
 
 Commits:
 
@@ -289,9 +289,11 @@ Commits:
 - `80230d9` no-substitution strict parser/target probe;
 - `07bc99b` Buzz-owned golden export fixture lock;
 - `f1ac536`, `103baab` operation-scoped support and fail-closed absence semantics;
-- `c0dc7d3`, `f824fab`, `baac4ae`, `95371b1`, `a5a7043` strict operation/plan/receipt parsing, padded-ID rejection and bounded JSON-native delta semantics.
+- `c0dc7d3`, `f824fab`, `baac4ae`, `95371b1`, `a5a7043` strict operation/plan/receipt parsing, padded-ID rejection and bounded JSON-native delta semantics;
+- `55460c7`, `af6602e` shared domain-digest migration and strict observation projections;
+- `717c937`, `53682ae`, `67cd1b1` safe file/catalog/Composio read-boundary hardening and final fail-closed structured-output checks.
 
-Reported verification: 123 tests, typecheck, lint and production build green; worktree clean. Independent parser review is closed. No live Composio/Buzz actions, apply behavior or Control Core/UI edits. Next gate is rebase onto the integrated shared digest and targeted observation-hash migration.
+Integrated main verification: 141 tests, typecheck, lint, production build and diff-check green; main clean/pushed. No live Composio/Buzz actions, apply behavior or duplicate Control Core policy logic. Runtime catalog/probe and operation-support transports remain future Buzz-native work; current Buzz create/update remains explicitly ineligible.
 
 ## 13. Linear workstream map
 
@@ -347,8 +349,8 @@ P0 order:
 
 P1 parallel:
 
-- integrate read-only Host Adapter/Composio branch after review;
-- separate static desired catalogs from observed adapter state;
+- wire UI/read models to the integrated read-only adapter evidence without promoting observations into grants;
+- separate remaining static desired catalogs from observed adapter state;
 - build canonical versioned skill/routine/tool definitions.
 
 P2:
