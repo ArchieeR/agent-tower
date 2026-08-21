@@ -30,8 +30,8 @@ export const buzzHostCatalogSchemaV1 = z.strictObject({
   const ids = new Set(catalog.entries.map((entry) => entry.id))
   const observations = catalog.observations ?? []
   if (observations.some((observation) => !ids.has(observation.hostRuntimeId))) context.addIssue({ code: "custom", message: "unknown observed runtime" })
-  const keys = observations.map((observation) => `${observation.hostRuntimeId}\0${observation.sessionRef ?? ""}`)
-  if (new Set(keys).size !== keys.length) context.addIssue({ code: "custom", message: "duplicate observation identity" })
+  const runtimeIds = observations.map((observation) => observation.hostRuntimeId)
+  if (new Set(runtimeIds).size !== runtimeIds.length) context.addIssue({ code: "custom", message: "duplicate observed runtime" })
 })
 
 export type BuzzHostCatalogSnapshotV1 = z.infer<typeof buzzHostCatalogSchemaV1>

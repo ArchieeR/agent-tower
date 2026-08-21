@@ -43,6 +43,7 @@ test("runtime catalog strict parser rejects malformed enums, nulls, duplicates, 
   assert.throws(() => parseBuzzHostCatalog({ ...runtime, hostId: " buzz" }))
   assert.throws(() => parseBuzzHostCatalog({ ...runtime, observations: [{ ...runtime.observations[0], command: "no" }] }))
   assert.throws(() => parseBuzzHostCatalog({ ...runtime, observations: [runtime.observations[0], runtime.observations[0]] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, observations: [{ ...runtime.observations[0], sessionRef: "session-a" }, { ...runtime.observations[0], sessionRef: "session-b" }] }))
 })
 
 test("runtime catalog enforces portable opaque IDs and bounded capabilities", () => {

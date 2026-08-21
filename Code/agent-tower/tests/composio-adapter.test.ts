@@ -37,6 +37,18 @@ test("inventory maps exact tools and leaves unknown tools unauthorized", async (
   assert.equal(JSON.stringify(inventory).includes("Secret Org"), false)
 })
 
+test("successful malformed inventory outputs fail health closed", async () => {
+  for (const command of ["whoami", "tools-list", "triggers-list"] as const) {
+    const outputs: Record<string, CommandExecution> = { version: result("1.2.3"), whoami: result("{}"), "tools-list": result("[]"), "triggers-list": result("[]") }
+    outputs[command] = result("not-json")
+    const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: ["linear"], runner: fixtureRunner(outputs) })
+    const inventory = await adapter.inventory()
+    assert.ok(inventory.warnings.some((warning) => warning.code === "MALFORMED_OUTPUT"))
+    assert.notEqual(inventory.health, "available")
+    if (command === "whoami") assert.equal(inventory.data.authenticated, false)
+  }
+})
+
 test("developer account inventory is disabled by default", async () => {
   const commands: string[] = []
   const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: async (spec) => { commands.push(spec.command); return result(spec.command === "version" ? "1" : "{}") } })
@@ -78,6 +90,15 @@ test("tool probe returns only bounded schema field names", async () => {
   const probe = await adapter.probe("LINEAR_GET_LINEAR_ISSUE")
   assert.deepEqual(probe.data.tool.schema, { inputFields: ["issueId"], requiredFields: ["issueId"] })
   assert.equal(JSON.stringify(probe).includes("secret"), false)
+})
+
+test("successful malformed tool info or schema degrades probe", async () => {
+  for (const command of ["tools-info", "tool-schema"] as const) {
+    const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: fixtureRunner({ "tools-info": result("{}"), "tool-schema": result("{}"), [command]: result("not-json") }) })
+    const probe = await adapter.probe("LINEAR_GET_LINEAR_ISSUE")
+    assert.equal(probe.health, "degraded")
+    assert.ok(probe.warnings.some((warning) => warning.code === "MALFORMED_OUTPUT"))
+  }
 })
 
 test("command allowlist rejects mutation and unsafe argument forms", () => {
