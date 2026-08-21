@@ -49,14 +49,12 @@ function parseJson(result: CommandExecution): ParsedJson {
   if (!text) return { ok: false }
   try { return { ok: true, value: JSON.parse(text) as unknown } } catch { return { ok: false } }
 }
-function records(value: unknown, keys: string[]): Record<string, unknown>[] {
-  if (Array.isArray(value)) return value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
-  if (!value || typeof value !== "object") return []
-  for (const key of keys) {
-    const item = (value as Record<string, unknown>)[key]
-    if (Array.isArray(item)) return records(item, [])
-  }
-  return []
+function plainObject(value: unknown): value is Record<string, unknown> { return Boolean(value && typeof value === "object" && !Array.isArray(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)) }
+function recordContainer(value: unknown, keys: string[]): { ok: boolean; records: Record<string, unknown>[] } {
+  const list = Array.isArray(value) ? value : plainObject(value) ? keys.map((key) => value[key]).find(Array.isArray) : undefined
+  if (!Array.isArray(list)) return { ok: false, records: [] }
+  if (list.some((item) => !plainObject(item))) return { ok: false, records: [] }
+  return { ok: true, records: list }
 }
 function text(record: Record<string, unknown>, keys: string[]): string | undefined {
   for (const key of keys) if (typeof record[key] === "string" && (record[key] as string).trim()) return (record[key] as string).trim()
@@ -107,8 +105,8 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
     const whoamiParsed = parseJson(whoamiResult)
     const whoami = whoamiParsed.ok ? whoamiParsed.value : undefined
     evidenceItems.push(evidence("whoami", whoamiResult))
-    const authenticated = whoamiResult.exitClass === "success" && whoamiParsed.ok && Boolean(whoami && typeof whoami === "object" && !Array.isArray(whoami))
-    if (whoamiResult.exitClass === "success" && !whoamiParsed.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio whoami returned malformed structured output." })
+    const authenticated = whoamiResult.exitClass === "success" && whoamiParsed.ok && plainObject(whoami)
+    if (whoamiResult.exitClass === "success" && (!whoamiParsed.ok || !plainObject(whoami))) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio whoami returned malformed structured output." })
     if (!authenticated) warnings.push({ code: "UNAUTHENTICATED", message: "Composio CLI is not authenticated." })
     const who = whoami && typeof whoami === "object" ? whoami as Record<string, unknown> : {}
     const accountType = typeof who.accountType === "string" && SAFE_ACCOUNT_TYPE.test(who.accountType) ? who.accountType : undefined
@@ -117,9 +115,10 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
     for (const toolkitSlug of this.config.discoveryToolkits) {
       const toolResult = await this.runner({ command: "tools-list", args: ["tools", "list", toolkitSlug] })
       const toolParsed = parseJson(toolResult)
-      const toolRecords = records(toolParsed.ok ? toolParsed.value : undefined, ["tools", "items", "data"])
+      const toolContainer = recordContainer(toolParsed.ok ? toolParsed.value : undefined, ["tools", "items", "data"])
+      const toolRecords = toolContainer.records
       evidenceItems.push(evidence("tools-list", toolResult, toolRecords.length))
-      if (toolResult.exitClass === "success" && !toolParsed.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio tools list returned malformed structured output." })
+      if (toolResult.exitClass === "success" && (!toolParsed.ok || !toolContainer.ok)) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio tools list returned malformed structured output." })
       for (const record of toolRecords.slice(0, 2_000)) {
         const toolSlug = text(record, ["slug", "name", "toolSlug"])
         if (!toolSlug || !SAFE_TOOL.test(toolSlug)) continue
@@ -128,9 +127,10 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
       }
       const triggerResult = await this.runner({ command: "triggers-list", args: ["triggers", "list", toolkitSlug] })
       const triggerParsed = parseJson(triggerResult)
-      const triggerRecords = records(triggerParsed.ok ? triggerParsed.value : undefined, ["triggers", "items", "data"])
+      const triggerContainer = recordContainer(triggerParsed.ok ? triggerParsed.value : undefined, ["triggers", "items", "data"])
+      const triggerRecords = triggerContainer.records
       evidenceItems.push(evidence("triggers-list", triggerResult, triggerRecords.length))
-      if (triggerResult.exitClass === "success" && !triggerParsed.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio triggers list returned malformed structured output." })
+      if (triggerResult.exitClass === "success" && (!triggerParsed.ok || !triggerContainer.ok)) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio triggers list returned malformed structured output." })
       for (const record of triggerRecords.slice(0, 2_000)) {
         const triggerSlug = text(record, ["slug", "name", "triggerSlug"])
         if (triggerSlug && SAFE_TOOL.test(triggerSlug)) {
@@ -143,10 +143,11 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
     if (this.config.developerProjectInventory) {
       const result = await this.runner({ command: "developer-connections-list", args: ["dev", "connected-accounts", "list"] })
       const connectionParsed = parseJson(result)
-      const connectionRecords = records(connectionParsed.ok ? connectionParsed.value : undefined, ["connectedAccounts", "connected_accounts", "items", "data"])
+      const connectionContainer = recordContainer(connectionParsed.ok ? connectionParsed.value : undefined, ["connectedAccounts", "connected_accounts", "items", "data"])
+      const connectionRecords = connectionContainer.records
       evidenceItems.push(evidence("developer-connections-list", result, connectionRecords.length))
       if (result.exitClass !== "success") warnings.push({ code: "UNCONFIGURED", message: "Developer project account inventory is unconfigured." })
-      else if (!connectionParsed.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio connected accounts returned malformed structured output." })
+      else if (!connectionParsed.ok || !connectionContainer.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio connected accounts returned malformed structured output." })
       for (const record of connectionRecords.slice(0, 1_000)) {
         const toolkitSlug = text(record, ["toolkitSlug", "toolkit_slug", "toolkit"])
         const opaque = text(record, ["id", "accountId", "account_id"])
@@ -177,8 +178,8 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
     if (mapping.mappingState === "unmapped") warnings.push({ code: "UNMAPPED_TOOL", message: `Observed tool ${toolSlug} has no explicit capability mapping.` })
     const infoParsed = parseJson(infoResult)
     const schemaParsed = parseJson(schemaResult)
-    if (infoResult.exitClass === "success" && !infoParsed.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio tool info returned malformed structured output." })
-    if (schemaResult.exitClass === "success" && !schemaParsed.ok) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio tool schema returned malformed structured output." })
+    if (infoResult.exitClass === "success" && (!infoParsed.ok || !plainObject(infoParsed.value))) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio tool info returned malformed structured output." })
+    if (schemaResult.exitClass === "success" && (!schemaParsed.ok || !plainObject(schemaParsed.value))) warnings.push({ code: "MALFORMED_OUTPUT", message: "Composio tool schema returned malformed structured output." })
     const info = infoParsed.ok ? infoParsed.value : undefined
     const record = info && typeof info === "object" ? info as Record<string, unknown> : {}
     const name = text(record, ["displayName", "display_name", "description"])?.slice(0, 256)

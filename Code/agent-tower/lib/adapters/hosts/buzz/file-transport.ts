@@ -43,7 +43,7 @@ export class BuzzOrganizationCompatibilityFileTransport implements BuzzOrganizat
     const handle = await this.files.openNoFollow(this.exportFile)
     try {
       const opened = await handle.stat()
-      if (!opened.isFile() || opened.dev !== linkState.dev || opened.ino !== linkState.ino || opened.size !== linkState.size || opened.mtimeMs !== linkState.mtimeMs || opened.size > this.maxBytes) throw new Error("Buzz safe export changed during secure open.")
+      if (!opened.isFile() || opened.dev !== linkState.dev || opened.ino !== linkState.ino || opened.size !== linkState.size || opened.mtimeMs !== linkState.mtimeMs || opened.size > this.maxBytes || (this.expectedOwnerUid !== undefined && opened.uid !== this.expectedOwnerUid) || (opened.mode & 0o077) !== 0) throw new Error("Buzz safe export changed during secure open.")
       const buffer = Buffer.allocUnsafe(this.maxBytes + 1)
       let offset = 0
       while (offset <= this.maxBytes) {
@@ -53,7 +53,7 @@ export class BuzzOrganizationCompatibilityFileTransport implements BuzzOrganizat
       }
       if (offset > this.maxBytes) throw new Error("Buzz safe export exceeds the bounded size.")
       const finalState = await handle.stat()
-      if (finalState.dev !== opened.dev || finalState.ino !== opened.ino || finalState.size !== opened.size || finalState.mtimeMs !== opened.mtimeMs || offset !== opened.size) throw new Error("Buzz safe export changed during bounded read.")
+      if (finalState.dev !== opened.dev || finalState.ino !== opened.ino || finalState.size !== opened.size || finalState.mtimeMs !== opened.mtimeMs || offset !== opened.size || (this.expectedOwnerUid !== undefined && finalState.uid !== this.expectedOwnerUid) || (finalState.mode & 0o077) !== 0) throw new Error("Buzz safe export changed during bounded read.")
       return JSON.parse(buffer.subarray(0, offset).toString("utf8"))
     } finally {
       await handle.close()

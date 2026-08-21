@@ -45,4 +45,18 @@ test("file transport detects replacement and growth races", async () => {
     await assert.rejects(() => growth.getOrganizationCompatibilityPayload(), /exceeds|changed/)
   } finally { await rm(root, { recursive: true, force: true }) }
 })
+test("file transport rechecks ownership and permissions after open and final read", async () => {
+  const { root, file } = await fixtureFile(); const base = new BuzzOrganizationCompatibilityFileTransport({ exportFile: file }) as unknown as { files: SafeFileOperations }; const real = base.files
+  try {
+    for (const phase of ["open", "final"] as const) {
+      const transport = new BuzzOrganizationCompatibilityFileTransport({ exportFile: file, fileOperations: { lstat: real.lstat, openNoFollow: async (target) => {
+        const handle = await real.openNoFollow(target); const originalStat = handle.stat.bind(handle); let calls = 0
+        Object.defineProperty(handle, "stat", { value: async () => { const state = await originalStat(); calls += 1; return phase === "open" && calls === 1 ? Object.assign(state, { mode: state.mode | 0o004 }) : phase === "final" && calls === 2 ? Object.assign(state, { uid: state.uid + 1 }) : state } })
+        return handle
+      } } })
+      await assert.rejects(() => transport.getOrganizationCompatibilityPayload(), /changed during/)
+    }
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
 test("file transport requires an explicit absolute path", () => { assert.throws(() => new BuzzOrganizationCompatibilityFileTransport({ exportFile: "data/export.json" }), /absolute/) })

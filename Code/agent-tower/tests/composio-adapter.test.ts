@@ -49,6 +49,16 @@ test("successful malformed inventory outputs fail health closed", async () => {
   }
 })
 
+test("syntactically valid wrong-shaped inventory JSON fails closed", async () => {
+  for (const [command, malformed] of [["whoami", "[]"], ["whoami", "1"], ["tools-list", "{}"], ["tools-list", "{\"wrong\":[]}"], ["triggers-list", "1"]] as const) {
+    const outputs: Record<string, CommandExecution> = { version: result("1.2.3"), whoami: result("{}"), "tools-list": result("[]"), "triggers-list": result("[]") }
+    outputs[command] = result(malformed)
+    const inventory = await new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: ["linear"], runner: fixtureRunner(outputs) }).inventory()
+    assert.ok(inventory.warnings.some((warning) => warning.code === "MALFORMED_OUTPUT"))
+    assert.notEqual(inventory.health, "available")
+  }
+})
+
 test("developer account inventory is disabled by default", async () => {
   const commands: string[] = []
   const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: async (spec) => { commands.push(spec.command); return result(spec.command === "version" ? "1" : "{}") } })
@@ -96,6 +106,14 @@ test("successful malformed tool info or schema degrades probe", async () => {
   for (const command of ["tools-info", "tool-schema"] as const) {
     const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: fixtureRunner({ "tools-info": result("{}"), "tool-schema": result("{}"), [command]: result("not-json") }) })
     const probe = await adapter.probe("LINEAR_GET_LINEAR_ISSUE")
+    assert.equal(probe.health, "degraded")
+    assert.ok(probe.warnings.some((warning) => warning.code === "MALFORMED_OUTPUT"))
+  }
+})
+
+test("syntactically valid wrong-shaped tool info or schema degrades probe", async () => {
+  for (const [command, malformed] of [["tools-info", "[]"], ["tools-info", "1"], ["tool-schema", "[]"], ["tool-schema", "1"]] as const) {
+    const probe = await new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: fixtureRunner({ "tools-info": result("{}"), "tool-schema": result("{}"), [command]: result(malformed) }) }).probe("LINEAR_GET_LINEAR_ISSUE")
     assert.equal(probe.health, "degraded")
     assert.ok(probe.warnings.some((warning) => warning.code === "MALFORMED_OUTPUT"))
   }
