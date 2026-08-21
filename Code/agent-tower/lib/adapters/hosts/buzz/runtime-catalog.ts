@@ -1,47 +1,47 @@
+import { z } from "zod"
+
 import type { AdapterHealthStateV1, HostCatalogSnapshotV1, HostObservationSnapshotV1, HostProbeSnapshotV1 } from "../../contracts/index.ts"
 
-export type BuzzHostCatalogSnapshotV1 = {
-  schemaVersion: "1"
-  sourceVersion: string
-  sourceRevision: string
-  observedAt: string
-  staleAfterMs: number
-  hostId: string
-  entries: Array<{
-    id: string
-    capabilities: string[]
-    readiness: "ready" | "blocked" | "unavailable" | "unknown"
-    auth: { required: boolean; configured: boolean | "unknown" }
-  }>
-  observations?: Array<{
-    hostRuntimeId: string
-    status: "ready" | "running" | "stopped" | "blocked" | "unavailable" | "unknown"
-    sessionRef?: string
-  }>
+export class BuzzHostCatalogValidationError extends Error {
+  readonly code = "BUZZ_HOST_CATALOG_INVALID" as const
+  constructor() { super("BuzzHostCatalogSnapshotV1 is invalid."); this.name = "BuzzHostCatalogValidationError" }
 }
 
+const portableId = z.string().min(1).max(128).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)
+const sourceRevision = z.string().min(1).max(512).refine((value) => value === value.trim() && !/[\u0000-\u001f\u007f]/.test(value))
+const capability = portableId
+const entrySchema = z.strictObject({
+  id: portableId,
+  capabilities: z.array(capability).max(128).refine((values) => new Set(values).size === values.length, "duplicate capability"),
+  readiness: z.enum(["ready", "blocked", "unavailable", "unknown"]),
+  auth: z.strictObject({ required: z.boolean(), configured: z.union([z.boolean(), z.literal("unknown")]) }),
+})
+const observationSchema = z.strictObject({
+  hostRuntimeId: portableId,
+  status: z.enum(["ready", "running", "stopped", "blocked", "unavailable", "unknown"]),
+  // Transient session correlation is accepted only as a bounded portable token and is stripped from Agent Tower output.
+  sessionRef: portableId.optional(),
+})
+export const buzzHostCatalogSchemaV1 = z.strictObject({
+  schemaVersion: z.literal("1"), sourceVersion: portableId, sourceRevision, observedAt: z.iso.datetime(), staleAfterMs: z.number().int().positive().max(3_600_000), hostId: portableId,
+  entries: z.array(entrySchema).max(256).refine((entries) => new Set(entries.map((entry) => entry.id)).size === entries.length, "duplicate runtime ID"),
+  observations: z.array(observationSchema).max(10_000).optional(),
+}).superRefine((catalog, context) => {
+  const ids = new Set(catalog.entries.map((entry) => entry.id))
+  const observations = catalog.observations ?? []
+  if (observations.some((observation) => !ids.has(observation.hostRuntimeId))) context.addIssue({ code: "custom", message: "unknown observed runtime" })
+  const keys = observations.map((observation) => `${observation.hostRuntimeId}\0${observation.sessionRef ?? ""}`)
+  if (new Set(keys).size !== keys.length) context.addIssue({ code: "custom", message: "duplicate observation identity" })
+})
+
+export type BuzzHostCatalogSnapshotV1 = z.infer<typeof buzzHostCatalogSchemaV1>
 export type BuzzHostCatalogTransport = { getHostCatalog(): Promise<unknown> }
 
-const PORTABLE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
-const CAPABILITY = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
-
 export function parseBuzzHostCatalog(value: unknown): BuzzHostCatalogSnapshotV1 {
-  if (!value || typeof value !== "object") throw new Error("Buzz runtime catalog must be an object.")
-  const catalog = value as BuzzHostCatalogSnapshotV1
-  if (catalog.schemaVersion !== "1" || !PORTABLE_ID.test(catalog.hostId ?? "") || !Number.isFinite(Date.parse(catalog.observedAt)) || !Number.isInteger(catalog.staleAfterMs) || catalog.staleAfterMs < 1 || catalog.staleAfterMs > 3_600_000 || typeof catalog.sourceRevision !== "string" || !catalog.sourceRevision || catalog.sourceRevision.length > 512 || typeof catalog.sourceVersion !== "string" || catalog.sourceVersion.length > 128 || !Array.isArray(catalog.entries) || catalog.entries.length > 256) throw new Error("Buzz runtime catalog metadata is invalid.")
-  const rootKeys = new Set(["schemaVersion", "sourceVersion", "sourceRevision", "observedAt", "staleAfterMs", "hostId", "entries", "observations"])
-  if (Object.keys(catalog).some((key) => !rootKeys.has(key))) throw new Error("Buzz runtime catalog contains unsupported fields.")
-  const ids = new Set<string>()
-  for (const entry of catalog.entries) {
-    if (Object.keys(entry).some((key) => !["id", "capabilities", "readiness", "auth"].includes(key)) || Object.keys(entry.auth ?? {}).some((key) => !["required", "configured"].includes(key))) throw new Error("Buzz runtime catalog entry contains unsupported fields.")
-    if (!PORTABLE_ID.test(entry.id) || ids.has(entry.id) || !Array.isArray(entry.capabilities) || entry.capabilities.length > 128 || entry.capabilities.some((claim) => !CAPABILITY.test(claim))) throw new Error("Buzz runtime catalog entry is invalid.")
-    if (!entry.auth || typeof entry.auth.required !== "boolean" || ![true, false, "unknown"].includes(entry.auth.configured)) throw new Error("Buzz runtime catalog auth state is invalid.")
-    ids.add(entry.id)
-  }
-  if (catalog.observations && (!Array.isArray(catalog.observations) || catalog.observations.length > 10_000 || catalog.observations.some((observation) => !ids.has(observation.hostRuntimeId) || (observation.sessionRef !== undefined && (typeof observation.sessionRef !== "string" || observation.sessionRef.length > 512))))) throw new Error("Buzz runtime observations are invalid.")
-  return catalog
+  const result = buzzHostCatalogSchemaV1.safeParse(value)
+  if (!result.success) throw new BuzzHostCatalogValidationError()
+  return result.data
 }
-
 export function runtimeCatalogSnapshot(adapterId: string, source: BuzzHostCatalogSnapshotV1): HostCatalogSnapshotV1 {
   return { hosts: source.entries.map((entry) => ({ adapterId, hostId: source.hostId, hostRuntimeId: entry.id, capabilities: [...entry.capabilities].sort() })) }
 }

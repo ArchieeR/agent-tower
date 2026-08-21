@@ -30,10 +30,22 @@ test("Buzz adapter keeps organization and runtime catalog revisions independent"
 })
 
 test("runtime catalog rejects command and path shaped data", () => {
-  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], command: "/bin/goose", env: ["SECRET"] }] }), /unsupported fields/)
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], command: "/bin/goose", env: ["SECRET"] }] }), /BuzzHostCatalogSnapshotV1 is invalid/)
+})
+
+test("runtime catalog strict parser rejects malformed enums, nulls, duplicates, padded IDs and unknown observation keys", () => {
+  for (const readiness of ["online", null]) assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], readiness }] }))
+  for (const status of ["online", null]) assert.throws(() => parseBuzzHostCatalog({ ...runtime, observations: [{ hostRuntimeId: "goose", status }] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [null] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], auth: null }] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [runtime.entries[0], runtime.entries[0]] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], capabilities: ["buzz:acp", "buzz:acp"] }] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, hostId: " buzz" }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, observations: [{ ...runtime.observations[0], command: "no" }] }))
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, observations: [runtime.observations[0], runtime.observations[0]] }))
 })
 
 test("runtime catalog enforces portable opaque IDs and bounded capabilities", () => {
-  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], id: "/Applications/Goose" }] }), /entry/)
-  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], capabilities: Array.from({ length: 129 }, (_, index) => `buzz:c${index}`) }] }), /entry/)
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], id: "/Applications/Goose" }] }), /BuzzHostCatalogSnapshotV1 is invalid/)
+  assert.throws(() => parseBuzzHostCatalog({ ...runtime, entries: [{ ...runtime.entries[0], capabilities: Array.from({ length: 129 }, (_, index) => `buzz:c${index}`) }] }), /BuzzHostCatalogSnapshotV1 is invalid/)
 })

@@ -22,13 +22,15 @@ export type ComposioAdapterConfig = {
   discoveryToolkits: string[]
   discoveryQueries?: string[]
   developerProjectInventory?: boolean
-  connectionRefKey?: string
+  connectionRefKey?: string | Buffer | Uint8Array
   now?: () => Date
   runner?: ComposioCommandRunner
 }
 
 const SAFE_TOOLKIT = /^[a-z][a-z0-9_]{0,127}$/
 const SAFE_TOOL = /^[A-Z][A-Z0-9_]{0,255}$/
+const SAFE_VERSION = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$/
+const SAFE_ACCOUNT_TYPE = /^[a-z][a-z0-9_-]{0,31}$/
 const SECRET_KEY = /(token|secret|password|credential|api.?key|cookie|authorization|header)/i
 const PII_ALIAS = /@|https?:|www\.|\b\d{7,}\b|[A-Za-z0-9+/=_-]{32,}/i
 const ANSI = /\u001b\[[0-?]*[ -/]*[@-~]/g
@@ -61,7 +63,8 @@ function safeAlias(value: unknown): string | undefined {
   const alias = value.trim()
   return alias.length >= 1 && alias.length <= 64 && /^[A-Za-z][A-Za-z0-9 _.-]*$/.test(alias) && !PII_ALIAS.test(alias) ? alias : undefined
 }
-function connectionRef(key: string, toolkit: string, opaque: string): string { return `conn_${createHmac("sha256", key).update(`${toolkit}\0${opaque}`).digest("hex").slice(0, 24)}` }
+function connectionRef(key: string | Buffer | Uint8Array, toolkit: string, opaque: string): string { return `conn_${createHmac("sha256", key).update(`${toolkit}\0${opaque}`).digest("hex").slice(0, 24)}` }
+function keyBytes(key: string | Buffer | Uint8Array): number { return typeof key === "string" ? Buffer.byteLength(key, "utf8") : key.byteLength }
 function schemaSummary(value: unknown): ToolSchemaSummaryV1 {
   const root = value && typeof value === "object" ? value as Record<string, unknown> : {}
   const schema = (root.schema ?? root.input_schema ?? root.inputSchema ?? root) as Record<string, unknown>
@@ -78,7 +81,7 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
   constructor(config: ComposioAdapterConfig) {
     this.config = config
     if (config.discoveryToolkits.length > 32 || config.discoveryToolkits.some((slug) => !SAFE_TOOLKIT.test(slug))) throw new Error("Invalid Composio discovery toolkit configuration.")
-    if (config.developerProjectInventory && !config.connectionRefKey) throw new Error("Developer account inventory requires an injected connection reference HMAC key.")
+    if (config.developerProjectInventory && (!config.connectionRefKey || keyBytes(config.connectionRefKey) < 32)) throw new Error("Developer account inventory requires an injected connection reference HMAC key of at least 32 bytes.")
     this.runner = config.runner ?? createComposioCommandRunner({ cwd: config.projectRoot })
     this.now = config.now ?? (() => new Date())
   }
@@ -95,14 +98,15 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
     const versionResult = await this.runner({ command: "version", args: ["version"] })
     evidenceItems.push(evidence("version", versionResult))
     if (versionResult.exitClass === "not-found") return this.envelope({ toolHostId: "composio-cli", authenticated: false, tools: [], triggers: [], connections: [] }, "unavailable", undefined, evidenceItems, [{ code: "CLI_UNAVAILABLE", message: "Composio CLI is unavailable." }])
-    const sourceVersion = versionResult.exitClass === "success" ? versionResult.stdout.trim().slice(0, 64) : undefined
+    const rawVersion = versionResult.exitClass === "success" ? versionResult.stdout.trim() : undefined
+    const sourceVersion = rawVersion && SAFE_VERSION.test(rawVersion) ? rawVersion : undefined
     const whoamiResult = await this.runner({ command: "whoami", args: ["whoami"] })
     const whoami = parseJson(whoamiResult)
     evidenceItems.push(evidence("whoami", whoamiResult))
     const authenticated = whoamiResult.exitClass === "success"
     if (!authenticated) warnings.push({ code: "UNAUTHENTICATED", message: "Composio CLI is not authenticated." })
     const who = whoami && typeof whoami === "object" ? whoami as Record<string, unknown> : {}
-    const accountType = typeof who.accountType === "string" && who.accountType.length <= 32 ? who.accountType : undefined
+    const accountType = typeof who.accountType === "string" && SAFE_ACCOUNT_TYPE.test(who.accountType) ? who.accountType : undefined
     const tools: ObservedToolV1[] = []
     const triggers: ToolInventorySnapshotV1["triggers"] = []
     for (const toolkitSlug of this.config.discoveryToolkits) {

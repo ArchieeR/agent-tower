@@ -46,7 +46,7 @@ test("developer account inventory is disabled by default", async () => {
 
 test("developer connections use keyed refs and redact unsafe aliases and identifiers", async () => {
   const adapter = new ComposioCliAdapter({
-    projectRoot: "/fixture", discoveryToolkits: [], developerProjectInventory: true, connectionRefKey: "fixture-only-key",
+    projectRoot: "/fixture", discoveryToolkits: [], developerProjectInventory: true, connectionRefKey: Buffer.alloc(32, 7),
     runner: fixtureRunner({
       version: result("1"), whoami: result("{}"),
       "developer-connections-list": result(JSON.stringify({ connectedAccounts: [{ toolkitSlug: "gmail", id: "provider-account-123", email: "private@example.com", alias: "private@example.com", token: "secret" }] })),
@@ -60,6 +60,14 @@ test("developer connections use keyed refs and redact unsafe aliases and identif
   assert.equal(output.includes("private@example.com"), false)
   assert.equal(output.includes("secret"), false)
   assert.ok(inventory.warnings.some((warning) => warning.code === "REDACTED_METADATA"))
+})
+
+test("Composio adapter rejects weak connection keys and omits unsafe version/account tokens", async () => {
+  assert.throws(() => new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], developerProjectInventory: true, connectionRefKey: "short" }), /32 bytes/)
+  const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: fixtureRunner({ version: result("1.2.3\nINJECTED"), whoami: result(JSON.stringify({ accountType: "Consumer Admin" })) }) })
+  const inventory = await adapter.inventory()
+  assert.equal(inventory.sourceVersion, undefined)
+  assert.equal(inventory.data.accountType, undefined)
 })
 
 test("tool probe returns only bounded schema field names", async () => {

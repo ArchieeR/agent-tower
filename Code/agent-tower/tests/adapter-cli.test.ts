@@ -16,6 +16,8 @@ async function run(args: string[], runner?: ComposioCommandRunner) {
 
 test("adapters list is safe JSON and advertises no mutation support", async () => {
   const output = await run(["adapters", "list"])
+  assert.equal(output.transport, "local-operator-diagnostic")
+  assert.equal(output.governedManagerApi, false)
   assert.deepEqual(output.adapters[0].operations, ["inventory", "probe"])
   assert.equal(output.adapters[0].mutationSupported, false)
 })

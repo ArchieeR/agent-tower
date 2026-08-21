@@ -23,7 +23,7 @@ export function isAdapterCliCommand(args: string[]): boolean {
 
 export async function runAdapterCli(args: string[], runtime: AdapterCliRuntime): Promise<number> {
   if (args[0] === "adapters" && args[1] === "list") {
-    writeJson(runtime, { schemaVersion: "1", adapters: [{ adapterId: "composio", kind: "tool-host", operations: ["inventory", "probe"], mutationSupported: false }] })
+    writeJson(runtime, { schemaVersion: "1", transport: "local-operator-diagnostic", governedManagerApi: false, adapters: [{ adapterId: "composio", kind: "tool-host", operations: ["inventory", "probe"], mutationSupported: false }] })
     return 0
   }
   if (args[0] === "adapters" && args[1] === "probe") {
@@ -46,5 +46,5 @@ export async function runAdapterCli(args: string[], runtime: AdapterCliRuntime):
     writeJson(runtime, await adapter(runtime).probe(toolSlug))
     return 0
   }
-  throw new Error("Usage: agent-tower adapters list | adapters probe [composio] | tools inventory [--adapter composio] | tools probe --tool <slug> [--adapter composio]")
+  throw new Error("Local operator diagnostics only (read-only; not the governed manager API). Usage: agent-tower adapters list | adapters probe [composio] | tools inventory [--adapter composio] | tools probe --tool <slug> [--adapter composio]")
 }
