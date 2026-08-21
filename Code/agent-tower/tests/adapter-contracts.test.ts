@@ -12,6 +12,6 @@ test("adapter envelopes distinguish adapter observation revision from policy rev
 })
 
 test("an unmapped observed tool carries no desired capability", () => {
-  const mapping: ObservedToolMappingV1 = { adapterId: "composio", toolkitSlug: "unknown", toolSlug: "UNKNOWN_DO", mappingState: "unmapped", mappingMethod: "none" }
+  const mapping: ObservedToolMappingV1 = { adapterId: "composio", toolkitSlug: "unknown", toolSlug: "UNKNOWN_DO", mappingState: "unmapped", mappingMethod: "none", mappingRevision: "registry-revision" }
   assert.equal(mapping.desiredCapability, undefined)
 })

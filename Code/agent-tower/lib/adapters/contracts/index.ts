@@ -86,6 +86,7 @@ export type ObservedToolMappingV1 = {
   desiredCapability?: DesiredCapabilityRefV1
   mappingState: "mapped" | "unmapped"
   mappingMethod: "explicit" | "none"
+  mappingRevision: string
 }
 export type ToolSchemaSummaryV1 = { inputFields: string[]; requiredFields: string[] }
 export type ObservedToolV1 = { toolkitSlug: string; toolSlug: string; name?: string; schema?: ToolSchemaSummaryV1; mapping: ObservedToolMappingV1 }
