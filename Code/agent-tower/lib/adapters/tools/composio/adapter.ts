@@ -15,7 +15,7 @@ import type {
   ToolSchemaSummaryV1,
 } from "../../contracts/index.ts"
 import { createComposioCommandRunner, type CommandExecution, type ComposioCommandRunner } from "./command-runner.ts"
-import { mapObservedComposioTool } from "./mappings.ts"
+import { mapObservedComposioTool, resolveObservedComposioTool } from "./mappings.ts"
 
 export type ComposioAdapterConfig = {
   projectRoot: string
@@ -168,13 +168,13 @@ export class ComposioCliAdapter implements ToolHostAdapterV1 {
 
   async probe(toolSlug: string): Promise<AdapterEnvelopeV1<ToolProbeSnapshotV1>> {
     if (!SAFE_TOOL.test(toolSlug)) throw new Error("Invalid Composio tool slug.")
-    const toolkitSlug = toolSlug.split("_", 1)[0].toLowerCase()
+    const mapping = resolveObservedComposioTool(toolSlug)
+    const toolkitSlug = mapping.toolkitSlug
     const infoResult = await this.runner({ command: "tools-info", args: ["tools", "info", toolSlug] })
     const schemaResult = await this.runner({ command: "tool-schema", args: ["execute", toolSlug, "--get-schema"] })
     const evidenceItems = [evidence("tools-info", infoResult), evidence("tool-schema", schemaResult)]
     const warnings: AdapterWarningV1[] = []
     if (infoResult.exitClass !== "success" || schemaResult.exitClass !== "success") warnings.push({ code: "COMMAND_FAILED", message: "Composio tool metadata probe did not complete successfully." })
-    const mapping = mapObservedComposioTool(toolkitSlug, toolSlug)
     if (mapping.mappingState === "unmapped") warnings.push({ code: "UNMAPPED_TOOL", message: `Observed tool ${toolSlug} has no explicit capability mapping.` })
     const infoParsed = parseJson(infoResult)
     const schemaParsed = parseJson(schemaResult)

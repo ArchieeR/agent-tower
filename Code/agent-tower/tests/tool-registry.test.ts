@@ -4,8 +4,11 @@ import { test } from "node:test"
 import {
   canonicalToolRegistryV1,
   canonicalToolRegistryRevisionV1,
+  compareCanonicalToolCoordinatesV1,
+  createCanonicalToolRegistryV1,
   mapCanonicalComposioToolV1,
   projectCanonicalToolStatusV1,
+  type CanonicalToolDefinitionV1,
 } from "../lib/adapters/tools/registry.ts"
 import type { AdapterEnvelopeV1, ToolInventorySnapshotV1 } from "../lib/adapters/contracts/index.ts"
 
@@ -66,6 +69,56 @@ test("Google Search Console mapping uses the exact Composio toolkit slug", () =>
   assert.equal(
     mapCanonicalComposioToolV1("google", "GOOGLE_SEARCH_CONSOLE_LIST_SITES").mappingState,
     "unmapped",
+  )
+})
+
+const fixtureDefinition: CanonicalToolDefinitionV1 = {
+  capabilityId: "fixture-one",
+  name: "Fixture One",
+  kind: "tool",
+  provider: "Fixture",
+  permissionPolicy: "scoped-read",
+  adapterId: "composio",
+  exactTools: [{ toolkitSlug: "fixture", toolSlug: "FIXTURE_READ" }],
+}
+
+test("canonical registry construction rejects duplicate capability IDs", () => {
+  assert.throws(
+    () => createCanonicalToolRegistryV1([
+      fixtureDefinition,
+      { ...fixtureDefinition, exactTools: [{ toolkitSlug: "other", toolSlug: "OTHER_READ" }] },
+    ]),
+    /Duplicate canonical capability ID: fixture-one/,
+  )
+})
+
+test("canonical registry construction rejects duplicate exact tool bindings", () => {
+  assert.throws(
+    () => createCanonicalToolRegistryV1([
+      fixtureDefinition,
+      { ...fixtureDefinition, capabilityId: "fixture-two", exactTools: [{ toolkitSlug: "fixture", toolSlug: "FIXTURE_READ" }] },
+    ]),
+    /Duplicate canonical tool binding: fixture:FIXTURE_READ/,
+  )
+})
+
+test("canonical registry construction rejects ambiguous bare tool slugs used by probe", () => {
+  assert.throws(
+    () => createCanonicalToolRegistryV1([
+      fixtureDefinition,
+      { ...fixtureDefinition, capabilityId: "fixture-two", exactTools: [{ toolkitSlug: "other", toolSlug: "FIXTURE_READ" }] },
+    ]),
+    /Ambiguous canonical tool slug: FIXTURE_READ/,
+  )
+})
+
+test("canonical tool ordering uses deterministic UTF-16 code units instead of locale collation", () => {
+  assert.equal(
+    compareCanonicalToolCoordinatesV1(
+      { toolkitSlug: "fixture", toolSlug: "FIXTURE_A_B" },
+      { toolkitSlug: "fixture", toolSlug: "FIXTURE_AA" },
+    ) > 0,
+    true,
   )
 })
 

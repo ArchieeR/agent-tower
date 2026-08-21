@@ -102,6 +102,17 @@ test("tool probe returns only bounded schema field names", async () => {
   assert.equal(JSON.stringify(probe).includes("secret"), false)
 })
 
+test("tool probe resolves the exact multiword toolkit through the canonical registry", async () => {
+  const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: fixtureRunner({
+    "tools-info": result(JSON.stringify({ displayName: "List sites" })),
+    "tool-schema": result(JSON.stringify({ properties: {} })),
+  }) })
+  const probe = await adapter.probe("GOOGLE_SEARCH_CONSOLE_LIST_SITES")
+  assert.equal(probe.data.tool.toolkitSlug, "google_search_console")
+  assert.equal(probe.data.tool.mapping.mappingState, "mapped")
+  assert.equal(probe.data.tool.mapping.desiredCapability?.capabilityId, "google-search-console")
+})
+
 test("successful malformed tool info or schema degrades probe", async () => {
   for (const command of ["tools-info", "tool-schema"] as const) {
     const adapter = new ComposioCliAdapter({ projectRoot: "/fixture", discoveryToolkits: [], runner: fixtureRunner({ "tools-info": result("{}"), "tool-schema": result("{}"), [command]: result("not-json") }) })
