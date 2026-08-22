@@ -9,8 +9,8 @@ const CONTROL_CHARACTER = /[\u0000-\u001f\u007f]/
 
 export class AdapterWireValidationError extends Error {
   readonly code = "ADAPTER_WIRE_INVALID" as const
-  readonly contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1" | "AdapterPlanV1" | "AdapterApplyReceiptV1"
-  constructor(contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1" | "AdapterPlanV1" | "AdapterApplyReceiptV1") {
+  readonly contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1" | "AdapterPlanV1" | "AdapterApplyReceiptV1" | "CapabilityExportV1"
+  constructor(contract: "HostOperationSupportV1" | "HostOperationSupportSnapshotV1" | "AdapterNativeGuaranteesV1" | "AdapterPlanV1" | "AdapterApplyReceiptV1" | "CapabilityExportV1") {
     super(`${contract} is invalid.`)
     this.name = "AdapterWireValidationError"
     this.contract = contract

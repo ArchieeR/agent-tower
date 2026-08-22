@@ -30,7 +30,7 @@ test("inventory maps exact tools and leaves unknown tools unauthorized", async (
   })
   const inventory = await adapter.inventory()
   assert.equal(inventory.health, "available")
-  assert.equal(inventory.data.tools[0].mapping.desiredCapability?.capabilityId, "linear")
+  assert.equal(inventory.data.tools[0].mapping.desiredCapability?.capabilityId, "linear.get_issue")
   assert.equal(inventory.data.tools[1].mapping.mappingState, "unmapped")
   assert.equal("email" in inventory.data, false)
   assert.equal(JSON.stringify(inventory).includes("private@example.com"), false)
@@ -110,7 +110,7 @@ test("tool probe resolves the exact multiword toolkit through the canonical regi
   const probe = await adapter.probe("GOOGLE_SEARCH_CONSOLE_LIST_SITES")
   assert.equal(probe.data.tool.toolkitSlug, "google_search_console")
   assert.equal(probe.data.tool.mapping.mappingState, "mapped")
-  assert.equal(probe.data.tool.mapping.desiredCapability?.capabilityId, "google-search-console")
+  assert.equal(probe.data.tool.mapping.desiredCapability?.capabilityId, "google-search-console.list_sites")
 })
 
 test("successful malformed tool info or schema degrades probe", async () => {

@@ -12,25 +12,20 @@ import {
 } from "../lib/adapters/tools/registry.ts"
 import type { AdapterEnvelopeV1, ToolInventorySnapshotV1 } from "../lib/adapters/contracts/index.ts"
 
-test("canonical tool registry versions desired definitions separately from host observations", () => {
+test("canonical tool registry exposes one purpose-level capability per exact host tool", () => {
   assert.equal(canonicalToolRegistryV1.schemaVersion, "1")
   assert.equal(canonicalToolRegistryV1.registryId, "agent-tower:canonical-tool-registry")
   assert.match(canonicalToolRegistryRevisionV1, /^[0-9a-f]{64}$/)
 
-  const linear = canonicalToolRegistryV1.definitions.find((entry) => entry.capabilityId === "linear")
+  const linear = canonicalToolRegistryV1.definitions.find((entry) => entry.capabilityId === "linear.get_issue")
   assert.deepEqual(linear, {
-    capabilityId: "linear",
-    name: "Linear",
+    capabilityId: "linear.get_issue",
+    name: "Linear: Get issue",
     kind: "connector",
     provider: "Composio Linear Toolkit",
     permissionPolicy: "department-use",
     adapterId: "composio",
-    exactTools: [
-      { toolkitSlug: "linear", toolSlug: "LINEAR_CREATE_LINEAR_ISSUE" },
-      { toolkitSlug: "linear", toolSlug: "LINEAR_GET_LINEAR_ISSUE" },
-      { toolkitSlug: "linear", toolSlug: "LINEAR_LIST_LINEAR_ISSUES" },
-      { toolkitSlug: "linear", toolSlug: "LINEAR_UPDATE_ISSUE" },
-    ],
+    exactTools: [{ toolkitSlug: "linear", toolSlug: "LINEAR_GET_LINEAR_ISSUE" }],
   })
   assert.equal("state" in linear!, false)
   assert.equal("health" in linear!, false)
@@ -46,7 +41,7 @@ test("exact registry mapping carries its canonical revision and unknown tools gr
     adapterId: "composio",
     toolkitSlug: "linear",
     toolSlug: "LINEAR_GET_LINEAR_ISSUE",
-    desiredCapability: { capabilityId: "linear" },
+    desiredCapability: { capabilityId: "linear.get_issue" },
     mappingState: "mapped",
     mappingMethod: "explicit",
     mappingRevision: canonicalToolRegistryRevisionV1,
@@ -64,7 +59,7 @@ test("exact registry mapping carries its canonical revision and unknown tools gr
 test("Google Search Console mapping uses the exact Composio toolkit slug", () => {
   assert.equal(
     mapCanonicalComposioToolV1("google_search_console", "GOOGLE_SEARCH_CONSOLE_LIST_SITES").desiredCapability?.capabilityId,
-    "google-search-console",
+    "google-search-console.list_sites",
   )
   assert.equal(
     mapCanonicalComposioToolV1("google", "GOOGLE_SEARCH_CONSOLE_LIST_SITES").mappingState,
@@ -152,7 +147,7 @@ function inventory(
 
 test("status projection keeps effective grants independent from observed host availability", () => {
   const observedWithoutGrant = projectCanonicalToolStatusV1([], inventory(["LINEAR_GET_LINEAR_ISSUE"]))
-  const observedLinear = observedWithoutGrant.capabilities.find((entry) => entry.definition.capabilityId === "linear")!
+  const observedLinear = observedWithoutGrant.capabilities.find((entry) => entry.definition.capabilityId === "linear.get_issue")!
   assert.equal(observedLinear.grantState, "not-effective")
   assert.deepEqual(observedLinear.observation, {
     adapterId: "composio",
@@ -164,23 +159,23 @@ test("status projection keeps effective grants independent from observed host av
     observedTools: [{ toolkitSlug: "linear", toolSlug: "LINEAR_GET_LINEAR_ISSUE" }],
   })
 
-  const grantedWithoutObservation = projectCanonicalToolStatusV1(["linear"])
-  const grantedLinear = grantedWithoutObservation.capabilities.find((entry) => entry.definition.capabilityId === "linear")!
+  const grantedWithoutObservation = projectCanonicalToolStatusV1(["linear.get_issue"])
+  const grantedLinear = grantedWithoutObservation.capabilities.find((entry) => entry.definition.capabilityId === "linear.get_issue")!
   assert.equal(grantedLinear.grantState, "effective")
   assert.equal(grantedLinear.observation, undefined)
 })
 
 test("status projection ignores stale or forged mappings and rejects unknown effective grants", () => {
-  const projection = projectCanonicalToolStatusV1(["linear"], inventory(["LINEAR_GET_LINEAR_ISSUE"], { mappingRevision: "stale-registry" }))
-  const linear = projection.capabilities.find((entry) => entry.definition.capabilityId === "linear")!
+  const projection = projectCanonicalToolStatusV1(["linear.get_issue"], inventory(["LINEAR_GET_LINEAR_ISSUE"], { mappingRevision: "stale-registry" }))
+  const linear = projection.capabilities.find((entry) => entry.definition.capabilityId === "linear.get_issue")!
   assert.deepEqual(linear.observation?.observedTools, [])
 
   const forgedInventory = inventory(["LINEAR_GET_LINEAR_ISSUE"])
   forgedInventory.data.tools[0].mapping = {
     ...forgedInventory.data.tools[0].mapping,
-    desiredCapability: { capabilityId: "attio-crm" },
+    desiredCapability: { capabilityId: "attio.assert_person" },
   }
-  const forgedProjection = projectCanonicalToolStatusV1(["linear"], forgedInventory)
-  assert.deepEqual(forgedProjection.capabilities.find((entry) => entry.definition.capabilityId === "linear")?.observation?.observedTools, [])
+  const forgedProjection = projectCanonicalToolStatusV1(["linear.get_issue"], forgedInventory)
+  assert.deepEqual(forgedProjection.capabilities.find((entry) => entry.definition.capabilityId === "linear.get_issue")?.observation?.observedTools, [])
   assert.throws(() => projectCanonicalToolStatusV1(["not-in-registry"]), /Unknown effective capability/)
 })
