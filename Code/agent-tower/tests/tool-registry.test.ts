@@ -8,9 +8,11 @@ import {
   createCanonicalToolRegistryV1,
   mapCanonicalComposioToolV1,
   projectCanonicalToolStatusV1,
+  resolveCanonicalToolRegistryRevisionV1,
   type CanonicalToolDefinitionV1,
 } from "../lib/adapters/tools/registry.ts"
 import type { AdapterEnvelopeV1, ToolInventorySnapshotV1 } from "../lib/adapters/contracts/index.ts"
+import { domainDigestV1 } from "../lib/shared/canonical-digest.ts"
 
 test("canonical tool registry exposes one purpose-level capability per exact host tool", () => {
   assert.equal(canonicalToolRegistryV1.schemaVersion, "1")
@@ -54,6 +56,29 @@ test("exact registry mapping carries its canonical revision and unknown tools gr
     mappingMethod: "none",
     mappingRevision: canonicalToolRegistryRevisionV1,
   })
+})
+
+test("canonical mapping resolver returns the exact registry-owned revision", async () => {
+  const revisions = await Promise.all([
+    resolveCanonicalToolRegistryRevisionV1(),
+    resolveCanonicalToolRegistryRevisionV1(),
+  ])
+
+  assert.deepEqual(revisions, [canonicalToolRegistryRevisionV1, canonicalToolRegistryRevisionV1])
+  assert.equal(canonicalToolRegistryRevisionV1, domainDigestV1("canonical-tool-registry", canonicalToolRegistryV1))
+})
+
+test("canonical resolver does not broaden the Composio-only projection boundary", async () => {
+  const mixedEffectiveGrants = ["rheos-brain", "linear.get_issue", "local-rig-worker", "google-search-console.list_sites"]
+  const composioEffectiveGrants = ["linear.get_issue", "google-search-console.list_sites"]
+  assert.equal(await resolveCanonicalToolRegistryRevisionV1(), canonicalToolRegistryRevisionV1)
+  assert.throws(() => projectCanonicalToolStatusV1(mixedEffectiveGrants), /Unknown effective capability: rheos-brain/)
+  assert.deepEqual(
+    projectCanonicalToolStatusV1(composioEffectiveGrants).capabilities
+      .filter((entry) => entry.grantState === "effective")
+      .map((entry) => entry.definition.capabilityId),
+    ["google-search-console.list_sites", "linear.get_issue"],
+  )
 })
 
 test("Google Search Console mapping uses the exact Composio toolkit slug", () => {

@@ -68,6 +68,11 @@ export const canonicalToolRegistryV1 = toolRegistryV1
 
 export const canonicalToolRegistryRevisionV1 = domainDigestV1("canonical-tool-registry", canonicalToolRegistryV1)
 
+export type CapabilityMappingRevisionResolverV1 = () => Promise<string>
+
+export const resolveCanonicalToolRegistryRevisionV1: CapabilityMappingRevisionResolverV1 = () =>
+  Promise.resolve(canonicalToolRegistryRevisionV1)
+
 const capabilityByExactTool = new Map(
   canonicalToolRegistryV1.definitions.flatMap((definition) => definition.exactTools.map((tool) => [`${tool.toolkitSlug}:${tool.toolSlug}`, definition.capabilityId] as const)),
 )
