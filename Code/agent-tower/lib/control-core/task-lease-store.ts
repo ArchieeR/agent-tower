@@ -14,6 +14,7 @@ export const taskLeaseSchemaV1 = z.strictObject({
   id: coordinate,
   correlationKey: coordinate,
   linearIssueId: coordinate,
+  linearAgentSessionId: coordinate.optional(),
   linearProjectId: coordinate,
   projectBindingId: coordinate,
   projectBindingRevision: coordinate,
@@ -74,6 +75,7 @@ async function writeLeaseFile(file: string, value: TaskLeaseFileV1): Promise<voi
 
 export type AcquireTaskLeaseInputV1 = {
   linearIssueId: string
+  linearAgentSessionId?: string
   linearProjectId: string
   projectBindingId: string
   projectBindingRevision: string
@@ -98,6 +100,7 @@ export class TaskLeaseStore {
     if (!Number.isSafeInteger(input.ttlMs) || input.ttlMs < 1_000 || input.ttlMs > 86_400_000) throw new Error("Task lease TTL must be between 1 second and 24 hours.")
     const correlationKey = `work-${domainDigestV1("task-lease-correlation", {
       linearIssueId: input.linearIssueId,
+      ...(input.linearAgentSessionId ? { linearAgentSessionId: input.linearAgentSessionId } : {}),
       linearProjectId: input.linearProjectId,
       projectBindingId: input.projectBindingId,
       projectBindingRevision: input.projectBindingRevision,
@@ -120,7 +123,8 @@ export class TaskLeaseStore {
           existing.marketingContextHash !== input.marketingContextHash ||
           existing.marketingContextRevision !== input.marketingContextRevision ||
           existing.towerMemberId !== input.towerMemberId ||
-          existing.hermesProfileId !== input.hermesProfileId
+          existing.hermesProfileId !== input.hermesProfileId ||
+          existing.linearAgentSessionId !== input.linearAgentSessionId
         ) throw new Error("An active task lease conflicts with the current project context.")
         return { lease: existing, created: false }
       }
@@ -131,6 +135,7 @@ export class TaskLeaseStore {
         id,
         correlationKey,
         linearIssueId: input.linearIssueId,
+        ...(input.linearAgentSessionId ? { linearAgentSessionId: input.linearAgentSessionId } : {}),
         linearProjectId: input.linearProjectId,
         projectBindingId: input.projectBindingId,
         projectBindingRevision: input.projectBindingRevision,
@@ -198,6 +203,12 @@ export class TaskLeaseStore {
   async listCurrentForMember(towerMemberId: string, now = new Date()): Promise<TaskLeaseV1[]> {
     return Object.values((await readLeaseFile(this.file)).leases)
       .filter((lease) => lease.towerMemberId === towerMemberId && ["dispatching", "active"].includes(lease.state) && Date.parse(lease.expiresAt) > now.getTime())
+      .sort((left, right) => left.issuedAt.localeCompare(right.issuedAt))
+  }
+
+  async listCurrent(now = new Date()): Promise<TaskLeaseV1[]> {
+    return Object.values((await readLeaseFile(this.file)).leases)
+      .filter((lease) => ["dispatching", "active"].includes(lease.state) && Date.parse(lease.expiresAt) > now.getTime())
       .sort((left, right) => left.issuedAt.localeCompare(right.issuedAt))
   }
 

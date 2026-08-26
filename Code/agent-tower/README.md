@@ -172,6 +172,27 @@ All MCP calls are session-bound and expire. The returned context includes `runti
 
 Project bindings hold only stable routing and policy: Linear project, Tower member, Hermes profile, workspace, logical skill/tool grants, exact installed Hermes skill/toolset names, model policy, and opaque Rheos/Vault context references. Active task leases hold only issue/session identifiers, hashes, state, and expiry. Linear remains the source of issue titles, descriptions, blockers, dates, and workflow status.
 
+## Private Linear Agent integration
+
+The Agent Session bridge is inactive by default. When enabled, `POST /api/integrations/linear/webhooks` verifies Linear's raw-body signature, durably deduplicates reference-only delivery metadata, reads the current issue routing state from Linear, and routes the issue to the active project binding. It does not persist issue titles, descriptions, prompts, brand context, or credentials.
+
+Configure an installed private Linear OAuth app with `actor=app`, `app:assignable`, selected-team access, and Agent Session webhooks. Keep the integration disabled until the app installation, public webhook URL, active project binding, Hermes profile, and Rheos context endpoint are ready:
+
+```bash
+export AGENT_TOWER_LINEAR_AGENT_ENABLED="true"
+export AGENT_TOWER_LINEAR_ORGANIZATION_ID="<linear-organization-id>"
+export AGENT_TOWER_LINEAR_OAUTH_CLIENT_ID="<oauth-client-id>"
+export AGENT_TOWER_LINEAR_APP_USER_ID="<linear-app-user-id>"
+
+# Opaque references only. The named variables hold the actual secrets at runtime.
+export AGENT_TOWER_LINEAR_ACCESS_TOKEN_REF="env://AGENT_TOWER_LINEAR_ACCESS_TOKEN"
+export AGENT_TOWER_LINEAR_WEBHOOK_SECRET_REF="env://AGENT_TOWER_LINEAR_WEBHOOK_SECRET"
+export AGENT_TOWER_RHEOS_CONTEXT_URL="https://<rheos-host>/internal/marketing-context"
+export AGENT_TOWER_RHEOS_CONTEXT_ACCESS_TOKEN_REF="env://AGENT_TOWER_RHEOS_CONTEXT_ACCESS_TOKEN"
+```
+
+Do not put literal access tokens, webhook secrets, brand facts, or issue content in `project-bindings.json` or any other Tower data file. The example project binding remains paused until its real IDs, workspace, model policy, Hermes skills/toolsets, and context references have been approved.
+
 ## Buzz compatibility snapshot
 
 Buzz can export a safe, product-owned snapshot to:

@@ -98,6 +98,7 @@ export class ProjectAgentRouterV1 {
 
   async dispatch(input: {
     issue: LinearIssueRoutingSnapshotV1
+    linearAgentSessionId?: string
     towerContext: TowerRuntimeContextV1
     marketingContext: MarketingContextEnvelopeV1
     taskInstruction: string
@@ -112,6 +113,7 @@ export class ProjectAgentRouterV1 {
     this.validateContexts(binding, input.towerContext, input.marketingContext, now, input.requireSourceCitations)
     const acquired = await this.leases.acquire({
       linearIssueId: input.issue.issueId,
+      linearAgentSessionId: input.linearAgentSessionId,
       linearProjectId: input.issue.projectId,
       projectBindingId: binding.id,
       projectBindingRevision: binding.revision,
@@ -148,6 +150,7 @@ export class ProjectAgentRouterV1 {
 
   async continueIssue(input: {
     issue: LinearIssueRoutingSnapshotV1
+    linearAgentSessionId?: string
     towerContext: TowerRuntimeContextV1
     marketingContext: MarketingContextEnvelopeV1
     taskInstruction: string
@@ -167,7 +170,8 @@ export class ProjectAgentRouterV1 {
       lease.towerContextRevision !== input.towerContext.contextRevision ||
       lease.towerContextHash !== input.towerContext.contentHash ||
       lease.marketingContextRevision !== input.marketingContext.contextRevision ||
-      lease.marketingContextHash !== input.marketingContext.contentHash
+      lease.marketingContextHash !== input.marketingContext.contentHash ||
+      (input.linearAgentSessionId !== undefined && lease.linearAgentSessionId !== input.linearAgentSessionId)
     ) throw new Error("Active task lease does not match the pinned runtime context.")
     const session = await this.hermes.dispatch({
       profileId: binding.hermesProfileId,
@@ -194,6 +198,16 @@ export class ProjectAgentRouterV1 {
     const reason = binding ? invalidationReason(issue, binding) : "superseded"
     if (!reason) return []
     const invalidated = await this.leases.invalidateForIssue(issue.issueId, reason, now)
+    await Promise.all(invalidated.flatMap((lease) => lease.hermesSessionId ? [this.hermes.invalidate(lease.hermesSessionId, reason)] : []))
+    return invalidated
+  }
+
+  async getCurrentLease(linearIssueId: string): Promise<TaskLeaseV1 | undefined> {
+    return this.leases.getCurrentForIssue(linearIssueId, this.now())
+  }
+
+  async invalidateIssue(linearIssueId: string, reason: NonNullable<TaskLeaseV1["invalidationReason"]>): Promise<TaskLeaseV1[]> {
+    const invalidated = await this.leases.invalidateForIssue(linearIssueId, reason, this.now())
     await Promise.all(invalidated.flatMap((lease) => lease.hermesSessionId ? [this.hermes.invalidate(lease.hermesSessionId, reason)] : []))
     return invalidated
   }

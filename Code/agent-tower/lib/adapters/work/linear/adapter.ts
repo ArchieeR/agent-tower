@@ -11,7 +11,7 @@ const linearIssueRoutingObservationSchemaV1 = z.strictObject({
   issue: z.strictObject({
     id: coordinate,
     projectId: coordinate,
-    stateType: z.enum(["backlog", "unstarted", "started", "completed", "canceled"]),
+    stateType: z.enum(["triage", "backlog", "unstarted", "started", "completed", "canceled"]),
     delegateActorId: coordinate.optional(),
   }),
 })

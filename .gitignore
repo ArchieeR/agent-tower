@@ -47,6 +47,8 @@ Code/agent-tower/data/task-leases.json
 Code/agent-tower/data/task-leases.json.lock
 Code/agent-tower/data/project-execution-receipts.json
 Code/agent-tower/data/project-execution-receipts.json.lock
+Code/agent-tower/data/linear-webhook-inbox.json
+Code/agent-tower/data/linear-webhook-inbox.json.lock
 
 # Local Buzz mutation history and rollback captures
 data/buzz-history/teams/*/
