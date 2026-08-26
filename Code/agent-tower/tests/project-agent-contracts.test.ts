@@ -10,12 +10,15 @@ import { marketingBinding, marketingContext, marketingReceipt } from "./fixtures
 
 test("ProjectBindingV1 keeps portable P0 skills separate from Rheos and Vault context references", () => {
   const binding = marketingBinding()
-  assert.deepEqual(binding.skillRefs.slice(0, 5), [
-    "marketing/shared/marketing-context-bootstrap",
-    "marketing/shared/scoped-source-retrieval",
-    "marketing/shared/capability-health-preflight",
-    "marketing/shared/artifact-provenance",
-    "marketing/shared/execution-receipt",
+  assert.deepEqual(binding.skillRefs, [
+    "marketing.shared.context-provenance",
+    "marketing.social.source-grounded-text-draft",
+    "marketing.cmo.exact-hash-review",
+  ])
+  assert.deepEqual(binding.hermesSkillNames, [
+    "marketing-context-provenance",
+    "marketing-source-grounded-text-draft",
+    "marketing-exact-hash-review",
   ])
   assert.deepEqual(binding.contextProviderRefs.map((entry) => entry.provider), ["rheos-mcp", "rheos-vault"])
   assert.equal(JSON.stringify(binding).includes("Archie voice"), false)

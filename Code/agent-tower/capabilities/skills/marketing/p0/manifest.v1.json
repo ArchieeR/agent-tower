@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1",
+  "id": "marketing.p0.draft-review-pack",
+  "version": "1.0.0",
+  "activation": "off",
+  "targetContractRevision": "167206552f532680410167566cd156bb30510893",
+  "requiredContextRefs": ["rheos-mcp", "rheos-vault"],
+  "deniedActions": ["deploy", "index", "publish", "schedule", "spend"],
+  "skills": [
+    {
+      "id": "marketing.shared.context-provenance",
+      "version": "1.0.0",
+      "path": "capabilities/skills/marketing/p0/context-provenance/SKILL.md",
+      "contentDigest": "89af047088e444565fcc6e88510cbb4a0ae159e03e18d6b18d5338090c949b8c",
+      "inputs": ["towerRuntimeContext", "marketingContextEnvelope", "requiredCapabilityIds"],
+      "outputs": ["validatedContextHash", "citationRefs", "capabilityEvidence", "externalWrites"],
+      "requiredContextRefs": ["rheos-mcp", "rheos-vault"],
+      "deniedActions": ["deploy", "index", "publish", "schedule", "spend"]
+    },
+    {
+      "id": "marketing.social.source-grounded-text-draft",
+      "version": "1.0.0",
+      "path": "capabilities/skills/marketing/p0/source-grounded-text-draft/SKILL.md",
+      "contentDigest": "0d502d1e9ac64be0a4e9f6ae3b6dac34d2c8d6b685ee5bcb967b5d40559452fa",
+      "inputs": ["validatedContextHash", "citationRefs", "channelRef", "acceptanceCriteria"],
+      "outputs": ["artifactRef", "artifactRevision", "contentHash", "content", "claimSourceTable", "externalWrites"],
+      "requiredContextRefs": ["rheos-mcp", "rheos-vault"],
+      "deniedActions": ["deploy", "index", "publish", "schedule", "spend"]
+    },
+    {
+      "id": "marketing.cmo.exact-hash-review",
+      "version": "1.0.0",
+      "path": "capabilities/skills/marketing/p0/exact-hash-review/SKILL.md",
+      "contentDigest": "7724f65cb4c2516024eabd529983063b9091637453014d19f9d27d25641d3449",
+      "inputs": ["marketingContextEnvelope", "artifactRef", "artifactRevision", "artifactHash", "artifactContent", "citationRefs"],
+      "outputs": ["reviewerMemberId", "rubricVersion", "artifactHash", "verdict", "results", "externalWrites"],
+      "requiredContextRefs": ["rheos-mcp", "rheos-vault"],
+      "deniedActions": ["deploy", "index", "publish", "schedule", "spend"]
+    }
+  ]
+}
