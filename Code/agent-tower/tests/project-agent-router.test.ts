@@ -52,7 +52,7 @@ test("routes one fresh Linear issue idempotently to the bound Hermes project pro
   assert.equal(duplicate.dispatched, false)
   assert.equal(hermes.dispatches.length, 1)
   assert.equal(hermes.dispatches[0].profileId, "social-media-manager")
-  assert.deepEqual(hermes.dispatches[0].skillNames, [])
+  assert.deepEqual(hermes.dispatches[0].skillNames, binding.hermesSkillNames)
   assert.deepEqual(hermes.dispatches[0].toolsets, [])
 })
 

@@ -18,19 +18,20 @@
         "isolation": "none"
       },
       "skillRefs": [
-        "marketing/shared/marketing-context-bootstrap",
-        "marketing/shared/scoped-source-retrieval",
-        "marketing/shared/capability-health-preflight",
-        "marketing/shared/artifact-provenance",
-        "marketing/shared/execution-receipt",
-        "marketing/social-media-manager/platform-native-draft"
+        "marketing.shared.context-provenance",
+        "marketing.social.source-grounded-text-draft",
+        "marketing.cmo.exact-hash-review"
       ],
       "toolGrantIds": [
         "linear.get_issue",
         "rheos.marketing_context.read",
         "rheos.vault.retrieve_scoped"
       ],
-      "hermesSkillNames": [],
+      "hermesSkillNames": [
+        "marketing-context-provenance",
+        "marketing-source-grounded-text-draft",
+        "marketing-exact-hash-review"
+      ],
       "hermesToolsets": [],
       "modelPolicy": {
         "provider": "azure-foundry",
