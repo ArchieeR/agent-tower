@@ -7,7 +7,10 @@ import { ContextAcknowledgementStore } from "./context-acknowledgement.ts"
 import { AgentTowerControlCore } from "./control-core.ts"
 import { LocalKnowledgeConnector } from "./local-knowledge.ts"
 import { readMemberLinks } from "./member-links.ts"
+import { readProjectBindingsV1 } from "./project-bindings.ts"
+import { ProjectExecutionReceiptStoreV1 } from "./project-execution-receipt-store.ts"
 import { ReceiptStore } from "./receipt-store.ts"
+import { TaskLeaseStore } from "./task-lease-store.ts"
 
 export type ProductionControlCoreOptions = {
   projectRoot: string
@@ -36,6 +39,7 @@ export async function createProductionControlCore(options: ProductionControlCore
   const organizationUrlValue = options.organizationUrl ?? process.env.AGENT_TOWER_ORGANIZATION_URL
   const organizationUrl = organizationUrlValue ? loopbackOrganizationUrl(organizationUrlValue) : undefined
   const memberLinks = await readMemberLinks(path.join(options.projectRoot, "data", "member-links.json"))
+  const projectBindings = await readProjectBindingsV1(path.join(options.projectRoot, "data", "project-bindings.json"))
   let latestSourceRevisions: Record<string, string> = {}
   const loadOrganization = async () => {
     if (!organizationUrl) {
@@ -71,5 +75,8 @@ export async function createProductionControlCore(options: ProductionControlCore
     projectRoot: options.projectRoot,
     fetcher,
     sourceRevisions: async () => ({ ...latestSourceRevisions, brain: "local-vault-contract-v2", linear: "live-mcp" }),
+    projectBindings,
+    taskLeases: new TaskLeaseStore(path.join(options.projectRoot, "data", "task-leases.json")),
+    projectReceipts: new ProjectExecutionReceiptStoreV1(path.join(options.projectRoot, "data", "project-execution-receipts.json")),
   })
 }

@@ -30,6 +30,18 @@ const service: AgentTowerToolService = {
   async getCurrentContext(session) {
     return { member: { id: session.memberId }, contextRevision: "ctx-1", effectiveToolGrants: [] }
   },
+  async getMyProjects() {
+    return [{ id: "binding:marketing:personal-content" }]
+  },
+  async getMyWork() {
+    return [{ linearIssueId: "ALD-195", hermesSessionId: "session-ald-195" }]
+  },
+  async getTask(linearIssueId) {
+    return { linearIssueId, hermesSessionId: "session-ald-195" }
+  },
+  async submitProjectReceipt(receipt) {
+    return { ...receipt, recorded: true }
+  },
   async acknowledgeContext(session, revision, hash) {
     return { memberId: session.memberId, contextRevision: revision, contextHash: hash }
   },
@@ -71,6 +83,10 @@ test("MCP exposes only bounded session-aware Agent Tower tools", async () => {
     const names = listed.tools.map((tool) => tool.name).sort()
     assert.ok(names.includes("agent_tower.context_get_current"))
     assert.ok(names.includes("agent_tower.context_acknowledge"))
+    assert.ok(names.includes("agent_tower.projects_get_mine"))
+    assert.ok(names.includes("agent_tower.work_get_mine"))
+    assert.ok(names.includes("agent_tower.task_get"))
+    assert.ok(names.includes("agent_tower.project_receipt_submit"))
     assert.ok(names.includes("agent_tower.knowledge_search"))
     assert.ok(names.includes("agent_tower.receipt_submit"))
     assert.ok(names.includes("agent_tower.local_worker_get_status"))
@@ -102,6 +118,14 @@ test("MCP exposes only bounded session-aware Agent Tower tools", async () => {
     if (typeof text?.text !== "string") return
     const parsed = JSON.parse(text.text)
     assert.equal(parsed.member.id, "system-manager")
+
+    const task = await client.callTool({ name: "agent_tower.task_get", arguments: { linearIssueId: "ALD-195" } })
+    assert.equal(task.isError, undefined)
+    assert.ok(Array.isArray(task.content))
+    const taskContent = task.content as Array<{ text?: unknown }>
+    const taskText = taskContent[0]?.text
+    assert.equal(typeof taskText, "string")
+    if (typeof taskText === "string") assert.equal(JSON.parse(taskText).hermesSessionId, "session-ald-195")
 
     now = new Date(binding.expiresAt)
     const expired = await client.callTool({ name: "agent_tower.organization_get_snapshot", arguments: {} })

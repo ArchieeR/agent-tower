@@ -55,6 +55,9 @@ cp data/member-links.example.json data/member-links.json
 cp data/organization-overrides.example.json data/organization-overrides.json
 cp data/context-acknowledgements.example.json data/context-acknowledgements.json
 cp data/execution-receipts.example.json data/execution-receipts.json
+cp data/project-bindings.example.json data/project-bindings.json
+cp data/task-leases.example.json data/task-leases.json
+cp data/project-execution-receipts.example.json data/project-execution-receipts.json
 ```
 
 Edit `data/member-links.json` to map a stable Agent Tower role to a safe Buzz public work identity. Never put private keys, auth tags, tokens, prompts, or raw logs in this file.
@@ -152,6 +155,10 @@ Core MCP tools:
 - `agent_tower.context_get_current`
 - `agent_tower.context_acknowledge`
 - `agent_tower.capabilities_list_effective`
+- `agent_tower.projects_get_mine`
+- `agent_tower.work_get_mine`
+- `agent_tower.task_get`
+- `agent_tower.project_receipt_submit`
 - `agent_tower.department_configure`
 - `agent_tower.knowledge_search`
 - `agent_tower.knowledge_get_document`
@@ -162,6 +169,8 @@ Core MCP tools:
 - `agent_tower.local_worker_run`
 
 All MCP calls are session-bound and expire. The returned context includes `runtime.mode`, `runtime.runtimeId`, and optional `runtime.sessionId`, so receipts and downstream routing can distinguish Buzz-managed work from Hermes-managed work. Knowledge and worker tools additionally require matching grants.
+
+Project bindings hold only stable routing and policy: Linear project, Tower member, Hermes profile, workspace, logical skill/tool grants, exact installed Hermes skill/toolset names, model policy, and opaque Rheos/Vault context references. Active task leases hold only issue/session identifiers, hashes, state, and expiry. Linear remains the source of issue titles, descriptions, blockers, dates, and workflow status.
 
 ## Buzz compatibility snapshot
 

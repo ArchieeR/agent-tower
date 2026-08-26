@@ -13,6 +13,9 @@ import type { AgentTowerToolService } from "./mcp-server.ts"
 import { configureDepartment, type DepartmentConfigurationPatch } from "./department-configuration-service.ts"
 import { type ExecutionReceipt, ReceiptStore } from "./receipt-store.ts"
 import { assertSessionBindingActive, type AgentSessionBinding } from "./session-binding.ts"
+import { parseExecutionReceiptV1, type ProjectBindingV1 } from "./project-agent-contracts.ts"
+import type { ProjectExecutionReceiptStoreV1 } from "./project-execution-receipt-store.ts"
+import type { TaskLeaseStore } from "./task-lease-store.ts"
 
 export type AgentTowerControlCoreDependencies = {
   loadOrganization: () => Promise<OrganizationReadModel>
@@ -26,6 +29,9 @@ export type AgentTowerControlCoreDependencies = {
   now?: () => Date
   fetcher?: typeof fetch
   sourceRevisions?: () => Promise<Record<string, string>>
+  projectBindings?: ProjectBindingV1[]
+  taskLeases?: TaskLeaseStore
+  projectReceipts?: ProjectExecutionReceiptStoreV1
 }
 
 function asExecutionReceipt(value: Record<string, unknown>): ExecutionReceipt {
@@ -108,6 +114,56 @@ export class AgentTowerControlCore {
       getCurrentContext: (requestedBinding) => {
         assertRequestedBinding(requestedBinding)
         return this.getCurrentContext(binding)
+      },
+      getMyProjects: async () => {
+        assertActive()
+        return (this.dependencies.projectBindings ?? []).filter((entry) =>
+          entry.state === "active" && (entry.towerMemberId === binding.memberId || entry.managerMemberId === binding.memberId),
+        )
+      },
+      getMyWork: async () => {
+        assertActive()
+        if (!this.dependencies.taskLeases) return []
+        return this.dependencies.taskLeases.listCurrentForMember(binding.memberId, currentTime())
+      },
+      getTask: async (linearIssueId) => {
+        assertActive()
+        if (!this.dependencies.taskLeases) throw new Error("Task lease store is unavailable.")
+        const lease = await this.dependencies.taskLeases.getCurrentForIssue(linearIssueId, currentTime())
+        if (!lease) throw new Error(`Active task lease is unavailable: ${linearIssueId}`)
+        const canRead = lease.towerMemberId === binding.memberId || (this.dependencies.projectBindings ?? []).some((entry) =>
+          entry.id === lease.projectBindingId && entry.managerMemberId === binding.memberId,
+        )
+        if (!canRead) throw new Error("Task lease is outside the bound member scope.")
+        return lease
+      },
+      submitProjectReceipt: async (value) => {
+        assertActive()
+        if (!this.dependencies.taskLeases || !this.dependencies.projectReceipts) throw new Error("Project execution receipts are unavailable.")
+        const receipt = parseExecutionReceiptV1(value)
+        if (receipt.towerMemberId !== binding.memberId) throw new Error("Project receipt member does not match the bound session.")
+        const lease = await this.dependencies.taskLeases.get(receipt.taskLeaseId)
+        if (!lease) throw new Error("Project receipt task lease is unavailable.")
+        if (lease.state !== "active") throw new Error("Project receipt task lease is not active.")
+        if (
+          lease.linearIssueId !== receipt.linearIssueId ||
+          lease.linearProjectId !== receipt.linearProjectId ||
+          lease.towerMemberId !== receipt.towerMemberId ||
+          lease.hermesProfileId !== receipt.hermesProfileId ||
+          lease.hermesSessionId !== receipt.hermesSessionId ||
+          lease.towerContextRevision !== receipt.towerContextRevision ||
+          lease.towerContextHash !== receipt.towerContextHash ||
+          lease.marketingContextRevision !== receipt.marketingContextRevision ||
+          lease.marketingContextHash !== receipt.marketingContextHash
+        ) throw new Error("Project receipt does not match its task lease.")
+        const projectBinding = (this.dependencies.projectBindings ?? []).find((entry) => entry.id === lease.projectBindingId)
+        if (!projectBinding || projectBinding.managerMemberId !== receipt.managerMemberId) throw new Error("Project receipt manager does not match its project binding.")
+        if (receipt.model.provider !== projectBinding.modelPolicy.provider || receipt.model.id !== projectBinding.modelPolicy.model) {
+          throw new Error("Project receipt model does not match its project binding.")
+        }
+        const allowedToolGrants = new Set(projectBinding.toolGrantIds)
+        if (receipt.toolGrantIds.some((id) => !allowedToolGrants.has(id))) throw new Error("Project receipt tools exceed its project binding.")
+        return this.dependencies.projectReceipts.submit(receipt)
       },
       acknowledgeContext: async (requestedBinding, contextRevision, contextHash) => {
         assertRequestedBinding(requestedBinding)

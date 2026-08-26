@@ -8,9 +8,13 @@ import type { CapabilityCatalogEntry } from "../lib/capability-catalog.ts"
 import { ContextAcknowledgementStore } from "../lib/control-core/context-acknowledgement.ts"
 import { AgentTowerControlCore } from "../lib/control-core/control-core.ts"
 import { LocalKnowledgeConnector } from "../lib/control-core/local-knowledge.ts"
+import { parseProjectBindingV1 } from "../lib/control-core/project-agent-contracts.ts"
+import { ProjectExecutionReceiptStoreV1 } from "../lib/control-core/project-execution-receipt-store.ts"
 import { ReceiptStore } from "../lib/control-core/receipt-store.ts"
 import type { AgentSessionBinding } from "../lib/control-core/session-binding.ts"
+import { TaskLeaseStore } from "../lib/control-core/task-lease-store.ts"
 import type { OrganizationReadModel } from "../lib/organization-model.ts"
+import { marketingReceipt } from "./fixtures/marketing-runtime.ts"
 
 const binding: AgentSessionBinding = {
   sessionId: "session-1",
@@ -40,6 +44,28 @@ test("shared control core joins organization, context, knowledge, receipts and L
     }),
   )
   let now = new Date("2026-08-11T19:30:00.000Z")
+  const projectBinding = parseProjectBindingV1({
+    schemaVersion: "1",
+    id: "binding:agent-tower:control-core",
+    revision: "binding-r1",
+    linearWorkspaceId: "linear-workspace-rheos",
+    linearProjectId: "linear-project-agent-tower",
+    towerMemberId: "system-manager",
+    managerMemberId: "system-manager",
+    departmentId: "engineering",
+    teamId: "team-agent-tower",
+    hermesProfileId: "system-manager",
+    workspace: { repositoryRef: "repo-agent-tower", workingDirectory: directory, isolation: "worktree" },
+    skillRefs: [],
+    toolGrantIds: ["linear"],
+    hermesSkillNames: [],
+    hermesToolsets: [],
+    modelPolicy: { provider: "azure-foundry", model: "gpt-5.6-sol" },
+    contextProviderRefs: [{ provider: "rheos-vault", ref: "vault-agent-tower", required: false }],
+    policyRevision: "policy-r1",
+    state: "active",
+  })
+  const taskLeases = new TaskLeaseStore(path.join(directory, "task-leases.json"))
   const core = new AgentTowerControlCore({
     loadOrganization: async () => model,
     memberLinks: [{ memberId: "system-manager", buzzMemberId: "buzz:system-manager", roleProfileId: "system-manager" }],
@@ -49,6 +75,9 @@ test("shared control core joins organization, context, knowledge, receipts and L
     receipts: new ReceiptStore(path.join(directory, "receipts.json")),
     rigSnapshotFile: rigFile,
     now: () => now,
+    projectBindings: [projectBinding],
+    taskLeases,
+    projectReceipts: new ProjectExecutionReceiptStoreV1(path.join(directory, "project-receipts.json"), () => now),
   })
   const service = core.bind(binding)
 
@@ -80,6 +109,44 @@ test("shared control core joins organization, context, knowledge, receipts and L
     residentBytes: 0,
     availableForJobs: false,
   })
+
+  const acquired = await taskLeases.acquire({
+    linearIssueId: "ALD-195",
+    linearProjectId: projectBinding.linearProjectId,
+    projectBindingId: projectBinding.id,
+    projectBindingRevision: projectBinding.revision,
+    towerMemberId: binding.memberId,
+    hermesProfileId: projectBinding.hermesProfileId,
+    towerContextRevision: "tower-context-r1",
+    towerContextHash: "a".repeat(64),
+    marketingContextRevision: "marketing-context-r1",
+    marketingContextHash: "b".repeat(64),
+    now,
+    ttlMs: 300_000,
+  })
+  const activeLease = await taskLeases.activate(acquired.lease.id, "session-ald-195", now)
+  assert.deepEqual((await service.getMyProjects() as Array<{ id: string }>).map((entry) => entry.id), [projectBinding.id])
+  assert.equal((await service.getMyWork() as Array<{ id: string }>)[0].id, activeLease.id)
+  assert.equal((await service.getTask("ALD-195") as { id: string }).id, activeLease.id)
+
+  const projectReceipt = {
+    ...marketingReceipt(),
+    taskLeaseId: activeLease.id,
+    linearProjectId: projectBinding.linearProjectId,
+    towerMemberId: binding.memberId,
+    managerMemberId: binding.memberId,
+    hermesProfileId: projectBinding.hermesProfileId,
+    hermesSessionId: activeLease.hermesSessionId!,
+    towerContextRevision: activeLease.towerContextRevision,
+    towerContextHash: activeLease.towerContextHash,
+    marketingContextRevision: activeLease.marketingContextRevision,
+    marketingContextHash: activeLease.marketingContextHash,
+    model: { ...marketingReceipt().model, provider: projectBinding.modelPolicy.provider, id: projectBinding.modelPolicy.model },
+    toolGrantIds: ["linear"],
+    review: { ...marketingReceipt().review, reviewerMemberId: binding.memberId },
+  }
+  const storedProjectReceipt = await service.submitProjectReceipt(projectReceipt)
+  assert.match((storedProjectReceipt as { receiptHash: string }).receiptHash, /^[0-9a-f]{64}$/)
 
   const receipt = {
     schemaVersion: "1",

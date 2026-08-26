@@ -42,6 +42,11 @@ Code/agent-tower/data/execution-receipts.json
 Code/agent-tower/data/context-acknowledgements.json
 Code/agent-tower/data/execution-receipts.json.lock
 Code/agent-tower/data/context-acknowledgements.json.lock
+Code/agent-tower/data/project-bindings.json
+Code/agent-tower/data/task-leases.json
+Code/agent-tower/data/task-leases.json.lock
+Code/agent-tower/data/project-execution-receipts.json
+Code/agent-tower/data/project-execution-receipts.json.lock
 
 # Local Buzz mutation history and rollback captures
 data/buzz-history/teams/*/

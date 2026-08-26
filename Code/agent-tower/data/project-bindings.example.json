@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1",
+  "bindings": [
+    {
+      "schemaVersion": "1",
+      "id": "binding:marketing:personal-content",
+      "revision": "replace-with-approved-revision",
+      "linearWorkspaceId": "replace-with-linear-workspace-id",
+      "linearProjectId": "replace-with-linear-project-id",
+      "towerMemberId": "member:rheos:marketing:social-media-manager",
+      "managerMemberId": "member:rheos:marketing:cmo",
+      "departmentId": "marketing",
+      "teamId": "team:rheos:marketing",
+      "hermesProfileId": "social-media-manager",
+      "workspace": {
+        "repositoryRef": "repo:rheos:marketing",
+        "workingDirectory": "/replace/with/approved/working-directory",
+        "isolation": "none"
+      },
+      "skillRefs": [
+        "marketing/shared/marketing-context-bootstrap",
+        "marketing/shared/scoped-source-retrieval",
+        "marketing/shared/capability-health-preflight",
+        "marketing/shared/artifact-provenance",
+        "marketing/shared/execution-receipt",
+        "marketing/social-media-manager/platform-native-draft"
+      ],
+      "toolGrantIds": [
+        "linear.get_issue",
+        "rheos.marketing_context.read",
+        "rheos.vault.retrieve_scoped"
+      ],
+      "hermesSkillNames": [],
+      "hermesToolsets": [],
+      "modelPolicy": {
+        "provider": "azure-foundry",
+        "model": "replace-with-approved-azure-model",
+        "reasoning": "medium"
+      },
+      "contextProviderRefs": [
+        { "provider": "rheos-mcp", "ref": "context:rheos:personal-brand", "required": true },
+        { "provider": "rheos-vault", "ref": "vault-scope:rheos:founder-content", "required": true }
+      ],
+      "policyRevision": "replace-with-approved-policy-revision",
+      "state": "paused"
+    }
+  ]
+}

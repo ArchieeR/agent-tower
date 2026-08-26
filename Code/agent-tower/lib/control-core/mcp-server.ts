@@ -7,6 +7,10 @@ export type AgentTowerToolService = {
   getOrganizationSnapshot(): Promise<unknown>
   getMember(memberId: string): Promise<unknown>
   getCurrentContext(binding: AgentSessionBinding): Promise<unknown>
+  getMyProjects(): Promise<unknown>
+  getMyWork(): Promise<unknown>
+  getTask(linearIssueId: string): Promise<unknown>
+  submitProjectReceipt(receipt: Record<string, unknown>): Promise<unknown>
   acknowledgeContext(binding: AgentSessionBinding, contextRevision: string, contextHash: string): Promise<unknown>
   searchKnowledge(query: string, options?: { sourceIds?: string[]; limit?: number }): Promise<unknown>
   getKnowledgeDocument(documentId: string, version?: string): Promise<unknown>
@@ -71,6 +75,32 @@ export function createAgentTowerMcpServer(
     "agent_tower.context_get_current",
     { description: "Fetch the current non-expired context bound to this agent session." },
     async () => invoke(() => service.getCurrentContext(binding)),
+  )
+  server.registerTool(
+    "agent_tower.projects_get_mine",
+    { description: "List active project bindings visible to this bound member. Linear issue data is not copied into Agent Tower." },
+    async () => invoke(() => service.getMyProjects()),
+  )
+  server.registerTool(
+    "agent_tower.work_get_mine",
+    { description: "List current transient work leases owned by this bound member." },
+    async () => invoke(() => service.getMyWork()),
+  )
+  server.registerTool(
+    "agent_tower.task_get",
+    {
+      description: "Read one current transient issue-to-Hermes lease within this member's project scope.",
+      inputSchema: z.object({ linearIssueId: z.string().min(1).max(256) }),
+    },
+    async ({ linearIssueId }) => invoke(() => service.getTask(linearIssueId)),
+  )
+  server.registerTool(
+    "agent_tower.project_receipt_submit",
+    {
+      description: "Submit an immutable issue-session receipt bound to the exact Tower, Marketing, artifact, model, and CMO review hashes.",
+      inputSchema: z.object({ receipt: z.record(z.string(), z.unknown()) }),
+    },
+    async ({ receipt }) => invoke(() => service.submitProjectReceipt(receipt)),
   )
   server.registerTool(
     "agent_tower.context_acknowledge",
