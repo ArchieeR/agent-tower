@@ -18,10 +18,13 @@ skill_ids:
 tool_ids:
   - google-search-console
   - rheos-brain
+  - rheos_visibility_read
+  - rheos_search_performance_read
+  - rheos_seo_audit_open
 binding:
   target: rheos
   current: search-console+amplitude
-  swap_when: "an MCP over the live Rheos org visibility tree is registered (see ai-visibility-review)"
+  swap_when: "the three rheos_* tools above are deployed and discoverable on the active runtime (see ai-visibility-review)"
   swap_owner: chief-of-staff
 approval_policy: owner-review
 source_provenance:
@@ -42,10 +45,9 @@ judgement with those identifiers moved into runtime context, so it works for any
    unreachable ones rather than skipping them silently.
 3. `seo-search-console-review` — classical search: what moved, what is striking distance, what
    ranks and is not clicked.
-4. `ai-visibility-review` — answer-engine citation. Reachable today via Amplitude **in Claude Code
-   only**; Amplitude is not in `~/.hermes/config.yaml`, so on the scheduled runtime this section
-   fails closed. The report names the source and its segment, and says "canonical segment has no
-   reachable source" rather than promoting the bridge's number into the headline.
+4. `ai-visibility-review` — answer-engine citation. Prefer `rheos_visibility_read` only after
+   preflight discovers it on the active runtime. Until then, Amplitude remains an interactive-only
+   bridge and the scheduled section fails closed.
 5. `keyword-and-topic-research` — turn the gaps from 3 and 4 into a ranked brief.
 6. `discoverability-technical-audit` — monthly, not weekly, unless something dropped.
 7. Compare against last week's filed read-out. Convert every relative date to absolute first.

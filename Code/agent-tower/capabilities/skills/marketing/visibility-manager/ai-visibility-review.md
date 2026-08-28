@@ -14,7 +14,7 @@ depends_on:
 binding:
   target: rheos
   current: amplitude-ai-visibility
-  swap_when: "an MCP over the LIVE Rheos org visibility tree (organisations/{orgId}/brands/{brandId}/seo/visibility/) is registered. A 18-tool server already exists at rheos-visibility/scripts/mcp-server.ts but reads system/visibility/runs, frozen since 2026-06-21 — registering it unmodified returns confident two-month-dead numbers"
+  swap_when: "rheos_visibility_read is deployed, reported by rheos_get_capabilities on the active runtime, and returns a current run from organisations/{orgId}/brands/{brandId}/seo/visibility/"
   swap_owner: chief-of-staff
 approval_policy: owner-review
 source_provenance:
@@ -34,13 +34,15 @@ capability: publishing tools are commodity, visibility measurement is not.
 
 Rheos **has** this and it is **running**. The engine measures the brand weekly by code default, and
 writes to `organisations/{orgId}/brands/{brandId}/seo/visibility/{runs,scores,promptPacks}`. The
-dashboard reads it. No agent does, because no MCP is registered over that tree.
+Searchable dogfood backend branch adds `rheos_visibility_read` over that live tree. Until that
+branch is deployed and preflight can discover the tool on the active runtime, Amplitude remains
+the current bridge.
 
 Three sources, and they are not interchangeable:
 
 | Source | Reachable by an agent? | Segment | Use |
 |---|---|---|---|
-| **Rheos** own engine | **No** — data is being written, nothing exposes it | the brand's own prompt pack | the target |
+| **Rheos** own engine | **Pending deploy** — `rheos_visibility_read` exists on the Searchable backend branch | the brand's own prompt pack | the target |
 | **Amplitude AI Visibility** | **Yes**, in Claude Code | its own configured prompt set | today's bridge |
 | **Searchable.ai** (vendor) | **No** — no server exists on this machine | vendor's segment | do not plan around it |
 
@@ -65,8 +67,10 @@ must catch that rather than the routine reporting an empty section.
 ## Allowed operations
 
 **Target, once reachable**
-- an MCP over the live Rheos org visibility tree: score, run history, per-prompt answers,
-  competitor mentions, citations
+- `rheos_visibility_read` with `view: overview | trends | prompts | answers | sources |
+  competitors | fan_out`. Resolve `brand_id` first; use `run_id` for an exact historical run.
+  Treat `complete: false`, a formula/domain change, or a stale `run_at` as a data-quality block,
+  not a zero or a delta
 
 **Available today**
 - `mcp__Amplitude__use_amp_ai_visibility` — `action: list_brands` to resolve the brand, then

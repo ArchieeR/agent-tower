@@ -13,7 +13,7 @@ depends_on:
 binding:
   target: rheos
   current: search-console
-  swap_when: "Searchable V3 leaves internal-dogfood and its SEO surface is reachable by an agent; M2 citation lane 29 Aug, M3 AEO action layer after"
+  swap_when: "rheos_search_performance_read is deployed, reported by rheos_get_capabilities on the active runtime, and its health view reports the requested window's coverage"
   swap_owner: chief-of-staff
 approval_policy: owner-review
 source_provenance:
@@ -35,11 +35,18 @@ SEO/Technical tabs all Done. But it is internal-dogfood only; non-internal custo
 Soon. `rheos_seo_audit_open` reads a stored audit run and is hidden **from customers** by the
 readiness filter — an internal connection short-circuits that filter and can call it today.
 
-So an agent works Search Console directly today, and swaps to the Rheos surface when it opens. This
-is a **short** bridge, not a permanent one — unlike website/CRO or email.
+The Searchable dogfood backend branch adds `rheos_search_performance_read` over Rheos's canonical
+stored GSC data. It remains internal-only and is not the current binding until the branch is
+deployed and preflight can discover it on the active runtime. Direct Search Console stays useful
+for live inspection and dimensions Rheos does not yet store.
 
 ## Allowed operations
 
+- `rheos_search_performance_read` with `view: overview | queries | pages | query_pages | countries |
+  appearances | health` once preflight confirms it. Always report `requested_dates`,
+  `covered_dates`, `missing_dates`, `last_successful_import_at`, and `health`; missing coverage is
+  not zero. The overview's `anonymised_or_unread_gap_impressions` is deliberately combined and
+  must not be labelled purely anonymised demand
 - `search-console` MCP — the reporting set. **One tool, many dimensions**:
   `analytics_query({siteUrl, dimensions, startDate, endDate})` where `dimensions` is any of
   `query`, `page`, `country`, `device`, `searchAppearance`, `date`. Plus `analytics_compare`
@@ -61,8 +68,9 @@ a search engine. Never invent schema fields or product claims not visible and ap
 ## Workflow
 
 1. Bootstrap context. Preflight — confirm which surfaces are reachable.
-2. `analytics_query` for the window, once per dimension you need; `analytics_compare` against the
-   prior period.
+2. Prefer `rheos_search_performance_read` for the stored canonical window once reachable. Use the
+   direct `analytics_query` bridge for live diagnostics or unsupported dimensions; never merge the
+   two into a continuous series without naming the source and coverage.
 3. `analytics_anomalies` — what moved that nobody asked to move.
 4. `indexing_status` and `inspection_inspect` on anything that dropped.
 5. `pagespeed_analyze` and `schema_validate` where relevant.

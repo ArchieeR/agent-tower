@@ -20,6 +20,9 @@ skill_ids:
 tool_ids:
   - google-search-console
   - rheos-brain
+  - rheos_visibility_read
+  - rheos_search_performance_read
+  - rheos_seo_audit_open
 binding:
   target: rheos
   current: search-console+git
@@ -48,8 +51,9 @@ fall out of the audits and are tracked rather than rediscovered.
 ## Run contract
 
 1. `marketing-context-bootstrap` — identifiers and voice arrive here, never from this file.
-2. `capability-health-preflight` — name what is unreachable this cycle. Today that includes the
-   Searchable visibility surface, which has no agent MCP.
+2. `capability-health-preflight` — name what is unreachable this cycle. The Searchable backend
+   branch defines the three `rheos_*` read tools above, but they remain unreachable until deployed
+   and registered on the active runtime.
 3. **Measure** — `ai-visibility-review` and `seo-search-console-review`.
 4. **Gap** — `keyword-and-topic-research` turns both into one ranked brief, with the four demand
    types kept separate.
