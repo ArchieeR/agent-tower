@@ -4,8 +4,18 @@ version: 1
 kind: skill
 department: marketing
 status: planned
+scope: social-media-manager
 depends_on:
+  - marketing-context-bootstrap
+  - scoped-source-retrieval
+  - capability-health-preflight
+  - execution-receipt
   - reddit-listening
+binding:
+  target: rheos
+  current: blocked
+  swap_when: "Reddit is connected in Composio — the capability catalog claims reddit-listening is healthy, but Reddit is not connected at all"
+  swap_owner: chief-of-staff
 approval_policy: owner-review
 source_provenance:
   - /Users/archieroberts60/Documents/ALDR Ltd/Side Projects/aldr-agents/agents/biz-dev/system-prompt.md
