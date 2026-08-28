@@ -59,6 +59,7 @@ judgement a generalist gets wrong, and it cannot be copied from an open library.
 | **Eden** | `editable-social-asset`, `social-listening-sweep`, plus shared retrieval and idea research | design-to-post: `rheos_import_post_media` proven end to end. Listening: Rheos exposes a listening surface — **not Ayrshare**, whose Listen API is four endpoints with no TikTok |
 | **Search Console** | 4 visibility skills | `rheos_search_performance_read` is deployed and discoverable on the active runtime. The Searchable branch defines it, but this draft library is not runtime proof |
 | **Amplitude** | `ai-visibility-review`, `conversion-review` | `rheos_visibility_read` is deployed and discoverable. Amplitude is registered in Claude Code but **not** in `~/.hermes/config.yaml`, so it fails closed on the scheduled runtime |
+| **Rheos measurements** | `discoverability-technical-audit`, `ai-visibility-review`, both visibility routines | `rheos_search_measurement_run` is deployed and discoverable on the internal runtime; the Searchable branch defines the shared audit/visibility trigger + polling contract, but branch code is not runtime proof |
 | **GA4** | performance and conversion review | Analytics PR #301 lands and leaves the readiness filter |
 | **Permanent** | `website-*`, `answer-first-copy-review`, `internal-link-map`, `search-metadata-contract`, `structured-data-parity`, `discoverability-release-gate` | never — our own site and our own judgement |
 

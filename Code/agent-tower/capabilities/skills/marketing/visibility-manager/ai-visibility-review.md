@@ -1,6 +1,6 @@
 ---
 id: ai-visibility-review
-version: 1
+version: 2
 kind: skill
 department: marketing
 scope: visibility-manager
@@ -67,6 +67,10 @@ must catch that rather than the routine reporting an empty section.
 ## Allowed operations
 
 **Target, once reachable**
+- `rheos_search_measurement_run` — with `measurement: visibility`: `action: start` returns a
+  durable `job_id`; poll with `action: status` and read `result_run_id` after `succeeded`. Treat
+  `measurement_in_flight`, `measurement_cooldown`, `measurement_budget_exhausted`, and
+  `measurement_budget_unavailable` as final typed outcomes for this attempt; never loop-trigger
 - `rheos_visibility_read` with `view: overview | trends | prompts | answers | sources |
   competitors | fan_out`. Resolve `brand_id` first; use `run_id` for an exact historical run.
   Treat `complete: false`, a formula/domain change, or a stale `run_at` as a data-quality block,
@@ -83,8 +87,9 @@ must catch that rather than the routine reporting an empty section.
   reachable on an internal connection
 - `rheos_save_document` — file the read-out so the next one has a baseline
 
-Never trigger a scan from this skill. Scans spend provider money against a shared daily cap, and
-starting one is a separate approval.
+Trigger a scan only when the calling routine explicitly requests a fresh measurement and the run
+has approval for provider spend. Otherwise read the stored run and label its age. A typed cap or
+cooldown refusal is evidence, not a reason to retry.
 
 Never call `indexing_submit` or `sitemaps_submit`. Never present classical search data as AI
 visibility data.
@@ -94,14 +99,16 @@ visibility data.
 1. Bootstrap context. Preflight — establish which of the three sources is reachable **this run**,
    and on which runtime. If none is, report blocked with the named reason and stop. A blocked
    report is the correct output; an invented number is not.
-2. Pull the score and its history from whichever source is reachable, and **name the source and its
+2. When a fresh canonical run was explicitly requested, start it once, poll the returned handle to
+   a terminal status, and use its exact `result_run_id`. Otherwise use the stored run.
+3. Pull the score and its history from whichever source is reachable, and **name the source and its
    segment next to the number**. If the canonical segment has no reachable source, say so in the
    headline slot rather than promoting a different segment into it.
-3. Break down by topic: strong, average, missing. The missing ones are the brief for content.
-4. Competitor leaderboard — who is being cited for our questions.
-5. Model-family breakdown where available. Coverage differs by engine and that difference is signal.
-6. Compare against the last read-out. Convert relative dates to absolute before comparing.
-7. File the read-out. Hand back findings plus the one action worth taking.
+4. Break down by topic: strong, average, missing. The missing ones are the brief for content.
+5. Competitor leaderboard — who is being cited for our questions.
+6. Model-family breakdown where available. Coverage differs by engine and that difference is signal.
+7. Compare against the last read-out. Convert relative dates to absolute before comparing.
+8. File the read-out. Hand back findings plus the one action worth taking.
 
 ## Rules — carried from `seo-weekly`, generalised
 

@@ -1,6 +1,6 @@
 ---
 id: visibility-weekly-review
-version: 1
+version: 2
 kind: routine
 department: marketing
 scope: visibility-manager
@@ -21,10 +21,11 @@ tool_ids:
   - rheos_visibility_read
   - rheos_search_performance_read
   - rheos_seo_audit_open
+  - rheos_search_measurement_run
 binding:
   target: rheos
   current: search-console+amplitude
-  swap_when: "the three rheos_* tools above are deployed and discoverable on the active runtime (see ai-visibility-review)"
+  swap_when: "the three Rheos read tools plus rheos_search_measurement_run are deployed and discoverable on the active runtime (see ai-visibility-review)"
   swap_owner: chief-of-staff
 approval_policy: owner-review
 source_provenance:
@@ -62,8 +63,9 @@ judgement with those identifiers moved into runtime context, so it works for any
 - Expected zeros are not regressions. Name them as expected in the report.
 - Verify an event fires before reporting zero from it.
 - A scheduled run is not proof of execution. The receipt is.
-- Never trigger a visibility scan or a site audit from this routine. Both spend against a shared
-  daily cap and both are separate approvals.
+- Never trigger a visibility scan or site audit without explicit approval for that routine run.
+  When approved, call `rheos_search_measurement_run` once and poll its handle; typed in-flight,
+  cooldown, and budget refusals end the attempt rather than causing a retry loop.
 - Check the age of any stored figure before reporting it. A store that stopped being written keeps
   returning a plausible number.
 

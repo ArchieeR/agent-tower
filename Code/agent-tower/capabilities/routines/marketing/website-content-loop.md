@@ -1,6 +1,6 @@
 ---
 id: website-content-loop
-version: 1
+version: 2
 kind: routine
 department: marketing
 scope: visibility-manager
@@ -23,6 +23,7 @@ tool_ids:
   - rheos_visibility_read
   - rheos_search_performance_read
   - rheos_seo_audit_open
+  - rheos_search_measurement_run
 binding:
   target: rheos
   current: search-console+git
@@ -52,18 +53,23 @@ fall out of the audits and are tracked rather than rediscovered.
 
 1. `marketing-context-bootstrap` — identifiers and voice arrive here, never from this file.
 2. `capability-health-preflight` — name what is unreachable this cycle. The Searchable backend
-   branch defines the three `rheos_*` read tools above, but they remain unreachable until deployed
-   and registered on the active runtime.
-3. **Measure** — `ai-visibility-review` and `seo-search-console-review`.
+   branch defines the three `rheos_*` read tools plus the measurement trigger above, but they
+   remain unreachable until deployed and registered on the active runtime.
+3. **Measure** — when this approved run requires a fresh baseline, start `visibility` once through
+   `rheos_search_measurement_run`, poll its `job_id`, then run `ai-visibility-review` and
+   `seo-search-console-review`. A typed spend/cooldown refusal is filed, never retried in a loop.
 4. **Gap** — `keyword-and-topic-research` turns both into one ranked brief, with the four demand
    types kept separate.
 5. **Write** — `article-draft` on the top gap. One article, one question.
 6. **Review gate** — CMO `content-review`, bound to the exact hash. Not optional.
 7. **Publish** — `website-content-publish` after owner approval. Indexing submission is a separate
    approval again.
-8. **Blockers** — `audit-blocker-register` absorbs everything the audits surfaced, deduplicated
+8. **Re-measure** — after the approved publish, start the requested `site_audit` once, poll its
+   handle, and read the exact run with `rheos_seo_audit_open`. Visibility re-measurement waits for
+   its cooldown when refused; the routine does not manufacture a duplicate.
+9. **Blockers** — `audit-blocker-register` absorbs everything the audits surfaced, deduplicated
    against the standing register.
-9. `execution-receipt`, including when blocked.
+10. `execution-receipt`, including when blocked.
 
 ## Cadence
 

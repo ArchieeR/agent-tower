@@ -1,6 +1,6 @@
 ---
 id: discoverability-technical-audit
-version: 1
+version: 2
 kind: skill
 department: marketing
 scope: visibility-manager
@@ -13,13 +13,13 @@ depends_on:
 binding:
   target: rheos
   current: search-console+firefox
-  swap_when: "an agent can TRIGGER an audit, not just read one. rheos_seo_audit_open is already reachable on an internal connection (the readiness filter short-circuits for internal auth) but it only reads a stored run, and the 'mcp' trigger value is plumbed with no caller — so an agent cannot cause the audit it then reads"
+  swap_when: "rheos_search_measurement_run is deployed and discoverable on the internal runtime; use measurement=site_audit, then poll the returned job_id before rheos_seo_audit_open"
   swap_owner: chief-of-staff
 approval_policy: owner-review
 source_provenance:
   - Linear RHE-1352, RHE-1353 (audit engine)
   - rheos-backend/src/mcp/toolReadiness.ts (NOT_CUSTOMER_READY hides from customers; internal auth short-circuits)
-  - rheos-backend/src/siteAudit/runAuditCallable.ts (sole caller of enqueueSiteAuditTask)
+  - Linear RHE-1745 (shared callable/MCP measurement job contract)
 ---
 
 # Discoverability technical audit
@@ -27,7 +27,8 @@ source_provenance:
 ## Outcome
 
 Find what is technically stopping pages being found — by search engines, by answer engines, and by
-agents — with evidence for each finding. Read-only. Fixes go to whoever owns the code.
+agents — with evidence for each finding. Measurement may create an approved audit job; fixes remain
+read-only and go to whoever owns the code.
 
 ## Allowed operations
 
@@ -36,6 +37,9 @@ agents — with evidence for each finding. Read-only. Fixes go to whoever owns t
 - `firefox-devtools` headless: navigate, `take_snapshot`, `list_console_messages`,
   `list_network_requests`, `screenshot_page`
 - `rheos_seo_audit_open` — a stored audit run, internal connections only
+- `rheos_search_measurement_run` — with `measurement: site_audit`: `action: start` returns a
+  `job_id`; `action: status` polls it to `succeeded | skipped | failed`. Starting spends crawl/API
+  budget and requires the run's approval; typed cooldown/in-flight refusals are normal outcomes
 - `firecrawl` via `composio` for crawl and link discovery
 - `rheos_save_document` — file findings
 
@@ -45,16 +49,19 @@ explicit owner approval. Never claim a page is fine without loading it.
 ## Workflow
 
 1. Bootstrap context. Preflight.
-2. `sitemaps_list` and `site_health_check` — start from what the site claims about itself.
-3. `indexing_status` — what is actually indexed versus what we submitted.
-4. For anything not indexed or recently dropped: `inspection_inspect` for the engine's own reason.
+2. If the stored audit is absent or older than the requested window, start `site_audit` through
+   `rheos_search_measurement_run`, poll the returned `job_id`, then read its exact `result_run_id`
+   with `rheos_seo_audit_open`. Never loop on cooldown or in-flight; use the handle returned.
+3. `sitemaps_list` and `site_health_check` — start from what the site claims about itself.
+4. `indexing_status` — what is actually indexed versus what we submitted.
+5. For anything not indexed or recently dropped: `inspection_inspect` for the engine's own reason.
    Its answer beats our inference.
-5. **Load the page.** `firefox-devtools` — render it, read the console, watch the network. Client-
+6. **Load the page.** `firefox-devtools` — render it, read the console, watch the network. Client-
    side rendering failures and blocked resources do not appear in any report; they appear in the
    browser.
-6. `schema_validate` and `pagespeed_analyze` on templates, not on every page. Template problems
+7. `schema_validate` and `pagespeed_analyze` on templates, not on every page. Template problems
    repeat; page problems do not.
-7. Rank by blast radius — a broken template outranks a single slow page.
+8. Rank by blast radius — a broken template outranks a single slow page.
 
 ## Rules
 
